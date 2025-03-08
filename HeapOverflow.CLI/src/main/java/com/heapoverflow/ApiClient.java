@@ -1,18 +1,11 @@
 package com.heapoverflow;
 
-import java.awt.*;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Scanner;
 
 public class ApiClient {
 
-    private static final String API_URL = "http://localhost:8080";
-
-    private static String JwtToken = null;
+    private static String jwtToken = null;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
@@ -37,6 +30,6 @@ public class ApiClient {
     }
 
     private static void login(Scanner scanner) throws IOException, InterruptedException {
-        // todo @michael
+        // Todo: @Michael
     }
 }

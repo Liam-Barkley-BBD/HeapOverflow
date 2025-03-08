@@ -8,7 +8,7 @@ public class AuthController {
 
     @GetMapping("/")
     public String home() {
-        return "Hello Home";
+        return "Hello unsecured";
     }
 
     @GetMapping("/auth")
