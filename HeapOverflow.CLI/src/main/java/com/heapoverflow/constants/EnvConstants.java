@@ -7,4 +7,5 @@ public class EnvConstants {
     public static final String REDIRECT_URI = "REDIRECT_URI";
     public static final String AUTH_URL = "AUTH_URL";
     public static final String TOKEN_URL = "TOKEN_URL";
+    public static final String LOCAL_AUTH_TIMEOUT = "LOCAL_AUTH_TIMEOUT";
 }

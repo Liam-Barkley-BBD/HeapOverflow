@@ -1,4 +1,4 @@
-package com.heapoverflow.auth;
+package com.heapoverflow.services;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -17,10 +17,14 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public class GoogleAuth {
+public class GoogleAuthService {
     public static CompletableFuture<String> getUsersIdToken() {
         CompletableFuture<String> futureToken = new CompletableFuture<>();
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(EnvUtils.getIntEnvOrThrow(EnvConstants.LOCAL_AUTH_PORT)), 0);
@@ -52,9 +56,15 @@ public class GoogleAuth {
 
             server.start();
 
+            // Schedule timeout to stop the server after 1 minute
+            scheduler.schedule(() -> {
+                server.stop(1);
+                futureToken.complete(""); // Return an empty string if no token was collected
+            }, EnvUtils.getIntEnvOrThrow(EnvConstants.LOCAL_AUTH_TIMEOUT), TimeUnit.SECONDS);
+
             // open browser for login
             String loginUrl = EnvUtils.getStringEnvOrThrow(EnvConstants.AUTH_URL) + "?client_id=" + EnvUtils.getStringEnvOrThrow(EnvConstants.CLIENT_ID) +
-            "&redirect_uri=" + EnvUtils.getStringEnvOrThrow(EnvConstants.CLIENT_SECRET) +
+            "&redirect_uri=" + EnvUtils.getStringEnvOrThrow(EnvConstants.REDIRECT_URI) +
             "&response_type=code" +
             "&scope=openid%20email%20profile";
 
@@ -83,7 +93,7 @@ public class GoogleAuth {
 
         // request token
         TokenResponse tokenResponse = flow.newTokenRequest(code)
-                .setRedirectUri(EnvUtils.getStringEnvOrThrow(EnvConstants.CLIENT_SECRET))
+                .setRedirectUri(EnvUtils.getStringEnvOrThrow(EnvConstants.REDIRECT_URI))
                 .setClientAuthentication(new ClientParametersAuthentication(
                     EnvUtils.getStringEnvOrThrow(EnvConstants.CLIENT_ID), 
                     EnvUtils.getStringEnvOrThrow(EnvConstants.CLIENT_SECRET)))

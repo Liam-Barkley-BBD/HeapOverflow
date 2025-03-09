@@ -1,14 +1,19 @@
 package com.heapoverflow.services;
 import java.util.concurrent.CompletableFuture;
 
-import com.heapoverflow.auth.GoogleAuth;
-
 public class AuthService {
     public static void attemptGoogleLogin() {
-        String usersIdToken = GoogleAuth.getUsersIdToken().join();
+        String usersIdToken = GoogleAuthService.getUsersIdToken().join();
 
-        System.out.println(usersIdToken);
-        // perform all the login stuff
+        if(usersIdToken.equals("")){
+            System.out.println("Authentication took too long, cancelling and releasing resources");
+            return;
+        } else{
+            System.out.println("\nHere is the token\n");
+            System.out.println(usersIdToken);
+            System.out.println();
+            // perform all the login stuff
+        }
     }
 
     public static CompletableFuture<Boolean> isLoggedIn() {
