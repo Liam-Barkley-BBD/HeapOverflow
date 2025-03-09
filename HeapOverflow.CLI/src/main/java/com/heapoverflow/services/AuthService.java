@@ -1,27 +1,14 @@
 package com.heapoverflow.services;
-
-import java.io.BufferedReader;
-import java.net.HttpURLConnection;
 import java.util.concurrent.CompletableFuture;
 
 import com.heapoverflow.auth.GoogleAuth;
 
 public class AuthService {
-    public static CompletableFuture<Boolean> attemptGoogleLogin() {
-        CompletableFuture<Boolean> loginStatusFuture = new CompletableFuture<>();
-        CompletableFuture<String> usersIdTokenFuture = GoogleAuth.getUsersIdToken();
+    public static void attemptGoogleLogin() {
+        String usersIdToken = GoogleAuth.getUsersIdToken().join();
 
-        usersIdTokenFuture.thenAccept(token -> {
-            System.out.println("ID Token: " + token);
-            // Use the token for API requests
-            loginStatusFuture.complete(true);
-        }).exceptionally(ex -> {
-            System.err.println("Authentication failed: " + ex.getMessage());
-            loginStatusFuture.complete(false);
-            return null;
-        });
-
-        return loginStatusFuture;
+        System.out.println(usersIdToken);
+        // perform all the login stuff
     }
 
     public static CompletableFuture<Boolean> isLoggedIn() {

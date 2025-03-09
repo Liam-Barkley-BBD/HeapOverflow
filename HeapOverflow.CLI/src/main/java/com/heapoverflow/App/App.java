@@ -5,6 +5,7 @@ import org.jline.reader.LineReaderBuilder;
 
 import com.heapoverflow.constants.CommandConstants;
 import com.heapoverflow.gui.Gui;
+import com.heapoverflow.services.AuthService;
 import com.heapoverflow.utils.TextUtils;
 
 public class App {
@@ -26,6 +27,7 @@ public class App {
                     Gui.renderBye();
                     return;
                 case CommandConstants.LOGIN:
+                AuthService.attemptGoogleLogin();
                     break;
                 default:
                     System.out.println("Invalid option. Please try again.");

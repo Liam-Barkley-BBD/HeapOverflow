@@ -15,16 +15,13 @@ public class Gui {
     }
 
     public static void renderHelpMenu(){
-        AuthService.isLoggedIn().thenAccept(isLoggedIn -> {
-            if(isLoggedIn){
-              System.out.println(TextUtils.getHelpMenuAuth());  
-            } else{
+        Boolean isLoggedIn = AuthService.isLoggedIn().join(); // This blocks until the result is available
+
+        if(isLoggedIn){
+            System.out.println(TextUtils.getHelpMenuAuth());  
+        } else {
             System.out.println(TextUtils.getHelpMenuNoAuth()); 
-            }
-        }).exceptionally(ex -> {
-            System.err.println("Authentication failed: " + ex.getMessage());
-            return null;
-        });
+        }
     }
 
     public static void renderBye(){
