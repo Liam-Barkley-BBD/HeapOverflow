@@ -23,7 +23,7 @@ public class App {
                 case CommandConstants.HELP:
                     Gui.renderHelpMenu();
                     break;
-                case CommandConstants.QUIT:
+                case CommandConstants.QUIT, CommandConstants.EXIT:
                     Gui.renderBye();
                     return;
                 case CommandConstants.LOGIN:

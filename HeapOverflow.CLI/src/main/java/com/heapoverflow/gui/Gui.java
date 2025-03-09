@@ -25,7 +25,11 @@ public class Gui {
     }
 
     public static void renderBye(){
-        System.out.println(TextUtils.getByeMessage());
+        System.out.println(
+            new AttributedString(
+                TextUtils.getByeMessage(), 
+                AttributedStyle.BOLD_OFF.foreground(AttributedStyle.BLUE))
+            .toAnsi());
     }
 }
 
