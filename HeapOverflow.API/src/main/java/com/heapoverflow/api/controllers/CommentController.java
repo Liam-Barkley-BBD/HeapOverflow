@@ -5,6 +5,7 @@ import com.heapoverflow.api.repositories.CommentRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -21,7 +22,12 @@ public class CommentController {
         return commentRepository.findAll();
     }
 
-    @GetMapping("/comments/{threadId}")
+    @GetMapping("/comments/{id}")
+    public Optional<Comment> getCommentById(@PathVariable Integer id) {
+        return commentRepository.findById(id);
+    }
+
+    @GetMapping("/comments/thread/{threadId}")
     public List<Comment> getCommentsByThreadId(@PathVariable Integer threadId) {
         return commentRepository.findByThreadId(threadId);
     }

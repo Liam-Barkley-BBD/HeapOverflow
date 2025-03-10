@@ -5,6 +5,7 @@ import com.heapoverflow.api.repositories.ReplyRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -21,7 +22,12 @@ public class ReplyController {
         return replyRepository.findAll();
     }
 
-    @GetMapping("/replies/{commentId}")
+    @GetMapping("/replies/{id}")
+    public Optional<Reply> getReplyById(@PathVariable Integer id) {
+        return replyRepository.findById(id);
+    }
+
+    @GetMapping("/replies/comment/{commentId}")
     public List<Reply> getRepliesByCommentId(@PathVariable Integer commentId) {
         return replyRepository.findByCommentId(commentId);
     }

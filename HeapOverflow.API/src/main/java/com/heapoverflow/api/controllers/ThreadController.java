@@ -5,6 +5,7 @@ import com.heapoverflow.api.repositories.ThreadRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -21,7 +22,12 @@ public class ThreadController {
         return threadRepository.findAll();
     }
 
-    @GetMapping("/threads/{title}")
+    @GetMapping("/threads/{id}")
+    public Optional<Thread> getThreadById(@PathVariable Integer id) {
+        return threadRepository.findById(id);
+    }
+
+    @GetMapping("/threads/title/{title}")
     public List<Thread> getThreadsByTitle(@PathVariable String title) {
         return threadRepository.findByTitleContaining(title);
     }
