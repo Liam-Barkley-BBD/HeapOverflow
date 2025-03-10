@@ -21,7 +21,7 @@ public class SecurityConfig {
                 })
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
-                                .jwkSetUri(GOOGLE_JWKS_URI) // get public keys from google for token validation
+                                .jwkSetUri(GOOGLE_JWKS_URI) // check google public key for signature
                         )
                 )
                 .build();
