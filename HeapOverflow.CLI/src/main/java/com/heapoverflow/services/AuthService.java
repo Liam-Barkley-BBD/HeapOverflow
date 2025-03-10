@@ -3,16 +3,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class AuthService {
     public static void attemptGoogleLogin() {
-        String usersIdToken = GoogleAuthService.getUsersIdToken().join();
+        Boolean authStatus = GoogleAuthService.getUsersIdToken().join();
 
-        if(usersIdToken.equals("")){
-            System.out.println("Authentication took too long, cancelling and releasing resources");
+        if(!authStatus){
+            System.out.println("Authentication took too long or failed");
             return;
         } else{
-            System.out.println("\nHere is the token\n");
-            System.out.println(usersIdToken);
-            System.out.println();
-            // perform all the login stuff
+            
         }
     }
 
