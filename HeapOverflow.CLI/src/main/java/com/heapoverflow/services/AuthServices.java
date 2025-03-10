@@ -1,12 +1,12 @@
 package com.heapoverflow.services;
 import java.util.concurrent.CompletableFuture;
 
-public class AuthService {
+public class AuthServices {
     public static void attemptGoogleLogin() {
-        Boolean authStatus = GoogleAuthService.getUsersIdToken().join();
+        String authCode = BrowserAuthServices.getUsersGoogleAuthCode().join();
 
-        if(!authStatus){
-            System.out.println("Authentication took too long or failed");
+        if(authCode.equals("")){
+            System.out.println("Authentication took too long or failed, releasing resources");
             return;
         } else{
             

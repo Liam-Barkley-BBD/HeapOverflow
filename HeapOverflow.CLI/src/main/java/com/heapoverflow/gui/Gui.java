@@ -1,5 +1,5 @@
 package com.heapoverflow.gui;
-import com.heapoverflow.services.AuthService;
+import com.heapoverflow.services.AuthServices;
 import com.heapoverflow.utils.TextUtils;
 
 import org.jline.utils.AttributedString;
@@ -15,7 +15,7 @@ public class Gui {
     }
 
     public static void renderHelpMenu(){
-        Boolean isLoggedIn = AuthService.isLoggedIn().join(); // This blocks until the result is available
+        Boolean isLoggedIn = AuthServices.isLoggedIn().join(); // This blocks until the result is available
 
         if(isLoggedIn){
             System.out.println(TextUtils.getHelpMenuAuth());  
