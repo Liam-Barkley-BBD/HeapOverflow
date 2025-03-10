@@ -36,7 +36,7 @@ public class GoogleAuthService {
                         return;
                     }
                     
-                    String code = query.split("code=")[1].split("&")[0];
+                    // String code = query.split("code=")[1].split("&")[0];
 
                     String response = "Authentication successful! You can close this tab.";
                     exchange.sendResponseHeaders(200, response.length());
@@ -47,8 +47,8 @@ public class GoogleAuthService {
                     server.stop(1);
 
                     // Exchange authorization code for token
-                    String idToken = getIdToken(code);
-                    futureToken.complete(idToken); // Complete the future successfully
+                    // String idToken = getIdToken(code);
+                    // futureToken.complete(idToken); // Complete the future successfully
                 } catch (Exception e) {
                     futureToken.completeExceptionally(e);
                 }

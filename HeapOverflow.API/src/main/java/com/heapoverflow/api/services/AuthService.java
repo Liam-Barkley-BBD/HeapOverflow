@@ -20,14 +20,15 @@ public class AuthService {
     public static final ObjectMapper objectMapper= new ObjectMapper();
 
     public String getJWT(String authCode) throws Exception{
-        String url = "https://accounts.google.com/o/oauth2/token";
+        String url = "https://oauth2.googleapis.com/token";
 
         String body =
-            "code=" + URLDecoder.decode(authCode, StandardCharsets.UTF_8) + "&" +
-            "client_id=" + System.getenv("CLIENT_ID") + "&" +
-            "client_secret=" + System.getenv("CLIENT_SECRET") + "&" +
-            "redirect_uri=" +  "http://localhost:" + System.getenv("LOCAL_AUTH_PORT") + "/callback" + "&" +
-            "grant_type=" + "authorization_code";
+            "code=" + URLDecoder.decode(authCode, StandardCharsets.UTF_8) +
+            "&client_id=" + System.getenv("CLIENT_ID") +
+            "&client_secret=" + System.getenv("CLIENT_SECRET") +
+            "&redirect_uri=" +  "http://localhost:" + System.getenv("LOCAL_AUTH_PORT") + "/callback" +
+            "&grant_type=" + "authorization_code" + 
+            "&scope=openid%20email%20profile";
 
         System.out.println("The body of the token request:\n" + body);
 
