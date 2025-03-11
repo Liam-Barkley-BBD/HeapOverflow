@@ -16,12 +16,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @GetMapping("/")
-    public String home() {
-        return "Hello unsecured";
-    }
-
-    @GetMapping("/auth")
+    @GetMapping("/auth/token")
     public String auth(@RequestParam String code) throws Exception {
         return authService.getJWT(code);
     }
