@@ -31,8 +31,8 @@ jobs:
           java-version: '23'
           cache: 'maven'
 
-      - name: 🌸 Run linting
-        run: mvn test
+      - name: 🌸 Run Linter
+        run: mvn checkstyle:check
 
   test:
     name: 🧪 Test
