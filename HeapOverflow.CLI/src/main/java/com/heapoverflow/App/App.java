@@ -1,4 +1,4 @@
-package com.heapoverflow.App;
+package com.heapoverflow.app;
 
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
