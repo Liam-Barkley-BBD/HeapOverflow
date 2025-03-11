@@ -12,8 +12,9 @@ public class Comment {
     @Column(name = "comment_id")
     private Integer id;
 
-    @Column(name = "user_google_id", nullable = false)
-    private String userGoogleId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_google_id", nullable = false)
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "thread_id", referencedColumnName = "thread_id", nullable = false)
@@ -31,14 +32,6 @@ public class Comment {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getUserGoogleId() {
-        return userGoogleId;
-    }
-
-    public void setUserGoogleId(String userGoogleId) {
-        this.userGoogleId = userGoogleId;
     }
 
     public Thread getThread() {
@@ -69,7 +62,6 @@ public class Comment {
     public String toString() {
         return "Comment{" +
                 "id=" + id +
-                ", userGoogleId='" + userGoogleId + '\'' +
                 ", thread=" + thread +
                 ", content='" + content + '\'' +
                 ", createdAt=" + createdAt +

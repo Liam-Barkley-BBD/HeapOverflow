@@ -12,8 +12,9 @@ public class Reply {
     @Column(name = "reply_id")
     private Integer id;
 
-    @Column(name = "user_google_id", nullable = false)
-    private String userGoogleId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_google_id", nullable = false)
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "comment_id", referencedColumnName = "comment_id", nullable = false)
@@ -31,14 +32,6 @@ public class Reply {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getUserGoogleId() {
-        return userGoogleId;
-    }
-
-    public void setUserGoogleId(String userGoogleId) {
-        this.userGoogleId = userGoogleId;
     }
 
     public Comment getComment() {
@@ -69,7 +62,6 @@ public class Reply {
     public String toString() {
         return "Reply{" +
                 "id=" + id +
-                ", userGoogleId='" + userGoogleId + '\'' +
                 ", comment=" + comment +
                 ", content='" + content + '\'' +
                 ", createdAt=" + createdAt +

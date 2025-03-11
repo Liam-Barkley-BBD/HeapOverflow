@@ -18,8 +18,9 @@ public class Thread {
     @Column(name = "thread_description", nullable = false)
     private String description;
 
-    @Column(name = "user_google_id", nullable = false)
-    private String userGoogleId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_google_id", nullable = false)
+    private User user;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -51,14 +52,6 @@ public class Thread {
         this.description = description;
     }
 
-    public String getUserGoogleId() {
-        return userGoogleId;
-    }
-
-    public void setUserGoogleId(String userGoogleId) {
-        this.userGoogleId = userGoogleId;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -81,7 +74,7 @@ public class Thread {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", userGoogleId='" + userGoogleId + '\'' +
+                ", user=" + (user != null ? user.getId() : "null") +
                 ", createdAt=" + createdAt +
                 ", closedAt=" + closedAt +
                 '}';

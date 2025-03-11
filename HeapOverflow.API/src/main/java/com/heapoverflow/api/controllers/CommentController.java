@@ -34,6 +34,6 @@ public class CommentController {
 
     @GetMapping("/comments/user/{userGoogleId}")
     public List<Comment> getCommentsByUserGoogleId(@PathVariable String userGoogleId) {
-        return commentRepository.findByUserGoogleId(userGoogleId);
+        return commentRepository.findByUserId(userGoogleId);
     }
 }

@@ -1,5 +1,9 @@
 package com.heapoverflow.api.entities;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.*;
@@ -18,6 +22,17 @@ public class User {
     @Column(name = "user_email", nullable = false, unique = true)
     private String email;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Thread> userThreads;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Comment> userComments;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Reply> userReplies;
     public void setId(String id) {
         this.id = id;
     }
@@ -42,14 +57,14 @@ public class User {
         return this.email;
     }
 
-    @Override
-    public String toString() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{}";
-        }
-    }
+    // @Override
+    // public String toString() {
+    //     try {
+    //         ObjectMapper objectMapper = new ObjectMapper();
+    //         return objectMapper.writeValueAsString(this);
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         return "{}";
+    //     }
+    // }
 }

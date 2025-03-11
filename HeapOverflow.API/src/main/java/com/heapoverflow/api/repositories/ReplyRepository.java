@@ -12,5 +12,5 @@ public interface ReplyRepository extends JpaRepository<Reply, Integer> {
 
     List<Reply> findByCommentId(Integer commentId);
 
-    List<Reply> findByUserGoogleId(String userGoogleId);
+    List<Reply> findByUserId(String userGoogleId);
 }

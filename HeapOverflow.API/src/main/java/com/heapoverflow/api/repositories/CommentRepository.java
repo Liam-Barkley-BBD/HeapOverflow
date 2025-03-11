@@ -12,5 +12,5 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
     List<Comment> findByThreadId(Integer threadId);
 
-    List<Comment> findByUserGoogleId(String userGoogleId);
+    List<Comment> findByUserId(String userGoogleId);
 }

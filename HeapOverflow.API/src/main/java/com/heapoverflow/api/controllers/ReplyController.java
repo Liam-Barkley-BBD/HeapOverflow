@@ -34,6 +34,6 @@ public class ReplyController {
 
     @GetMapping("/replies/user/{userGoogleId}")
     public List<Reply> getRepliesByUserGoogleId(@PathVariable String userGoogleId) {
-        return replyRepository.findByUserGoogleId(userGoogleId);
+        return replyRepository.findByUserId(userGoogleId);
     }
 }
