@@ -8,6 +8,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,10 @@ public class AuthService {
           ObjectMapper objectMapper = new ObjectMapper();
           HashMap<String, String> map = objectMapper.readValue(resp.body(), new TypeReference<HashMap<String, String>>() {});
  
-          return map.get("id_token");
+          Map<String, String> jwtResponse = new HashMap<>();
+          jwtResponse.put("jwt", map.get("id_token"));
+  
+          return objectMapper.writeValueAsString(jwtResponse);
     }
  
 }
