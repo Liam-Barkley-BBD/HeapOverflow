@@ -9,8 +9,7 @@ import jakarta.persistence.*;
 public class User {
 
     @Id
-    @Column(name = "user_google_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_google_id", length = 30)
     private String id;
 
     @Column(name = "user_name", nullable = false, unique = false)

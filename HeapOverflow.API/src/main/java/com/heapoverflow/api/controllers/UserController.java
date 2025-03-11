@@ -1,14 +1,12 @@
 package com.heapoverflow.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.repositories.UserRepository;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -22,21 +20,38 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
+    /** GET endpoints */
+
     @GetMapping("/users")
-    public JsonNode getAllUsers() throws JsonMappingException, JsonProcessingException {
-        var users = userRepository.findAll();
-        System.out.println("USERS: " + users);
-    return objectMapper.readTree(users.toString());
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
     @GetMapping("/users/{userGoogleId}")
-    public Optional<User> getUserById(@PathVariable String userGoogleId) {
-        return userRepository.findById(userGoogleId);
+    public ResponseEntity<User> getUserById(@PathVariable String userGoogleId) {
+        return userRepository.findById(userGoogleId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/users/username/{username}")
-    public List<User> getUserByUsername(@PathVariable String username) {
-        return userRepository.findByUsername(username);
+    public List<User> getUsersByUsername(@PathVariable String username) {
+        return userRepository.findByUsernameContaining(username);
+    }
+
+    @GetMapping("/users/email/{email}")
+    public List<User> getUsersByEmail(@PathVariable String email) {
+        return userRepository.findByEmailContaining(email);
+    }
+
+    /** POST endpoints */
+
+    @PostMapping("/users")
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        if (userRepository.existsById(user.getId())) {
+            return ResponseEntity.badRequest().body("{\"error\": \"User already exists\"}");
+        }
+        return ResponseEntity.ok(userRepository.save(user));
     }
 }
 
