@@ -41,7 +41,7 @@ jobs:
 
       - name: Create Database (if not exists)
         run: |
-          psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ vars.DB_USERNAME }}" -d postgres -c "SELECT 1 FROM pg_database WHERE datname='beanbd_db'" | grep -q 1 || psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ vars.DB_USERNAME }}" -d postgres -c "CREATE DATABASE heapoverflow_db;"
+          psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ vars.DB_USERNAME }}" -d postgres -c "SELECT 1 FROM pg_database WHERE datname='heapoverflow_db'" | grep -q 1 || psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ vars.DB_USERNAME }}" -d postgres -c "CREATE DATABASE heapoverflow_db;"
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
 
