@@ -1,9 +1,11 @@
 package com.heapoverflow.api.controllers;
 
-import com.heapoverflow.api.entities.ThreadUpvotes;
-import com.heapoverflow.api.repositories.ThreadUpvotesRepository;
+import com.heapoverflow.api.entities.Reply;
+import com.heapoverflow.api.entities.ThreadUpvote;
+import com.heapoverflow.api.repositories.ThreadUpvoteRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -14,27 +16,34 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class ThreadUpvotesController {
 
-    private final ThreadUpvotesRepository threadUpvotesRepository;
+    private final ThreadUpvoteRepository threadUpvoteRepository;
 
-    public ThreadUpvotesController(ThreadUpvotesRepository threadUpvotesRepository) {
-        this.threadUpvotesRepository = threadUpvotesRepository;
+    public ThreadUpvotesController(ThreadUpvoteRepository threadUpvotesRepository) {
+        this.threadUpvoteRepository = threadUpvotesRepository;
     }
 
     /** GET endpoints */
     
     @GetMapping("/threadupvotes")
-    public Page<ThreadUpvotes> getAllThreadUpvotes(Pageable pageable) {
+    public Page<ThreadUpvote> getAllThreadUpvotes(Pageable pageable) {
         System.out.println("Hello, this is a console log in Java!");
-        return threadUpvotesRepository.findAll(pageable);
+        return threadUpvoteRepository.findAll(pageable);
     }
 
     @GetMapping("/threadupvotes/{id}")
-    public Optional<ThreadUpvotes> getThreadUpvoteById(@PathVariable Integer id) {
-        return threadUpvotesRepository.findById(id);
+    public Optional<ThreadUpvote> getThreadUpvoteById(@PathVariable Integer id) {
+        return threadUpvoteRepository.findById(id);
     }
 
     @GetMapping("/threadupvotes/thread/{threadId}")
-    public Page<ThreadUpvotes> getThreadUpvotesByThreadId(@PathVariable Integer threadId, Pageable pageable) {
-        return threadUpvotesRepository.findByThreadId(threadId, pageable);
+    public Page<ThreadUpvote> getThreadUpvotesByThreadId(@PathVariable Integer threadId, Pageable pageable) {
+        return threadUpvoteRepository.findByThreadId(threadId, pageable);
+    }
+
+    /** POST endpoints */
+
+    @PostMapping("/threadupvotes")
+    public ResponseEntity<?> createThreadUpvote(@RequestBody ThreadUpvote thread) {
+        return ResponseEntity.ok(threadUpvoteRepository.save(thread));
     }
 }

@@ -3,12 +3,12 @@ package com.heapoverflow.api.repositories;
 import com.heapoverflow.api.entities.Thread;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ThreadRepository extends PagingAndSortingRepository<Thread, Integer> {
+public interface ThreadRepository extends JpaRepository<Thread, Integer> {
 
     Optional<Thread> findById(Integer id);
 
