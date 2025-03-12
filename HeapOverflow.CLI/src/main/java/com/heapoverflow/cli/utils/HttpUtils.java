@@ -1,4 +1,4 @@
-package com.heapoverflow.utils;
+package com.heapoverflow.cli.utils;
 
 import java.net.URI;
 import java.net.http.HttpClient;

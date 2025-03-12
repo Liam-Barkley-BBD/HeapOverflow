@@ -1,4 +1,4 @@
-package com.heapoverflow.entities;
+package com.heapoverflow.cli.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;

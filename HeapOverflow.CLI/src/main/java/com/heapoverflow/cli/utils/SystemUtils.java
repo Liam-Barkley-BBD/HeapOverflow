@@ -1,4 +1,4 @@
-package com.heapoverflow.utils;
+package com.heapoverflow.cli.utils;
 
 import java.awt.Desktop;
 import java.io.IOException;

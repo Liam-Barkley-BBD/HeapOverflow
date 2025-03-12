@@ -1,4 +1,4 @@
-package com.heapoverflow.utils;
+package com.heapoverflow.cli.utils;
 
 public class EnvUtils {
     public static String getStringEnvOrThrow(String envVar) {

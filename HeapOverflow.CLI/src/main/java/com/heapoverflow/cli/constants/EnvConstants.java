@@ -1,4 +1,4 @@
-package com.heapoverflow.constants;
+package com.heapoverflow.cli.constants;
 
 public class EnvConstants {
     public static final String LOCAL_AUTH_PORT = "LOCAL_AUTH_PORT";

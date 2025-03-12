@@ -1,4 +1,4 @@
-package com.heapoverflow.services;
+package com.heapoverflow.cli.services;
 import java.util.concurrent.CompletableFuture;
 
 public class AuthServices {

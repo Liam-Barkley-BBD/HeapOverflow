@@ -1,8 +1,8 @@
-package com.heapoverflow.services;
+package com.heapoverflow.cli.services;
 
-import com.heapoverflow.constants.EnvConstants;
-import com.heapoverflow.utils.EnvUtils;
-import com.heapoverflow.utils.SystemUtils;
+import com.heapoverflow.cli.constants.EnvConstants;
+import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.SystemUtils;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.OutputStream;
