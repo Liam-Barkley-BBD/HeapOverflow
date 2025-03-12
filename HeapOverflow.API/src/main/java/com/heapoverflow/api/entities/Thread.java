@@ -18,7 +18,7 @@ public class Thread {
     @Column(name = "thread_description", nullable = false)
     private String description;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "user_google_id", nullable = false)
     private User user;
 

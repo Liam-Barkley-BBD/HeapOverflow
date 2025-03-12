@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -32,7 +33,7 @@ public class CommentController {
     public Page<Comment> getCommentsByThreadId(@PathVariable Integer threadId, Pageable pageable) {
         return commentRepository.findByThreadId(threadId, pageable);
     }
-
+    
     @GetMapping("/comments/user/{userGoogleId}")
     public Page<Comment> getCommentsByUserGoogleId(@PathVariable String userGoogleId, Pageable pageable) {
         return commentRepository.findByUserId(userGoogleId, pageable);
