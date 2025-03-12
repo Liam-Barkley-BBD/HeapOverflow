@@ -2,9 +2,10 @@ package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.repositories.CommentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -18,8 +19,8 @@ public class CommentController {
     }
 
     @GetMapping("/comments")
-    public List<Comment> getAllComments() {
-        return commentRepository.findAll();
+    public Page<Comment> getAllComments(Pageable pageable) {
+        return commentRepository.findAll(pageable);
     }
 
     @GetMapping("/comments/{id}")
@@ -28,12 +29,12 @@ public class CommentController {
     }
 
     @GetMapping("/comments/thread/{threadId}")
-    public List<Comment> getCommentsByThreadId(@PathVariable Integer threadId) {
-        return commentRepository.findByThreadId(threadId);
+    public Page<Comment> getCommentsByThreadId(@PathVariable Integer threadId, Pageable pageable) {
+        return commentRepository.findByThreadId(threadId, pageable);
     }
 
     @GetMapping("/comments/user/{userGoogleId}")
-    public List<Comment> getCommentsByUserGoogleId(@PathVariable String userGoogleId) {
-        return commentRepository.findByUserId(userGoogleId);
+    public Page<Comment> getCommentsByUserGoogleId(@PathVariable String userGoogleId, Pageable pageable) {
+        return commentRepository.findByUserId(userGoogleId, pageable);
     }
 }
