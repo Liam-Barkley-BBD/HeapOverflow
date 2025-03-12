@@ -22,21 +22,6 @@ public class User {
     @Column(name = "user_email", nullable = false, unique = true)
     private String email;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Thread> userThreads;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Comment> userComments;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Reply> userReplies;
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public void setUsername(String username) {
         this.username = username;
     }

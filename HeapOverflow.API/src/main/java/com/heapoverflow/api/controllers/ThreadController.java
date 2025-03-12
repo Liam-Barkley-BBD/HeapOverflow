@@ -2,9 +2,10 @@ package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.repositories.ThreadRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -18,8 +19,8 @@ public class ThreadController {
     }
 
     @GetMapping("/threads")
-    public List<Thread> getAllThreads() {
-        return threadRepository.findAll();
+    public Page<Thread> getAllThreads(Pageable pageable) {
+        return threadRepository.findAll(pageable);
     }
 
     @GetMapping("/threads/{id}")
@@ -28,7 +29,7 @@ public class ThreadController {
     }
 
     @GetMapping("/threads/title/{title}")
-    public List<Thread> getThreadsByTitle(@PathVariable String title) {
-        return threadRepository.findByTitleContaining(title);
+    public Page<Thread> getThreadsByTitle(@PathVariable String title, Pageable pageable) {
+        return threadRepository.findByTitleContaining(title, pageable);
     }
 }
