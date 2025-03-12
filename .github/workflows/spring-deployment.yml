@@ -1,0 +1,56 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "HeapOverflow.API/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '23'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('HeapOverflow.API/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build application JAR
+        run: mvn clean package -DskipTests
+        working-directory: ./HeapOverflow.API
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u "${{ vars.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ vars.DOCKER_USERNAME }}/HeapOverflow.API-app:latest .
+        working-directory: ./HeapOverflow.API
+
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ vars.DOCKER_USERNAME }}/HeapOverflow.API-app:latest
+    
+  deploy:
+    needs: build
+    runs-on: ec2-runner
+    steps:
+      - name: Pull Image from Docker Hub
+        run: docker pull ${{ vars.DOCKER_USERNAME }}/HeapOverflow.API-app:latest
+      
+      - name: Delete old containers
+        run: docker rm -f springboot-heapoverflow-container || true
+      
+      - name: Run Docker container
+        run: docker run -d -p 8080:8080 --name springboot-heapoverflow-container ${{ vars.DOCKER_USERNAME }}/HeapOverflow.API-app:latest
