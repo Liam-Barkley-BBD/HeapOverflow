@@ -2,7 +2,7 @@ package com.heapoverflow;
 
 import java.io.IOException;
 
-import com.heapoverflow.App.App;
+import com.heapoverflow.app.App;
 
 public class ApiClient {
 
