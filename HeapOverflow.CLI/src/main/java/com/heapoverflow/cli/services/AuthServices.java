@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
-import com.heapoverflow.cli.entities.Empty;
+import com.heapoverflow.cli.utils.SafeMap;
 
 public class AuthServices {
     public static CompletableFuture<String> attemptGoogleLogin() {
@@ -15,8 +15,8 @@ public class AuthServices {
                 if(authCode.equals("")){
                     return "Authentication took too long or failed, releasing resources";
                 } else{
-                    HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + "/auth/login/" + authCode, Empty.class).join();
-                    return "Authentication successful, welcome to HeapOverflow.CLI";
+                    SafeMap map = HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + "/auth/login/" + authCode).join();
+                    return "Authentication successful, welcome to HeapOverflow.CLI " + map.toString();
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Error ecountered in attempting google login: " + e.getMessage(), e);
