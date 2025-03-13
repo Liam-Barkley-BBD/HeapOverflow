@@ -13,9 +13,9 @@ public class AuthServices {
                 String authCode = BrowserAuthServices.getUsersGoogleAuthCode().join();
 
                 if(authCode.equals("")){
-                    return "Authentication took too long or failed, releasing resources";
+                    return "Browser authentication took too long or failed, releasing resources";
                 } else{
-                    SafeMap map = HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + "/auth/login/" + authCode).join();
+                    SafeMap map = HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + "/auth/token/" + authCode).join();
                     return "Authentication successful, welcome to HeapOverflow.CLI " + map.toString();
                 }
             } catch (Exception e) {
