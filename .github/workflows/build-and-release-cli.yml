@@ -37,6 +37,11 @@ jobs:
   release:
     name: 🏗️ Build
     runs-on: ubuntu-latest
+    needs: build
+
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: ⬇️ Checkout code
@@ -51,3 +56,12 @@ jobs:
 
       - name: 🚀 Build with Maven
         run: mvn -B package --file pom.xml
+
+      - uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "License,target/*.jar"
+          generateReleaseNotes: true
+          name: "v1.0.0-SNAPSHOT"
+          tag: "v1.0.0"
+          draft: true
