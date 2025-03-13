@@ -22,6 +22,8 @@ public class User {
     @Column(name = "user_email", nullable = false, unique = true)
     private String email;
 
+    public User() {}
+
     public void setUsername(String username) {
         this.username = username;
     }

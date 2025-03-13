@@ -28,6 +28,15 @@ public class Thread {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
+    public Thread() {}
+
+    public Thread(String title, String description, User user) {
+        this.title = title;
+        this.description = description;
+        this.user = user;
+        this.createdAt = LocalDateTime.now();
+    }
+
     public Integer getId() {
         return id;
     }

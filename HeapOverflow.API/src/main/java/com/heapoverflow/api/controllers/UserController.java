@@ -48,9 +48,13 @@ public class UserController {
 
     @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody User user) {
+
         if (userRepository.existsById(user.getId())) {
             return ResponseEntity.badRequest().body("{\"error\": \"User already exists\"}");
+        } else if (userRepository.existsByEmail(user.getEmail())) {
+            return ResponseEntity.badRequest().body("{\"error\": \"User email already exists\"}");
         }
+
         return ResponseEntity.ok(userRepository.save(user));
     }
 }
