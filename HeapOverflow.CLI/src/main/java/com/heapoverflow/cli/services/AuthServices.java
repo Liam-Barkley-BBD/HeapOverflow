@@ -2,15 +2,20 @@ package com.heapoverflow.cli.services;
 import java.util.concurrent.CompletableFuture;
 
 public class AuthServices {
-    public static void attemptGoogleLogin() {
-        String authCode = BrowserAuthServices.getUsersGoogleAuthCode().join();
+    public static CompletableFuture<String> attemptGoogleLogin() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String authCode = BrowserAuthServices.getUsersGoogleAuthCode().join();
 
-        if(authCode.equals("")){
-            System.out.println("Authentication took too long or failed, releasing resources");
-            return;
-        } else{
-            
-        }
+                if(authCode.equals("")){
+                    return "Authentication took too long or failed, releasing resources";
+                } else{
+                    return "Authentication successful, welcome to HeapOverflow.CLI";
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Error ecountered in attempting google login: " + e.getMessage(), e);
+            }
+        });
     }
 
     public static CompletableFuture<Boolean> isLoggedIn() {
