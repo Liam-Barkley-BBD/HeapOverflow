@@ -1,6 +1,5 @@
 package com.heapoverflow.api.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.repositories.UserRepository;
 

@@ -25,6 +25,8 @@ public class ThreadController {
         this.userRepository = userRepository;
     }
 
+    /** GET endpoints */
+    
     @GetMapping("/threads")
     public Page<Thread> getAllThreads(Pageable pageable) {
         return threadRepository.findAll(pageable);
@@ -39,6 +41,8 @@ public class ThreadController {
     public Page<Thread> getThreadsByTitle(@PathVariable String title, Pageable pageable) {
         return threadRepository.findByTitleContaining(title, pageable);
     }
+
+    /** POST endpoints */
 
     @PostMapping("/threads")
     public ResponseEntity<?> createThread(@RequestBody ThreadRequest threadRequest) {

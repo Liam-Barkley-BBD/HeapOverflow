@@ -29,6 +29,8 @@ public class ReplyController {
         this.commentRepository = commentRepository;
     }
 
+    /** GET endpoints */
+
     @GetMapping("/replies")
     public Page<Reply> getAllReplies(Pageable pageable) {
         return replyRepository.findAll(pageable);
@@ -49,6 +51,8 @@ public class ReplyController {
         return replyRepository.findByUserId(userGoogleId, pageable);
     }
 
+    /** POST endpoints */
+    
     @PostMapping("/replies")
     public ResponseEntity<?> createThread(@RequestBody ReplyRequest replyRequest) {
 
