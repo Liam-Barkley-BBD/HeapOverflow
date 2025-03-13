@@ -2,6 +2,7 @@ package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.entities.User;
+import com.heapoverflow.api.models.ThreadRequest;
 import com.heapoverflow.api.repositories.ThreadRepository;
 import com.heapoverflow.api.repositories.UserRepository;
 
@@ -10,8 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -26,8 +25,6 @@ public class ThreadController {
         this.userRepository = userRepository;
     }
 
-    /** GET endpoints */
-    
     @GetMapping("/threads")
     public Page<Thread> getAllThreads(Pageable pageable) {
         return threadRepository.findAll(pageable);
@@ -43,31 +40,17 @@ public class ThreadController {
         return threadRepository.findByTitleContaining(title, pageable);
     }
 
-    @GetMapping("/threads/user/{userGoogleId}")
-    public List<Thread> getThreadsByUserGoogleId(@PathVariable String userGoogleId, Pageable pageable) {
-        return threadRepository.findByUserId(userGoogleId, pageable);
-    }
-
-    @GetMapping("/threads/search/{searchText}")
-    public Page<Thread> searchThreads(@PathVariable String searchText, Pageable pageable) {
-        return threadRepository.findByTitleContainingOrDescriptionContaining(searchText, searchText, pageable);
-    }
-
-    /** POST endpoints */
-
     @PostMapping("/threads")
-    public ResponseEntity<?> createThread(@RequestBody Thread thread) {
-        User user = userRepository.findById(thread.getUser().getId())
-                .orElse(null);
+    public ResponseEntity<?> createThread(@RequestBody ThreadRequest threadRequest) {
 
-        if (user != null) {
-            thread.setUser(user);
-            thread.setCreatedAt(LocalDateTime.now());
-            thread.setClosedAt(null);
-            
-            return ResponseEntity.ok(threadRepository.save(thread));
-        } else {
-            return ResponseEntity.badRequest().body("{\"error\": \"User does not exist\"}");
+        System.out.println(threadRequest);
+        Optional<User> user = userRepository.findById(threadRequest.getUserId());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("{\"error\": \"User not found\"}");
         }
+
+        Thread newThread = new Thread(threadRequest.getTitle(), threadRequest.getDescription(), user.get());
+        return ResponseEntity.ok(threadRepository.save(newThread));
     }
 }

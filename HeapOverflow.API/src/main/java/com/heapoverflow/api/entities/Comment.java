@@ -12,19 +12,28 @@ public class Comment {
     @Column(name = "comment_id")
     private Integer id;
 
+    @Column(name = "content", nullable = false)
+    private String content;
+
     @ManyToOne
-    @JoinColumn(name = "user_google_id", nullable = false)
+    @JoinColumn(name = "user_google_id", referencedColumnName = "user_google_id", nullable = false)
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "thread_id", referencedColumnName = "thread_id", nullable = false)
     private Thread thread;
 
-    @Column(name = "content", nullable = false)
-    private String content;
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    public Comment() {}
+
+    public Comment(String content, User user, Thread thread) {
+        this.content = content;
+        this.user = user;
+        this.thread = thread;
+        this.createdAt = LocalDateTime.now();
+    }
 
     public Integer getId() {
         return id;
@@ -40,14 +49,6 @@ public class Comment {
 
     public void setThread(Thread thread) {
         this.thread = thread;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public String getContent() {

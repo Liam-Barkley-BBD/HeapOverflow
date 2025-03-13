@@ -3,6 +3,7 @@ package com.heapoverflow.api.controllers;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.Reply;
 import com.heapoverflow.api.entities.User;
+import com.heapoverflow.api.models.ReplyRequest;
 import com.heapoverflow.api.repositories.CommentRepository;
 import com.heapoverflow.api.repositories.ReplyRepository;
 import com.heapoverflow.api.repositories.UserRepository;
@@ -12,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -20,13 +20,13 @@ import java.util.Optional;
 public class ReplyController {
 
     private final ReplyRepository replyRepository;
-    private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
-    public ReplyController(ReplyRepository replyRepository, CommentRepository commentRepository, UserRepository userRepository) {
+    public ReplyController(ReplyRepository replyRepository, UserRepository userRepository, CommentRepository commentRepository) {
         this.replyRepository = replyRepository;
-        this.commentRepository = commentRepository;
         this.userRepository = userRepository;
+        this.commentRepository = commentRepository;
     }
 
     @GetMapping("/replies")
@@ -49,26 +49,22 @@ public class ReplyController {
         return replyRepository.findByUserId(userGoogleId, pageable);
     }
 
-    /** POST endpoints */
     @PostMapping("/replies")
-    public ResponseEntity<?> createReply(@RequestBody Reply reply) {
-        Comment comment = commentRepository.findById(reply.getComment().getId())
-                .orElse(null);
-        User user = userRepository.findById(reply.getUser().getId())
-                .orElse(null);
- 
-        if (comment == null) {
-            return ResponseEntity.badRequest().body("{\"error\": \"Comment does not exist\"}");
+    public ResponseEntity<?> createThread(@RequestBody ReplyRequest replyRequest) {
+
+        Optional<User> user = userRepository.findById(replyRequest.getUserId());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("{\"error\": \"User not found\"}");
         }
-        else if (user == null) {
-            return ResponseEntity.badRequest().body("{\"error\": \"User does not exist\"}");
+
+        Optional<Comment> comment = commentRepository.findById(replyRequest.getCommentdId());
+
+        if (comment.isEmpty()) {
+            return ResponseEntity.badRequest().body("{\"error\": \"Comment ID not found\"}");
         }
-        else {
-            reply.setComment(comment);
-            reply.setUser(user);
-            reply.setCreatedAt(LocalDateTime.now());
-            
-            return ResponseEntity.ok(replyRepository.save(reply));
-        }
+
+        var newReply = new Reply(replyRequest.getContent(), user.get(), comment.get());
+        return ResponseEntity.ok(replyRepository.save(newReply));
     }
 }

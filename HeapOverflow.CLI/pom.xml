@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.heapoverflow</groupId>
 	<artifactId>cli</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>cli</name>
 	<description>Heapoverflow.CLI</description>
 	<url/>
@@ -82,14 +82,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.6.0</version>
-				<configuration>
-					<configLocation>src/main/resources/checkstyle.xml</configLocation>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>

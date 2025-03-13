@@ -12,8 +12,8 @@ public class Reply {
     @Column(name = "reply_id")
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_google_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_google_id", referencedColumnName = "user_google_id", nullable = false)
     private User user;
 
     @ManyToOne
@@ -25,6 +25,15 @@ public class Reply {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    public Reply() {}
+
+    public Reply(String content, User user, Comment comment) {
+        this.content = content;
+        this.user = user;
+        this.comment = comment;
+        this.createdAt = LocalDateTime.now();
+    }
 
     public Integer getId() {
         return id;
@@ -40,14 +49,6 @@ public class Reply {
 
     public void setComment(Comment comment) {
         this.comment = comment;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public String getContent() {
