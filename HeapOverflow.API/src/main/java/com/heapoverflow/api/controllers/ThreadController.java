@@ -3,14 +3,11 @@ package com.heapoverflow.api.controllers;
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.repositories.ThreadRepository;
-import com.heapoverflow.api.repositories.UserRepository;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,11 +16,9 @@ import java.util.Optional;
 public class ThreadController {
 
     private final ThreadRepository threadRepository;
-    private final UserRepository userRepository;
 
-    public ThreadController(ThreadRepository threadRepository, UserRepository userRepository) {
+    public ThreadController(ThreadRepository threadRepository) {
         this.threadRepository = threadRepository;
-        this.userRepository = userRepository;
     }
 
     /** GET endpoints */
@@ -57,17 +52,6 @@ public class ThreadController {
 
     @PostMapping("/threads")
     public ResponseEntity<?> createThread(@RequestBody Thread thread) {
-        User user = userRepository.findById(thread.getUser().getId())
-                .orElse(null);
-
-        if (user != null) {
-            thread.setUser(user);
-            thread.setCreatedAt(LocalDateTime.now());
-            thread.setClosedAt(null);
-            
-            return ResponseEntity.ok(threadRepository.save(thread));
-        } else {
-            return ResponseEntity.badRequest().body("{\"error\": \"User does not exist\"}");
-        }
+        return ResponseEntity.ok(threadRepository.save(thread));
     }
 }
