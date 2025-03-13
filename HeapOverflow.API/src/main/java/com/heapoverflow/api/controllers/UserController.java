@@ -12,8 +12,6 @@ import java.util.List;
 @RequestMapping("/api")
 public class UserController {
 
-    public static final ObjectMapper objectMapper= new ObjectMapper();
-
     private final UserRepository userRepository;
 
     public UserController(UserRepository userRepository) {
