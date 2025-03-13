@@ -1,12 +1,18 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Comment;
+import com.heapoverflow.api.entities.Thread;
+import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.repositories.CommentRepository;
+import com.heapoverflow.api.repositories.ThreadRepository;
+import com.heapoverflow.api.repositories.UserRepository;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,9 +21,13 @@ import java.util.Optional;
 public class CommentController {
 
     private final CommentRepository commentRepository;
+    private final ThreadRepository threadRepository;
+    private final UserRepository userRepository;
 
-    public CommentController(CommentRepository commentRepository) {
+    public CommentController(CommentRepository commentRepository, ThreadRepository threadRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
+        this.threadRepository = threadRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/comments")
@@ -44,6 +54,23 @@ public class CommentController {
 
     @PostMapping("/comments")
     public ResponseEntity<?> createComment(@RequestBody Comment comment) {
-        return ResponseEntity.ok(commentRepository.save(comment));
+        Thread thread = threadRepository.findById(comment.getThread().getId())
+                .orElse(null);
+        User user = userRepository.findById(comment.getUser().getId())
+                .orElse(null);
+ 
+        if (thread == null) {
+            return ResponseEntity.badRequest().body("{\"error\": \"Thread does not exist\"}");
+        }
+        else if (user == null) {
+            return ResponseEntity.badRequest().body("{\"error\": \"User does not exist\"}");
+        }
+        else {
+            comment.setThread(thread);
+            comment.setUser(user);
+            comment.setCreatedAt(LocalDateTime.now());
+            
+            return ResponseEntity.ok(commentRepository.save(comment));
+        }
     }
 }

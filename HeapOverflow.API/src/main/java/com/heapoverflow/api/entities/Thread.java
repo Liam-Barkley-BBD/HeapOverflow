@@ -3,6 +3,8 @@ package com.heapoverflow.api.entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Entity
 @Table(name = "threads")
 public class Thread {
@@ -20,6 +22,7 @@ public class Thread {
 
     @ManyToOne
     @JoinColumn(name = "user_google_id", nullable = false)
+    @JsonProperty("user")
     private User user;
 
     @Column(name = "created_at", nullable = false)
@@ -52,6 +55,14 @@ public class Thread {
         this.description = description;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
