@@ -12,7 +12,7 @@ public class Comment {
     @Column(name = "comment_id")
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_google_id", nullable = false)
     private User user;
 
