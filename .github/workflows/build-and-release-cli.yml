@@ -1,0 +1,53 @@
+name: Build🏗️ and Release artifact⬆️
+
+on:
+  push:
+    branches: [
+      "main"
+    ]
+    paths: [
+      "HeapOverflow.CLI/src/**",
+    ]
+
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: HeapOverflow.CLI
+
+jobs:
+  build:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗 Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: 🚀 Build with Maven
+        run: mvn -B package --file pom.xml
+
+  release:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗 Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: 🚀 Build with Maven
+        run: mvn -B package --file pom.xml

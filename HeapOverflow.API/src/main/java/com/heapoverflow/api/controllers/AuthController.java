@@ -1,18 +1,23 @@
 package com.heapoverflow.api.controllers;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.heapoverflow.api.services.AuthService;
 
 @RestController
 public class AuthController {
 
-    @GetMapping("/")
-    public String home() {
-        return "Hello unsecured";
+    public final AuthService authService;
+
+    public AuthController(AuthService authService){
+        this.authService = authService;
     }
 
-    @GetMapping("/auth")
-    public String callback() {
-        return "Hello secured";
+    @GetMapping("/auth/token")
+    public String auth(@RequestParam String code) throws Exception {
+        return authService.getJWT(code);
     }
 }
