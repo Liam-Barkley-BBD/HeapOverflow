@@ -39,7 +39,12 @@ public class ThreadController {
 
     @GetMapping("/threads/title/{title}")
     public Page<Thread> getThreadsByTitle(@PathVariable String title, Pageable pageable) {
-        return threadRepository.findByTitleContaining(title, pageable);
+        return threadRepository.findByTitleContainingIgnoreCase(title, pageable);
+    }
+
+    @GetMapping("/threads/search/{searchText}")
+    public Page<Thread> searchThreads(@PathVariable String searchText, Pageable pageable) {
+        return threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
     }
 
     /** POST endpoints */
