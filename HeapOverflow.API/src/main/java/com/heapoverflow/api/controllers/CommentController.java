@@ -4,7 +4,6 @@ import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.repositories.CommentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,12 +37,5 @@ public class CommentController {
     @GetMapping("/comments/user/{userGoogleId}")
     public Page<Comment> getCommentsByUserGoogleId(@PathVariable String userGoogleId, Pageable pageable) {
         return commentRepository.findByUserId(userGoogleId, pageable);
-    }
-
-    /** POST endpoints */
-
-    @PostMapping("/comments")
-    public ResponseEntity<?> createComment(@RequestBody Comment comment) {
-        return ResponseEntity.ok(commentRepository.save(comment));
     }
 }

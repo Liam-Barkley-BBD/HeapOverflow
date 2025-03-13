@@ -1,11 +1,9 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Thread;
-import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.repositories.ThreadRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,13 +43,7 @@ public class ThreadController {
 
     @GetMapping("/threads/search/{searchText}")
     public Page<Thread> searchThreads(@PathVariable String searchText, Pageable pageable) {
-        return threadRepository.findByTitleContainingOrDescriptionContaining(searchText, searchText, pageable);
-    }
+    return threadRepository.findByTitleContainingOrDescriptionContaining(searchText, searchText, pageable);
+}
 
-    /** POST endpoints */
-
-    @PostMapping("/threads")
-    public ResponseEntity<?> createThread(@RequestBody Thread thread) {
-        return ResponseEntity.ok(threadRepository.save(thread));
-    }
 }

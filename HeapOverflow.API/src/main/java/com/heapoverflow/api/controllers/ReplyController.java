@@ -1,11 +1,9 @@
 package com.heapoverflow.api.controllers;
 
-import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.Reply;
 import com.heapoverflow.api.repositories.ReplyRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -38,12 +36,5 @@ public class ReplyController {
     @GetMapping("/replies/user/{userGoogleId}")
     public Page<Reply> getRepliesByUserGoogleId(@PathVariable String userGoogleId, Pageable pageable) {
         return replyRepository.findByUserId(userGoogleId, pageable);
-    }
-
-    /** POST endpoints */
-
-    @PostMapping("/replies")
-    public ResponseEntity<?> createReply(@RequestBody Reply reply) {
-        return ResponseEntity.ok(replyRepository.save(reply));
     }
 }

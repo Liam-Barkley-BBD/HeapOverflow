@@ -3,12 +3,12 @@ package com.heapoverflow.api.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "thread_upvotes")
-public class ThreadUpvote {
+@Table(name = "comment_upvotes")
+public class CommentUpvotes {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "thread_upvote_id")
+    @Column(name = "comment_upvote_id")
     private Integer id;
 
     @ManyToOne
@@ -16,8 +16,8 @@ public class ThreadUpvote {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "thread_id", referencedColumnName = "thread_id", nullable = false)
-    private Thread thread;
+    @JoinColumn(name = "comment_id", referencedColumnName = "comment_id", nullable = false)
+    private Comment comment;
 
 
     public Integer getId() {
@@ -28,19 +28,19 @@ public class ThreadUpvote {
         this.id = id;
     }
 
-    public Thread getThread() {
-        return thread;
+    public Comment getComment() {
+        return comment;
     }
 
-    public void setThread(Thread thread) {
-        this.thread = thread;
+    public void setComment(Comment comment) {
+        this.comment = comment;
     }
 
     @Override
     public String toString() {
-        return "ThreadUpvote{" +
+        return "CommentUpvote{" +
                 "id=" + id +
-                ", thread =" + thread +
+                ", comment =" + comment +
                 '}';
     }
 }
