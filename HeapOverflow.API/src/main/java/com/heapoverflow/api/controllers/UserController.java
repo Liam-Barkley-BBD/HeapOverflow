@@ -2,10 +2,10 @@ package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.services.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -22,20 +22,12 @@ public class UserController {
     @GetMapping("/users")
     public ResponseEntity<?> getUsers(
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
+            @RequestParam(required = false) String email,
+            Pageable pageable) {
 
-        if (username != null && email != null) {
-            return ResponseEntity.badRequest().body("{\"error\": \"Search by either username or email, not both.\"}");
-        }
+        Page<User> users = userService.getUsersByFilter(username, email, pageable);
 
-        if (username != null) {
-            return ResponseEntity.ok(userService.getUsersByUsername(username));
-        }
-        if (email != null) {
-            return ResponseEntity.ok(userService.getUsersByEmail(email));
-        }
-
-        return ResponseEntity.ok(userService.getAllUsers());
+        return users.hasContent() ? ResponseEntity.ok(users) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/users/{userGoogleId}")
