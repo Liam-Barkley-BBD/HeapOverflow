@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/users/{userGoogleId}")
-    public ResponseEntity<User> getUserById(@PathVariable String userGoogleId) {
+    public ResponseEntity<?> getUserById(@PathVariable String userGoogleId) {
         return userService.getUserById(userGoogleId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

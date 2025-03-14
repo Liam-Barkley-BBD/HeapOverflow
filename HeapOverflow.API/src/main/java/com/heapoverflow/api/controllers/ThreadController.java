@@ -1,11 +1,8 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Thread;
-import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.models.ThreadRequest;
-import com.heapoverflow.api.repositories.ThreadRepository;
-import com.heapoverflow.api.repositories.UserRepository;
-
+import com.heapoverflow.api.services.ThreadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -17,49 +14,42 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class ThreadController {
 
-    private final ThreadRepository threadRepository;
-    private final UserRepository userRepository;
+    private final ThreadService threadService;
 
-    public ThreadController(ThreadRepository threadRepository, UserRepository userRepository) {
-        this.threadRepository = threadRepository;
-        this.userRepository = userRepository;
+    public ThreadController(ThreadService threadService) {
+        this.threadService = threadService;
     }
 
     /** GET endpoints */
-    
+
     @GetMapping("/threads")
-    public Page<Thread> getAllThreads(Pageable pageable) {
-        return threadRepository.findAll(pageable);
+    public ResponseEntity<?> getThreads(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String description,
+            Pageable pageable) {
+
+        Page<Thread> threads = threadService.getThreadsByFilter(title, description, pageable);
+
+        return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/threads/{id}")
-    public Optional<Thread> getThreadById(@PathVariable Integer id) {
-        return threadRepository.findById(id);
+    public ResponseEntity<Thread> getThreadById(@PathVariable Integer id) {
+        return threadService.getThreadById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/threads/title/{title}")
-    public Page<Thread> getThreadsByTitle(@PathVariable String title, Pageable pageable) {
-        return threadRepository.findByTitleContainingIgnoreCase(title, pageable);
-    }
-
-    @GetMapping("/threads/search/{searchText}")
-    public Page<Thread> searchThreads(@PathVariable String searchText, Pageable pageable) {
-        return threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
-    }
-
-    /** POST endpoints */
+    /** POST endpoint */
 
     @PostMapping("/threads")
     public ResponseEntity<?> createThread(@RequestBody ThreadRequest threadRequest) {
+        Optional<Thread> newThread = threadService.createThread(threadRequest);
 
-        System.out.println(threadRequest);
-        Optional<User> user = userRepository.findById(threadRequest.getUserId());
-
-        if (user.isEmpty()) {
+        if (newThread.isEmpty()) {
             return ResponseEntity.badRequest().body("{\"error\": \"User not found\"}");
         }
 
-        Thread newThread = new Thread(threadRequest.getTitle(), threadRequest.getDescription(), user.get());
-        return ResponseEntity.ok(threadRepository.save(newThread));
+        return ResponseEntity.ok(newThread.get());
     }
 }
