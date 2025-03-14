@@ -14,7 +14,7 @@ public class EnvUtils {
         String value = getStringEnvOrThrow(envVar);
         try {
             return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException error) {
             throw new IllegalStateException("Environment variable " + envVar + " must be a valid integer, but got: " + value);
         }
     }

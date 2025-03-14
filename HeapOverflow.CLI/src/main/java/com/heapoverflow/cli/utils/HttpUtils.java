@@ -7,6 +7,8 @@ import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.heapoverflow.cli.constants.EnvConstants;
+
 import java.util.Map;
 
 public class HttpUtils {
@@ -14,9 +16,17 @@ public class HttpUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static CompletableFuture<SafeMap> asyncGet(String url) {
+        String token = "";
+        try{
+            token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+        }catch(Exception error){
+            // we would rather return a bad request from the server
+        }
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .GET()
+                .header("Authorization", "Bearer " + token)
                 .build();
 
         return sendRequest(request);
@@ -35,9 +45,17 @@ public class HttpUtils {
     }
 
     public static CompletableFuture<SafeMap> asyncDelete(String url) {
+        String token = "";
+        try{
+            token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+        }catch(Exception error){
+            // we would rather return a bad request from the server
+        }
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .DELETE()
+                .header("Authorization", "Bearer " + token)
                 .build();
 
         return sendRequest(request);
@@ -45,11 +63,19 @@ public class HttpUtils {
 
     private static CompletableFuture<SafeMap> sendJsonRequest(String url, Object requestBody, String method) {
         try {
+            String token = "";
+            try{
+                token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+            }catch(Exception error){
+                // we would rather return a bad request from the server
+            }
+
             String jsonBody = objectMapper.writeValueAsString(requestBody);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .method(method, HttpRequest.BodyPublishers.ofString(jsonBody))
                     .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + token)
                     .build();
 
             return sendRequest(request);
