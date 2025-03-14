@@ -15,11 +15,11 @@ public class AuthServices {
                 return "Browser authentication took too long or failed, releasing resources";
             } else{
                 SafeMap map = HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + AuthEndpointsConstants.AUTH_TOKEN + authCode).join();
-                System.setProperty(EnvConstants.JWT, map.getString("jwt"));
+                EnvUtils.setStringEnv(EnvConstants.JWT, map.getString("jwt"));
                 return "Authentication successful, welcome to HeapOverflow.CLI!";
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Error ecountered in attempting google login: " + e.getMessage(), e);
+        } catch (Exception error) {
+            throw new RuntimeException("Error ecountered in attempting google login: " + error.getMessage(), error);
         }
     }
 }
