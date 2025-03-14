@@ -4,7 +4,6 @@ import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.models.CommentRequest;
-import com.heapoverflow.api.models.ThreadRequest;
 import com.heapoverflow.api.repositories.CommentRepository;
 import com.heapoverflow.api.repositories.ThreadRepository;
 import com.heapoverflow.api.repositories.UserRepository;
@@ -33,6 +32,8 @@ public class CommentController {
         
     }
 
+    /** GET endpoints */
+
     @GetMapping("/comments")
     public Page<Comment> getAllComments(Pageable pageable) {
         return commentRepository.findAll(pageable);
@@ -53,6 +54,8 @@ public class CommentController {
         return commentRepository.findByUserId(userGoogleId, pageable);
     }
 
+    /** POST endpoints */
+    
     @PostMapping("/comments")
     public ResponseEntity<?> createComment(@RequestBody CommentRequest commentRequest) {
 
