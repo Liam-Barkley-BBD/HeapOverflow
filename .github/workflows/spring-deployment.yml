@@ -54,12 +54,4 @@ jobs:
 
       - name: Run Docker container
         run: |
-          docker run -d -p 8080:8080 \
-            -e CLIENT_ID="${{ secrets.CLIENT_ID }}" \
-            -e CLIENT_SECRET="${{ secrets.CLIENT_SECRET }}" \
-            -e LOCAL_AUTH_PORT="${{ secrets.LOCAL_AUTH_PORT }}" \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            -e DATABASE_USERNAME="${{ secrets.DATABASE_USERNAME }}" \
-            -e DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
-            --name springboot-heapoverflow-container \
-            ${{ vars.DOCKER_USERNAME }}/heapoverflow-api:latest
+          docker run -d -p 8080:8080 -e CLIENT_ID="${{ secrets.CLIENT_ID }}" -e CLIENT_SECRET="${{ secrets.CLIENT_SECRET }}" -e LOCAL_AUTH_PORT="${{ secrets.LOCAL_AUTH_PORT }}" -e DATABASE_URL="${{ secrets.DATABASE_URL }}"  -e DATABASE_USERNAME="${{ secrets.DATABASE_USERNAME }}" -e DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" --name springboot-heapoverflow-container ${{ vars.DOCKER_USERNAME }}/heapoverflow-api:latest
