@@ -12,8 +12,8 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     env:
-      TF_VAR_db_username: ${{ vars.DB_USERNAME }}
-      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+      TF_VAR_db_username: ${{ secrets.DATABASE_USERNAME }}
+      TF_VAR_db_password: ${{ secrets.DATABASE_PASSWORD }}
 
     steps:
       - name: Checkout repository
@@ -42,16 +42,16 @@ jobs:
 
       - name: Create Database (if not exists)
         run: |
-          psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ vars.DB_USERNAME }}" -d postgres -c "SELECT 1 FROM pg_database WHERE datname='heapoverflow_db'" | grep -q 1 || psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ vars.DB_USERNAME }}" -d postgres -c "CREATE DATABASE heapoverflow_db;"
+          psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ secrets.DATABASE_USERNAME }}" -d postgres -c "SELECT 1 FROM pg_database WHERE datname='heapoverflow_db'" | grep -q 1 || psql -h "${{ steps.tf-outputs.outputs.heapoverflow_db_address }}" -p "${{ steps.tf-outputs.outputs.heapoverflow_db_port }}" -U "${{ secrets.DATABASE_USERNAME }}" -d postgres -c "CREATE DATABASE heapoverflow_db;"
         env:
-          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          PGPASSWORD: ${{ secrets.DATABASE_PASSWORD }}
 
       - name: Flyway validate and migrate
         uses: joshuaavalon/flyway-action@v3.0.0
         with:
           url: jdbc:postgresql://${{ steps.tf-outputs.outputs.heapoverflow_db_endpoint }}/heapoverflow_db
-          user: ${{ vars.DB_USERNAME }}
-          password: ${{ secrets.DB_PASSWORD }}
+          user: ${{ secrets.DATABASE_USERNAME }}
+          password: ${{ secrets.DATABASE_PASSWORD }}
           locations: filesystem:./migrations
         env:
           FLYWAY_VALIDATE_MIGRATION_NAMING: true

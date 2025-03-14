@@ -1,6 +1,5 @@
 package com.heapoverflow.api.repositories;
 
-import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.ThreadUpvote;
 
 import org.springframework.data.domain.Page;
@@ -13,5 +12,5 @@ public interface ThreadUpvoteRepository extends JpaRepository<ThreadUpvote, Inte
     
     Optional<ThreadUpvote> findById(Integer id);
 
-    Page<ThreadUpvote> findByThread_Id(Integer threadId, Pageable pageable);
+    Page<ThreadUpvote> findByThreadId(Integer threadId, Pageable pageable);
 }

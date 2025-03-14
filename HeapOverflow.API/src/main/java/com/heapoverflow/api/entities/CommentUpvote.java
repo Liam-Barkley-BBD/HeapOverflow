@@ -10,12 +10,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "thread_upvotes")
-public class ThreadUpvote {
+@Table(name = "comment_upvotes")
+public class CommentUpvote {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "thread_upvote_id")
+    @Column(name = "comment_upvote_id")
     private Integer id;
 
     @ManyToOne
@@ -23,14 +23,14 @@ public class ThreadUpvote {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "thread_id", referencedColumnName = "thread_id", nullable = false)
-    private Thread thread;
+    @JoinColumn(name = "comment_id", referencedColumnName = "comment_id", nullable = false)
+    private Comment comment;
 
-    public ThreadUpvote() {}
+    public CommentUpvote() {}
 
-    public ThreadUpvote(User user, Thread thread) {
+    public CommentUpvote(User user, Comment comment) {
         this.user = user;
-        this.thread = thread;
+        this.comment = comment;
     }
 
     public Integer getId() {
@@ -49,12 +49,12 @@ public class ThreadUpvote {
         this.user = user;
     }
 
-    public Thread getThread() {
-        return thread;
+    public Comment getComment() {
+        return comment;
     }
 
-    public void setThread(Thread thread) {
-        this.thread = thread;
+    public void setComment(Comment comment) {
+        this.comment = comment;
     }
 
 }
