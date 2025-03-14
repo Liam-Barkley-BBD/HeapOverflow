@@ -8,6 +8,6 @@ import com.heapoverflow.cli.services.AuthServices;
 public class AuthCommand {
     @ShellMethod(key = "login", value = "Attempt to login")
     public String login() {
-        return AuthServices.attemptGoogleLogin().join();
+        return AuthServices.attemptGoogleLogin();
     }
 }
