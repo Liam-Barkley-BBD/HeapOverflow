@@ -8,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api")
 public class ThreadController {
@@ -23,7 +21,7 @@ public class ThreadController {
     /** GET endpoints */
 
     @GetMapping("/threads")
-    public ResponseEntity<?> getThreads(
+    public ResponseEntity<Page<Thread>> getThreads(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String description,
             Pageable pageable) {
@@ -43,13 +41,9 @@ public class ThreadController {
     /** POST endpoint */
 
     @PostMapping("/threads")
-    public ResponseEntity<?> createThread(@RequestBody ThreadRequest threadRequest) {
-        Optional<Thread> newThread = threadService.createThread(threadRequest);
-
-        if (newThread.isEmpty()) {
-            return ResponseEntity.badRequest().body("{\"error\": \"User not found\"}");
-        }
-
-        return ResponseEntity.ok(newThread.get());
+    public ResponseEntity<Thread> createThread(@RequestBody ThreadRequest threadRequest) {
+        Thread newThread = threadService.createThread(threadRequest);
+        return ResponseEntity.ok(newThread);
     }
+
 }

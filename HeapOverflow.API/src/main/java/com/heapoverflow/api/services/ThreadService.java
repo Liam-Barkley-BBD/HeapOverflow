@@ -5,6 +5,8 @@ import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.models.ThreadRequest;
 import com.heapoverflow.api.repositories.ThreadRepository;
 import com.heapoverflow.api.repositories.UserRepository;
+import com.heapoverflow.api.exceptions.*;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,14 +44,11 @@ public class ThreadService {
         }
     }
 
-    public Optional<Thread> createThread(ThreadRequest threadRequest) {
-        Optional<User> user = userRepository.findById(threadRequest.getUserId());
+    public Thread createThread(ThreadRequest threadRequest) {
+        User user = userRepository.findById(threadRequest.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (user.isEmpty()) {
-            return Optional.empty(); 
-        }
-
-        Thread newThread = new Thread(threadRequest.getTitle(), threadRequest.getDescription(), user.get());
-        return Optional.of(threadRepository.save(newThread));
+        Thread newThread = new Thread(threadRequest.getTitle(), threadRequest.getDescription(), user);
+        return threadRepository.save(newThread);
     }
 }

@@ -2,6 +2,8 @@ package com.heapoverflow.api.services;
 
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.repositories.UserRepository;
+import com.heapoverflow.api.exceptions.*;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,7 +47,14 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
-    public User saveUser(User user) {
+    public User createUser(User user) {
+        if (userRepository.existsById(user.getId())) {
+            throw new UserAlreadyExistsException("User already exists");
+        } 
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new UserAlreadyExistsException("User email already exists");
+        }
         return userRepository.save(user);
     }
+
 }

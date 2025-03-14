@@ -20,7 +20,7 @@ public class UserController {
     /** GET endpoints */
 
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers(
+    public ResponseEntity<Page<User>> getUsers(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
             Pageable pageable) {
@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/users/{userGoogleId}")
-    public ResponseEntity<?> getUserById(@PathVariable String userGoogleId) {
+    public ResponseEntity<User> getUserById(@PathVariable String userGoogleId) {
         return userService.getUserById(userGoogleId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -40,13 +40,9 @@ public class UserController {
     /** POST endpoints */
 
     @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody User user) {
-        if (userService.userExistsById(user.getId())) {
-            return ResponseEntity.badRequest().body("{\"error\": \"User already exists\"}");
-        } else if (userService.userExistsByEmail(user.getEmail())) {
-            return ResponseEntity.badRequest().body("{\"error\": \"User email already exists\"}");
-        }
-
-        return ResponseEntity.ok(userService.saveUser(user));
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User savedUser = userService.createUser(user);
+        return ResponseEntity.ok(savedUser);
     }
+
 }
