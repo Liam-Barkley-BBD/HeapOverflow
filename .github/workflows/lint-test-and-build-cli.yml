@@ -50,7 +50,7 @@ jobs:
           cache: 'maven'
 
       - name: 🧪 Run tests
-        run: mvn test
+        run: mvn test -Dspring.shell.interactive.enabled=false
 
   build:
     name: 🏗️ Build
@@ -68,4 +68,4 @@ jobs:
           cache: 'maven'
 
       - name: 🚀 Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package -DskipTests
