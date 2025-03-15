@@ -13,5 +13,5 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
     Page<Comment> findByThreadId(Integer threadId, Pageable pageable);
 
-    Page<Comment> findByUserId(String userGoogleId, Pageable pageable);
+    Page<Comment> findByUserId(String userId, Pageable pageable);
 }

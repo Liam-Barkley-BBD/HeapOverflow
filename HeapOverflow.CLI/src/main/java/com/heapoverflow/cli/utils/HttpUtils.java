@@ -7,17 +7,33 @@ import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.heapoverflow.cli.constants.EnvConstants;
+
 import java.util.Map;
 
 public class HttpUtils {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static CompletableFuture<SafeMap> asyncGet(String url) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET()
-                .build();
+    public static CompletableFuture<SafeMap> asyncGet(String url) throws Exception{
+        String token = "";
+        try{
+            token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+        }catch(Exception error){
+            // we would rather return a bad request from the server
+        }
+
+        HttpRequest request = switch (token) {
+            case "" -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .build();
+            default -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .header("Authorization", "Bearer " + token)
+                        .build();
+        };
 
         return sendRequest(request);
     }
@@ -34,23 +50,53 @@ public class HttpUtils {
         return sendJsonRequest(url, requestBody, "PATCH");
     }
 
-    public static CompletableFuture<SafeMap> asyncDelete(String url) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .DELETE()
-                .build();
+    public static CompletableFuture<SafeMap> asyncDelete(String url) throws Exception{
+        String token = "";
+        try{
+            token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+        }catch(Exception error){
+            // we would rather return a bad request from the server
+        }
+
+        HttpRequest request = switch (token) {
+            case "" -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .DELETE()
+                        .build();
+            default -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .DELETE()
+                        .header("Authorization", "Bearer " + token)
+                        .build();
+        };
 
         return sendRequest(request);
     }
 
     private static CompletableFuture<SafeMap> sendJsonRequest(String url, Object requestBody, String method) {
         try {
+            String token = "";
+            try{
+                token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+            }catch(Exception error){
+                // we would rather return a bad request from the server
+            }
+
             String jsonBody = objectMapper.writeValueAsString(requestBody);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .method(method, HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .header("Content-Type", "application/json")
-                    .build();
+
+            HttpRequest request = switch (token) {
+                case "" -> HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .method(method, HttpRequest.BodyPublishers.ofString(jsonBody))
+                            .header("Content-Type", "application/json")
+                            .build();
+                default -> HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .method(method, HttpRequest.BodyPublishers.ofString(jsonBody))
+                            .header("Content-Type", "application/json")
+                            .header("Authorization", "Bearer " + token)
+                            .build();
+            };
 
             return sendRequest(request);
         } catch (Exception e) {
@@ -60,15 +106,21 @@ public class HttpUtils {
         }
     }
 
-    private static CompletableFuture<SafeMap> sendRequest(HttpRequest request) {
+    private static CompletableFuture<SafeMap> sendRequest(HttpRequest request) throws Exception {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> {
-                    try {
-                        Map<String, Object> map = objectMapper.readValue(response.body(), new TypeReference<>() {});
-                        return new SafeMap(map);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to parse JSON response", e);
-                    }
-                });
+            .thenApply(response -> {
+                int statusCode = response.statusCode();
+
+                if (statusCode >= 400) {
+                    throw new RuntimeException(statusCode + " " + response.body());
+                }
+
+                try {
+                    Map<String, Object> map = objectMapper.readValue(response.body(), new TypeReference<>() {});
+                    return new SafeMap(map);
+                } catch (Exception e) {
+                    return new SafeMap(Map.of("error", response.body()));
+                }
+            });
     }
 }

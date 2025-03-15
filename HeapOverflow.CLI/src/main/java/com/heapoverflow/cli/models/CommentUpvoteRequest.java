@@ -1,19 +1,15 @@
-package com.heapoverflow.api.models;
+package com.heapoverflow.cli.models;
 
-public class ReplyRequest {
+public class CommentUpvoteRequest {
     
-    private String content;
     private String userId;
     private Integer commentId;
 
-    public ReplyRequest() {}
+    public CommentUpvoteRequest() {}
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
+    public CommentUpvoteRequest(String userId, Integer commentId) {
+        this.userId = userId;
+        this.commentId = commentId;
     }
 
     public String getUserId() {

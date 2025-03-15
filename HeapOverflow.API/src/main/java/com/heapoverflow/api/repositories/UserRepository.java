@@ -2,18 +2,16 @@ package com.heapoverflow.api.repositories;
 
 import com.heapoverflow.api.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserRepository extends JpaRepository<User, String> {
 
-    Optional<User> findById(String userGoogleId);
-
     Boolean existsByEmail(String email);
     
-    List<User> findByUsernameContaining(String username);
+    Page<User> findByUsernameContaining(String username, Pageable pageable);
 
-    List<User> findByEmailContaining(String email);
+    Page<User> findByEmailContaining(String email, Pageable pageable);
+
+    Page<User> findByUsernameContainingAndEmailContaining(String username, String email, Pageable pageable);
 }
-

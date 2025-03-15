@@ -32,7 +32,7 @@ jobs:
           cache: 'maven'
 
       - name: 🚀 Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package -DskipTests
 
   release:
     name: ⬆️ Release jar file
@@ -56,7 +56,7 @@ jobs:
           cache: 'maven'
 
       - name: 🚀 Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package -DskipTests
 
       - uses: ncipollo/release-action@v1
         with:

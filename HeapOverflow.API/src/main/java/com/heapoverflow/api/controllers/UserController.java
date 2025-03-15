@@ -1,58 +1,48 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.User;
-import com.heapoverflow.api.repositories.UserRepository;
-
+import com.heapoverflow.api.services.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     /** GET endpoints */
 
     @GetMapping("/users")
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public ResponseEntity<Page<User>> getUsers(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email,
+            Pageable pageable) {
+
+        Page<User> users = userService.getUsersByFilter(username, email, pageable);
+
+        return users.hasContent() ? ResponseEntity.ok(users) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/users/{userGoogleId}")
     public ResponseEntity<User> getUserById(@PathVariable String userGoogleId) {
-        return userRepository.findById(userGoogleId)
+        return userService.getUserById(userGoogleId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/users/username/{username}")
-    public List<User> getUsersByUsername(@PathVariable String username) {
-        return userRepository.findByUsernameContaining(username);
-    }
-
-    @GetMapping("/users/email/{email}")
-    public List<User> getUsersByEmail(@PathVariable String email) {
-        return userRepository.findByEmailContaining(email);
-    }
-
     /** POST endpoints */
 
-    @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody User user) {
+    // @PostMapping("/users")
+    // public ResponseEntity<User> createUser(@RequestBody User user) {
+    //     User savedUser = userService.createUser(user);
+    //     return ResponseEntity.ok(savedUser);
+    // }
 
-        if (userRepository.existsById(user.getId())) {
-            return ResponseEntity.badRequest().body("{\"error\": \"User already exists\"}");
-        } else if (userRepository.existsByEmail(user.getEmail())) {
-            return ResponseEntity.badRequest().body("{\"error\": \"User email already exists\"}");
-        }
-
-        return ResponseEntity.ok(userRepository.save(user));
-    }
 }
-

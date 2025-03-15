@@ -1,4 +1,4 @@
-package com.heapoverflow.api.models;
+package com.heapoverflow.cli.models;
 
 public class ReplyRequest {
     
@@ -7,6 +7,12 @@ public class ReplyRequest {
     private Integer commentId;
 
     public ReplyRequest() {}
+
+    public ReplyRequest(String content, String userId, Integer commentId) {
+        this.content = content;
+        this.userId = userId;
+        this.commentId = commentId;
+    }
 
     public String getContent() {
         return content;
@@ -24,7 +30,7 @@ public class ReplyRequest {
         this.userId = userId;
     }
 
-    public Integer getCommentId() {
+    public Integer getCommentdId() {
         return commentId;
     }
 
