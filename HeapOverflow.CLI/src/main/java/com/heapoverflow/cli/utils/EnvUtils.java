@@ -41,6 +41,6 @@ public class EnvUtils {
     }
 
     public static String retrieveJwt() {
-        return preferences.get("jwt", null); // Returns null if not set
+        return preferences.get("jwt", ""); // Returns null if not set
     }
 }
