@@ -18,4 +18,8 @@ public class ApiEndpointsConstants {
     public static final String API_COMMENT_ID = "api/comments/";
     public static final String API_COMMENTS_USER_GID = "api/comments/user/";
     public static final String API_COMMENTS_THREAD_THREAD_ID = "api/comments/thread/";
+
+    // threads-controller
+    public static final String API_THREADS = "api/threads";
+    public static final String API_THREADS_ID = "api/threads/";
 }
