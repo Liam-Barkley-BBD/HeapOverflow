@@ -22,7 +22,6 @@ public class CommentController {
 
     @GetMapping("/comments")
     public ResponseEntity<Page<Comment>> getComments(Pageable pageable) {
-
         Page<Comment> comments = commentService.getAllComments(pageable);
 
         return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();

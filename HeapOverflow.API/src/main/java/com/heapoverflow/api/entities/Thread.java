@@ -3,6 +3,8 @@ package com.heapoverflow.api.entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "threads")
 public class Thread {
@@ -61,8 +63,13 @@ public class Thread {
         this.description = description;
     }
     
+    @JsonIgnore
     public User getUser() {
         return this.user;
+    }
+    
+    public String getUserId() {
+        return this.user.getId();
     }
 
     public void setUser(User user) {

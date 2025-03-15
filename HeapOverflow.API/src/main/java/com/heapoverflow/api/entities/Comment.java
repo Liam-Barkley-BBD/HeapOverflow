@@ -46,16 +46,26 @@ public class Comment {
         this.id = id;
     }
 
+    @JsonIgnore
     public Thread getThread() {
         return this.thread;
+    }
+
+    public Integer getThreadId() {
+        return this.thread.getId();
     }
 
     public void setThread(Thread thread) {
         this.thread = thread;
     }
 
+    @JsonIgnore
     public User getUser() {
         return this.user;
+    }
+    
+    public String getUserId() {
+        return this.user.getId();
     }
 
     public void setUser(User user) {
