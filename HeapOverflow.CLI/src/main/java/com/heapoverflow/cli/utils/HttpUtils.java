@@ -108,6 +108,7 @@ public class HttpUtils {
     private static CompletableFuture<SafeMap> sendRequest(HttpRequest request) throws Exception {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(response -> {
+                System.out.println(response.body());
                 int statusCode = response.statusCode();
 
                 if (statusCode >= 400) {

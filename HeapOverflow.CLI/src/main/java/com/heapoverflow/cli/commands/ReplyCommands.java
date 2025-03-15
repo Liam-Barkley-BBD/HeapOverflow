@@ -10,7 +10,7 @@ import com.heapoverflow.cli.utils.EnvUtils;
 public class ReplyCommands {
     @ShellMethod(key = "replies", value = "Get replies")
     public String replies() {
-        if(EnvUtils.retrieveJwt() == null){
+        if(EnvUtils.retrieveJwt().equals("")){
             return "You are not logged, please login!";
         } else{
             return ReplyServices.getReplies().toString();
