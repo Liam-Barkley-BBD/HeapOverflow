@@ -7,7 +7,6 @@ import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.heapoverflow.cli.constants.EnvConstants;
 
 import java.util.Map;
 
@@ -18,7 +17,7 @@ public class HttpUtils {
     public static CompletableFuture<SafeMap> asyncGet(String url) throws Exception{
         String token = "";
         try{
-            token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+            token = EnvUtils.retrieveJwt();
         }catch(Exception error){
             // we would rather return a bad request from the server
         }
@@ -53,7 +52,7 @@ public class HttpUtils {
     public static CompletableFuture<SafeMap> asyncDelete(String url) throws Exception{
         String token = "";
         try{
-            token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+            token = EnvUtils.retrieveJwt();
         }catch(Exception error){
             // we would rather return a bad request from the server
         }
@@ -77,7 +76,7 @@ public class HttpUtils {
         try {
             String token = "";
             try{
-                token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
+                token = EnvUtils.retrieveJwt();
             }catch(Exception error){
                 // we would rather return a bad request from the server
             }

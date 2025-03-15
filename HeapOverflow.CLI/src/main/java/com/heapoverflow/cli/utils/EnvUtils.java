@@ -1,6 +1,10 @@
 package com.heapoverflow.cli.utils;
 
+import java.util.prefs.Preferences;
+
 public class EnvUtils {
+    private static final Preferences preferences = Preferences.userRoot().node("jwt_storage");
+
     public static String getStringEnvOrThrow(String envVar) {
         String value = System.getenv(envVar);
         if (value == null || value.isEmpty()) {
@@ -30,5 +34,13 @@ public class EnvUtils {
     public static boolean doesEnvExist(String envVar){
         String value = System.getenv(envVar);
         return !(value == null || value.isEmpty());
+    }
+
+    public static void storeJwt(String jwt) {
+        preferences.put("jwt", jwt);
+    }
+
+    public static String retrieveJwt() {
+        return preferences.get("jwt", null); // Returns null if not set
     }
 }

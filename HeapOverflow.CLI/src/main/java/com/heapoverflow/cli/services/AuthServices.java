@@ -10,13 +10,12 @@ public class AuthServices {
     public static String attemptGoogleLogin() {
         try {
             String authCode = BrowserAuthServices.getUsersGoogleAuthCode().join();
-            System.out.println(authCode);
 
             if(authCode.equals("")){
                 return "Browser authentication took too long or failed, releasing resources";
             } else{
                 SafeMap map = HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + AuthEndpointsConstants.AUTH_TOKEN + authCode).join();
-                EnvUtils.setStringEnv(EnvConstants.JWT, map.getString("jwt"));
+                EnvUtils.storeJwt(map.getString("jwt"));
                 return "Authentication successful, welcome to HeapOverflow.CLI!";
             }
         } catch (Exception error) {

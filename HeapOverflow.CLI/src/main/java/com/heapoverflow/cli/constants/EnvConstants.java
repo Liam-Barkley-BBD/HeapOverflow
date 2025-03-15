@@ -7,5 +7,4 @@ public class EnvConstants {
     public static final String AUTH_URL = "AUTH_URL";
     public static final String LOCAL_AUTH_TIMEOUT = "LOCAL_AUTH_TIMEOUT";
     public static final String SERVER_URI = "SERVER_URI";
-    public static final String JWT = "JWT";
 }
