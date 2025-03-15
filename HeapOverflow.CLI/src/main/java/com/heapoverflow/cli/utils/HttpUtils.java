@@ -5,16 +5,15 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HttpUtils {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static CompletableFuture<SafeMap> asyncGet(String url) throws Exception{
+    public static CompletableFuture<JsonNode> asyncGet(String url) throws Exception{
         String token = "";
         try{
             token = EnvUtils.retrieveJwt();
@@ -37,19 +36,19 @@ public class HttpUtils {
         return sendRequest(request);
     }
 
-    public static CompletableFuture<SafeMap> asyncPost(String url, Object requestBody) {
+    public static CompletableFuture<JsonNode> asyncPost(String url, Object requestBody) {
         return sendJsonRequest(url, requestBody, "POST");
     }
 
-    public static CompletableFuture<SafeMap> asyncPut(String url, Object requestBody) {
+    public static CompletableFuture<JsonNode> asyncPut(String url, Object requestBody) {
         return sendJsonRequest(url, requestBody, "PUT");
     }
 
-    public static CompletableFuture<SafeMap> asyncPatch(String url, Object requestBody) {
+    public static CompletableFuture<JsonNode> asyncPatch(String url, Object requestBody) {
         return sendJsonRequest(url, requestBody, "PATCH");
     }
 
-    public static CompletableFuture<SafeMap> asyncDelete(String url) throws Exception{
+    public static CompletableFuture<JsonNode> asyncDelete(String url) throws Exception{
         String token = "";
         try{
             token = EnvUtils.retrieveJwt();
@@ -72,7 +71,7 @@ public class HttpUtils {
         return sendRequest(request);
     }
 
-    private static CompletableFuture<SafeMap> sendJsonRequest(String url, Object requestBody, String method) {
+    private static CompletableFuture<JsonNode> sendJsonRequest(String url, Object requestBody, String method) {
         try {
             String token = "";
             try{
@@ -99,13 +98,13 @@ public class HttpUtils {
 
             return sendRequest(request);
         } catch (Exception e) {
-            CompletableFuture<SafeMap> failedFuture = new CompletableFuture<>();
+            CompletableFuture<JsonNode> failedFuture = new CompletableFuture<>();
             failedFuture.completeExceptionally(e);
             return failedFuture;
         }
     }
 
-    private static CompletableFuture<SafeMap> sendRequest(HttpRequest request) throws Exception {
+    private static CompletableFuture<JsonNode> sendRequest(HttpRequest request) throws Exception {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(response -> {
                 System.out.println(response.body());
@@ -115,11 +114,10 @@ public class HttpUtils {
                     throw new RuntimeException(statusCode + " " + response.body());
                 }
 
-                try {
-                    Map<String, Object> map = objectMapper.readValue(response.body(), new TypeReference<>() {});
-                    return new SafeMap(map);
-                } catch (Exception e) {
-                    return new SafeMap(Map.of("error", response.body()));
+                try{
+                    return objectMapper.readTree(response.body());
+                } catch(Exception error){
+                    throw new RuntimeException("Could not parse JSON response body");
                 }
             });
     }

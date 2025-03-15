@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class User {
-    @JsonProperty("user_google_id")
+    @JsonProperty("id")
     private String id;
 
-    @JsonProperty("user_name")
+    @JsonProperty("username")
     private String username;
 
-    @JsonProperty("user_email")
+    @JsonProperty("email")
     private String email;
 
     public User() {}

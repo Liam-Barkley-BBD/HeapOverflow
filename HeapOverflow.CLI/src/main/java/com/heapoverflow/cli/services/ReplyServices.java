@@ -1,55 +1,52 @@
 package com.heapoverflow.cli.services;
 
-import java.util.Map;
-
 import com.heapoverflow.cli.constants.ApiEndpointsConstants;
 import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.models.ReplyRequest;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
-import com.heapoverflow.cli.utils.SafeMap;
 
 public class ReplyServices {
-    public static SafeMap getReplies() {
+    public static String getReplies() {
         try{
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES).join();
+            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES).join().toString();
         } catch(Exception error){
-            return new SafeMap(Map.of("error", "Error encountered getting all replies: " + error.getMessage()));
+            return "Error encountered getting all replies: " + error.getMessage();
         }
     }
 
-    public static SafeMap getRepliesById(String id) {
+    public static String getRepliesById(String id) {
         try{
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + "?id=" + id).join();
+            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + "?id=" + id).join().toString();
         } catch(Exception error){
-            return new SafeMap(Map.of("error", "Error encountered getting replies by id: " + error.getMessage()));
+            return "Error encountered getting replies by id: " + error.getMessage();
         }
     }
 
-    public static SafeMap getCommentsById(String commentId) {
+    public static String getCommentsById(String commentId) {
         try{
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_COMMENT_COMMENT_ID + "?commentId=" + commentId).join();
+            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_COMMENT_COMMENT_ID + "?commentId=" + commentId).join().toString();
         } catch(Exception error){
-            return new SafeMap(Map.of("error", "Error encountered getting comments associated to commentId: " + error.getMessage()));
+            return "Error encountered getting comments associated to commentId: " + error.getMessage();
         }
     }
 
-    public static SafeMap getRepliesFromUser(String userGoogleId) {
+    public static String getRepliesFromUser(String userGoogleId) {
         try{
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_USER_GID + "?userGoogleId=" + userGoogleId).join();
+            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_USER_GID + "?userGoogleId=" + userGoogleId).join().toString();
         } catch(Exception error){
-            return new SafeMap(Map.of("error", "Error encountered getting replies from user with userGoogleId: " + error.getMessage()));
+            return "Error encountered getting replies from user with userGoogleId: " + error.getMessage();
         }
     }
 
-    public static SafeMap postReply(String content, String userId, Integer commentId) {
+    public static String postReply(String content, String userId, Integer commentId) {
         try{
             return HttpUtils.asyncPost(
                     EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES,
                     new ReplyRequest(content, userId, commentId)
-                ).join();
+                ).join().toString();
         } catch(Exception error){
-            return new SafeMap(Map.of("error", "Error encountered getting replies from user with userGoogleId: " + error.getMessage()));
+            return "Error encountered getting replies from user with userGoogleId: " + error.getMessage();
         }
     }
 }
