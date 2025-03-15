@@ -99,7 +99,7 @@ public class HttpUtils {
                     Map<String, Object> map = objectMapper.readValue(response.body(), new TypeReference<>() {});
                     return new SafeMap(map);
                 } catch (Exception e) {
-                    throw new RuntimeException("Failed to parse JSON response", e);
+                    return new SafeMap(Map.of("error", response.body()));
                 }
             });
     }

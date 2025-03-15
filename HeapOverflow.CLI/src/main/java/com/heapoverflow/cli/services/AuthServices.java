@@ -10,6 +10,7 @@ public class AuthServices {
     public static String attemptGoogleLogin() {
         try {
             String authCode = BrowserAuthServices.getUsersGoogleAuthCode().join();
+            System.out.println(authCode);
 
             if(authCode.equals("")){
                 return "Browser authentication took too long or failed, releasing resources";
@@ -19,7 +20,7 @@ public class AuthServices {
                 return "Authentication successful, welcome to HeapOverflow.CLI!";
             }
         } catch (Exception error) {
-            return "Error ecountered in attempting google login: " + error.getMessage();
+            return "Error encountered in attempting google login: " + error.getMessage();
         }
     }
 }
