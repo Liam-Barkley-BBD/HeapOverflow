@@ -20,7 +20,7 @@ public class ReplyServices {
 
     public static SafeMap getRepliesById(String id) {
         try{
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + id).join();
+            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + "id=" + id).join();
         } catch(Exception error){
             return new SafeMap(Map.of("error", "Error encountered getting replies by id: " + error.getMessage()));
         }
@@ -28,7 +28,7 @@ public class ReplyServices {
 
     public static SafeMap getCommentsById(String commentId) {
         try{
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_COMMENT_COMMENT_ID + commentId).join();
+            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_COMMENT_COMMENT_ID + "commentId=" + commentId).join();
         } catch(Exception error){
             return new SafeMap(Map.of("error", "Error encountered getting comments associated to commentId: " + error.getMessage()));
         }
@@ -36,7 +36,7 @@ public class ReplyServices {
 
     public static SafeMap getRepliesFromUser(String userGoogleId) {
         try{
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_USER_GID + userGoogleId).join();
+            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_USER_GID + "userGoogleId=" + userGoogleId).join();
         } catch(Exception error){
             return new SafeMap(Map.of("error", "Error encountered getting replies from user with userGoogleId: " + error.getMessage()));
         }
