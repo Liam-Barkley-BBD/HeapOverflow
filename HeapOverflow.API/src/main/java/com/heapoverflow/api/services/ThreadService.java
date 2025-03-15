@@ -32,6 +32,10 @@ public class ThreadService {
         return threadRepository.findById(id);
     }
 
+    public Page<Thread> getThreadsByUserId(String userId, Pageable pageable) {
+        return threadRepository.findByUserId(userId, pageable);
+    }
+
     public Page<Thread> getThreadsByFilter(String title, String description, Pageable pageable) {
         if (title != null && description != null) {
             return threadRepository.findByTitleContainingIgnoreCaseAndDescriptionContainingIgnoreCase(title, description, pageable);
