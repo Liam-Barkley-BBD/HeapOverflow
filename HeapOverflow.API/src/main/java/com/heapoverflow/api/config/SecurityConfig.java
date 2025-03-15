@@ -17,8 +17,10 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/auth/**").permitAll();
-                    auth.requestMatchers("/").permitAll();
-                    auth.requestMatchers("/v3/api-docs").permitAll();
+                    // auth.requestMatchers("/").permitAll();
+                    auth.requestMatchers("/v3/**").permitAll();
+                    auth.requestMatchers("/swagger-ui/**").permitAll();
+                    auth.requestMatchers("/swagger-ui.html").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .oauth2ResourceServer(oauth2 -> oauth2

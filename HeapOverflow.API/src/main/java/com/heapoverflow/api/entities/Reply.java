@@ -3,6 +3,8 @@ package com.heapoverflow.api.entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "replies")
 public class Reply {
@@ -17,6 +19,7 @@ public class Reply {
     private User user;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "comment_id", referencedColumnName = "comment_id", nullable = false)
     private Comment comment;
 
