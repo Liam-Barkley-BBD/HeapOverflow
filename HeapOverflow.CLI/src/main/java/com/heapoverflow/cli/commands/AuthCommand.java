@@ -10,7 +10,7 @@ import com.heapoverflow.cli.utils.EnvUtils;
 public class AuthCommand {
     @ShellMethod(key = "login", value = "Attempt to login")
     public String login() {
-        if(EnvUtils.retrieveJwt() != null){
+        if(EnvUtils.retrieveJwt().equals("")){
             return "You are already logged in";
         } else{
             return AuthServices.attemptGoogleLogin();
