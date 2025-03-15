@@ -13,4 +13,6 @@ public interface CommentUpvoteRepository extends JpaRepository<CommentUpvote, In
     Optional<CommentUpvote> findById(Integer id);
 
     Page<CommentUpvote> findByCommentId(Integer commentId, Pageable pageable);
+
+    Page<CommentUpvote> findByUserId(String userId, Pageable pageable);
 }

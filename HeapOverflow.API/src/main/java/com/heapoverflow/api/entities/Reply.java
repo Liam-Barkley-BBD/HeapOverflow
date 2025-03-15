@@ -3,6 +3,7 @@ package com.heapoverflow.api.entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -46,16 +47,26 @@ public class Reply {
         this.id = id;
     }
 
+    @JsonIgnore
     public Comment getComment() {
         return this.comment;
+    }
+
+    public Integer getCommentId() {
+        return this.comment.getId();
     }
 
     public void setComment(Comment comment) {
         this.comment = comment;
     }
 
+    @JsonIgnore
     public User getUser() {
         return this.user;
+    }
+    
+    public String getUserId() {
+        return this.user.getId();
     }
 
     public void setUser(User user) {

@@ -1,5 +1,7 @@
 package com.heapoverflow.api.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -41,16 +43,26 @@ public class ThreadUpvote {
         this.id = id;
     }
 
+    @JsonIgnore
     public User getUser() {
         return this.user;
+    }
+    
+    public String getUserId() {
+        return this.user.getId();
     }
 
     public void setUser(User user) {
         this.user = user;
     }
 
+    @JsonIgnore
     public Thread getThread() {
         return this.thread;
+    }
+
+    public Integer getThreadId() {
+        return this.thread.getId();
     }
 
     public void setThread(Thread thread) {
