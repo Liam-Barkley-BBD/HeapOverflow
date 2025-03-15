@@ -17,7 +17,6 @@ public class HttpUtils {
         String token = "";
         try{
             token = EnvUtils.retrieveJwt();
-            System.out.println(token);
         }catch(Exception error){
             // we would rather return a bad request from the server
         }
@@ -108,7 +107,6 @@ public class HttpUtils {
     private static CompletableFuture<JsonNode> sendRequest(HttpRequest request) throws Exception {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(response -> {
-                System.out.println(response.body());
                 int statusCode = response.statusCode();
 
                 if (statusCode >= 400) {
