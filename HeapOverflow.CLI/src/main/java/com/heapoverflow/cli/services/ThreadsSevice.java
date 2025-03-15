@@ -1,41 +1,38 @@
 package com.heapoverflow.cli.services;
 
-import java.util.Map;
-
 import com.heapoverflow.cli.constants.ApiEndpointsConstants;
 import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.models.ThreadRequest;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
-import com.heapoverflow.cli.utils.SafeMap;
 
 public class ThreadsSevice {
-    public static SafeMap getThreads() {
+    public static String getThreads() {
         try {
             return HttpUtils
                     .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS)
-                    .join();
+                    .join().toString();
         } catch (Exception error) {
-            return new SafeMap(Map.of("error", "Error encountered getting all threads: " + error.getMessage()));
+            return "Error encountered getting all threads: " + error.getMessage();
         }
     }
 
-    public static SafeMap getThreadsById(String id) {
+    public static String getThreadsById(String id) {
         try {
             return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                    + ApiEndpointsConstants.API_THREADS_ID + "id=" + id).join();
+                    + ApiEndpointsConstants.API_THREADS_ID + "id=" + id).join().toString();
         } catch (Exception error) {
-            return new SafeMap(Map.of("error", "Error encountered getting all threads by id: " + error.getMessage()));
+            return "Error encountered getting all threads by id: " + error.getMessage();
         }
     }
 
- public static SafeMap postThread( String title, String description, String userId ){
+ public static String postThread( String title, String description, String userId ){
     try{
         return HttpUtils.asyncPost(
                     EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS,
-                    new ThreadRequest(title,description, userId )).join();
+                    new ThreadRequest(title,description, userId )).join().toString();
     }catch(Exception error){
-        return new SafeMap(Map.of("error", "Error encountered getting replies from user with userGoogleId: " + error.getMessage()));
+        return "Error encountered getting replies from user with userGoogleId: " + error.getMessage();
     }
  }
 

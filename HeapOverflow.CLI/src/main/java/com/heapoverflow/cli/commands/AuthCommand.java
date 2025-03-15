@@ -20,8 +20,12 @@ public class AuthCommand {
     @ShellMethod(key = "logout", value = "Attempt to logout")
     public String logout() {
         try {
-            EnvUtils.deleteJWT();
-            return "You have been logged out";
+            if (EnvUtils.retrieveJwt().equals("")) {
+                return "You are not logged in";
+            } else {
+                EnvUtils.deleteJWT();
+                return "You have been logged out";
+            }
         } catch (Exception e) {
             return "Error" + e.getMessage();
         }
