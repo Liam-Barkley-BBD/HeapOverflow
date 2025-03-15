@@ -25,14 +25,8 @@ public class AuthController {
 
     @GetMapping("/auth/token")
     public ResponseEntity<String> auth(@RequestParam String code) throws Exception {
-
-        try {
-            String jwt = authService.authenticateUser(code);
-            return ResponseEntity.ok(jwt);
-        } catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid authentication code");
-        }
+        
+        String jwt = authService.authenticateUser(code);
+        return ResponseEntity.ok(jwt);
     }
 }
