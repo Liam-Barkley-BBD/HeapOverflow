@@ -1,9 +1,17 @@
 package com.heapoverflow.cli.commands;
 
+import java.util.List;
+
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStyle;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.heapoverflow.cli.entities.User;
 import com.heapoverflow.cli.services.UserServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 
@@ -18,35 +26,28 @@ public class UserCommands {
         if(EnvUtils.retrieveJwt().equals("")){
             return "You are not logged, please login!";
         } else{
-            return "";
-            /*try{
+            try{
                 JsonNode result = UserServices.getUsers(username, email);
-                ObjectMapper objectMapper = new ObjectMapper();
-                List<User> users = objectMapper.readValue(result.getValue("content").toString(), new TypeReference<List<User>>() {});
-                StringBuilder output = new StringBuilder();
-
-                for (User user : users) {
-                    AttributedString styledRow = new AttributedString(
-                        String.format("%-15s | %-15s | %-15s", user.getId(), user.getUsername(), user.getEmail()),
-                        AttributedStyle.DEFAULT.bold()
-                    );
-                    output.append(styledRow.toAnsi() + "\n");
+                if(!result.has("content")){
+                    return "no response was returned from the api";
+                } else{
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    List<User> users = objectMapper.readValue(result.get("content").toString(), new TypeReference<List<User>>() {});
+                    StringBuilder output = new StringBuilder();
+    
+                    for (User user : users) {
+                        AttributedString styledRow = new AttributedString(
+                            String.format("%-15s | %-15s | %-15s", user.getId(), user.getUsername(), user.getEmail()),
+                            AttributedStyle.DEFAULT.bold()
+                        );
+                        output.append(styledRow.toAnsi() + "\n");
+                    }
+    
+                    return output.toString();
                 }
-
-                return output.toString();
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                Object content = result.get("content"); // No .getString()!
-
-                List<User> users = switch(result.get("content")){
-                    case  List -> objectMapper.convertValue(content, new TypeReference<List<User>>() {});
-                    default -> new List<>();
-                }; 
-
-
             } catch(Exception error){
                 return error.getMessage();
-            }*/
+            }
         }
     }
 

@@ -17,7 +17,7 @@ public class AuthServices {
                 JsonNode jsonNode = HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + AuthEndpointsConstants.AUTH_TOKEN + authCode).join();
 
                 if (jsonNode.has("jwt")) {
-                    EnvUtils.storeJwt(jsonNode.get("jwt").toString());
+                    EnvUtils.storeJwt(jsonNode.get("jwt").asText());
                     return "Authentication successful, welcome to HeapOverflow.CLI!";
                 } else{
                     return "Authentication failed as jwt token was not found";

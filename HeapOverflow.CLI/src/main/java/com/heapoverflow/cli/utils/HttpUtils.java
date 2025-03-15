@@ -17,6 +17,7 @@ public class HttpUtils {
         String token = "";
         try{
             token = EnvUtils.retrieveJwt();
+            System.out.println(token);
         }catch(Exception error){
             // we would rather return a bad request from the server
         }
