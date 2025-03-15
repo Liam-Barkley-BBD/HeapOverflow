@@ -36,7 +36,7 @@ public class Comment {
     }
 
     public Integer getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Integer id) {
@@ -44,15 +44,23 @@ public class Comment {
     }
 
     public Thread getThread() {
-        return thread;
+        return this.thread;
     }
 
     public void setThread(Thread thread) {
         this.thread = thread;
     }
 
+    public User getUser() {
+        return this.user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public String getContent() {
-        return content;
+        return this.content;
     }
 
     public void setContent(String content) {
@@ -60,7 +68,7 @@ public class Comment {
     }
 
     public LocalDateTime getCreatedAt() {
-        return createdAt;
+        return this.createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
@@ -70,10 +78,10 @@ public class Comment {
     @Override
     public String toString() {
         return "Comment{" +
-                "id=" + id +
-                ", thread=" + thread +
-                ", content='" + content + '\'' +
-                ", createdAt=" + createdAt +
+                "id=" + this.id +
+                ", thread=" + this.thread +
+                ", content='" + this.content + '\'' +
+                ", createdAt=" + this.createdAt +
                 '}';
     }
 }

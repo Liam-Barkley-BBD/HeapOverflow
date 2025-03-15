@@ -34,7 +34,7 @@ public class CommentUpvote {
     }
 
     public Integer getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Integer id) {
@@ -42,7 +42,7 @@ public class CommentUpvote {
     }
 
     public User getUser() {
-        return user;
+        return this.user;
     }
 
     public void setUser(User user) {
@@ -50,7 +50,7 @@ public class CommentUpvote {
     }
 
     public Comment getComment() {
-        return comment;
+        return this.comment;
     }
 
     public void setComment(Comment comment) {

@@ -38,7 +38,7 @@ public class Thread {
     }
 
     public Integer getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Integer id) {
@@ -46,7 +46,7 @@ public class Thread {
     }
 
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public void setTitle(String title) {
@@ -54,15 +54,23 @@ public class Thread {
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     public void setDescription(String description) {
         this.description = description;
     }
+    
+    public User getUser() {
+        return this.user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     public LocalDateTime getCreatedAt() {
-        return createdAt;
+        return this.createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
@@ -80,12 +88,12 @@ public class Thread {
     @Override
     public String toString() {
         return "Thread{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", user=" + (user != null ? user.getId() : "null") +
-                ", createdAt=" + createdAt +
-                ", closedAt=" + closedAt +
+                "id=" + this.id +
+                ", title='" + this.title + '\'' +
+                ", description='" + this.description + '\'' +
+                ", user=" + (this.user != null ? this.user.getId() : "null") +
+                ", createdAt=" + this.createdAt +
+                ", closedAt=" + this.closedAt +
                 '}';
     }
 }

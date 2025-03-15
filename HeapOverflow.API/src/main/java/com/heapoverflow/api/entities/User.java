@@ -48,14 +48,4 @@ public class User {
         return this.email;
     }
 
-    // @Override
-    // public String toString() {
-    //     try {
-    //         ObjectMapper objectMapper = new ObjectMapper();
-    //         return objectMapper.writeValueAsString(this);
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //         return "{}";
-    //     }
-    // }
 }
