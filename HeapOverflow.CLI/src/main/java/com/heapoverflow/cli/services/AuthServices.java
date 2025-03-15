@@ -19,7 +19,7 @@ public class AuthServices {
                 return "Authentication successful, welcome to HeapOverflow.CLI!";
             }
         } catch (Exception error) {
-            throw new RuntimeException("Error ecountered in attempting google login: " + error.getMessage(), error);
+            return "Error ecountered in attempting google login: " + error.getMessage();
         }
     }
 }

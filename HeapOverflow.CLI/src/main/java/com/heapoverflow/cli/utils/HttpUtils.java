@@ -88,13 +88,19 @@ public class HttpUtils {
 
     private static CompletableFuture<SafeMap> sendRequest(HttpRequest request) {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> {
-                    try {
-                        Map<String, Object> map = objectMapper.readValue(response.body(), new TypeReference<>() {});
-                        return new SafeMap(map);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to parse JSON response", e);
-                    }
-                });
+            .thenApply(response -> {
+                int statusCode = response.statusCode();
+
+                if (statusCode >= 400) {
+                    throw new RuntimeException(statusCode + " " + response.body());
+                }
+
+                try {
+                    Map<String, Object> map = objectMapper.readValue(response.body(), new TypeReference<>() {});
+                    return new SafeMap(map);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to parse JSON response", e);
+                }
+            });
     }
 }
