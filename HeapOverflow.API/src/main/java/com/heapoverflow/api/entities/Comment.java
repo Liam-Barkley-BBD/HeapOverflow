@@ -2,6 +2,7 @@ package com.heapoverflow.api.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -28,6 +29,9 @@ public class Comment {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "comment")
+    private List<CommentUpvote> commentUpvotes;
 
     public Comment() {}
 
@@ -70,6 +74,19 @@ public class Comment {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    @JsonIgnore
+    public List<CommentUpvote> getCommentUpvotes() {
+        return this.commentUpvotes;
+    }
+
+    public Integer getCommentUpvotesCount() {
+        return this.commentUpvotes.size();
+    }
+
+    public void setCommentUpvotes(List<CommentUpvote> commentUpvotes) {
+        this.commentUpvotes = commentUpvotes;
     }
 
     public String getContent() {

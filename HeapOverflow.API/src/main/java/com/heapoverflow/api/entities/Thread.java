@@ -2,6 +2,7 @@ package com.heapoverflow.api.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -29,6 +30,9 @@ public class Thread {
 
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
+
+    @OneToMany(mappedBy = "thread")
+    private List<ThreadUpvote> threadUpvotes;
 
     public Thread() {}
 
@@ -74,6 +78,19 @@ public class Thread {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    @JsonIgnore
+    public List<ThreadUpvote> getThreadUpvotes() {
+        return this.threadUpvotes;
+    }
+
+    public Integer getThreadUpvotesCount() {
+        return this.threadUpvotes.size();
+    }
+
+    public void setThreadUpvotes(List<ThreadUpvote> threadUpvotes) {
+        this.threadUpvotes = threadUpvotes;
     }
 
     public LocalDateTime getCreatedAt() {
