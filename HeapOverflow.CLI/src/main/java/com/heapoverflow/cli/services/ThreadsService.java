@@ -15,13 +15,11 @@ public class ThreadsService {
                 .join();
     }
 
-    public static String getThreadsById(String id) {
-        try {
-            return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                    + ApiEndpointsConstants.API_THREADS_ID + "id=" + id).join().toString();
-        } catch (Exception error) {
-            return "Error encountered getting all threads by id: " + error.getMessage();
-        }
+    public static JsonNode getThreadsById(int id) throws Exception {
+
+        return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                + ApiEndpointsConstants.API_THREADS_ID + id).join();
+
     }
 
     public static String postThread(String title, String description, String userId) {
