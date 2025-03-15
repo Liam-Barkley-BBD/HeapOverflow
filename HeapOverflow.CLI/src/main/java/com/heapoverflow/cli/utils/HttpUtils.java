@@ -23,11 +23,17 @@ public class HttpUtils {
             // we would rather return a bad request from the server
         }
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET()
-                .header("Authorization", "Bearer " + token)
-                .build();
+        HttpRequest request = switch (token) {
+            case "" -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .build();
+            default -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .header("Authorization", "Bearer " + token)
+                        .build();
+        };
 
         return sendRequest(request);
     }
@@ -52,11 +58,17 @@ public class HttpUtils {
             // we would rather return a bad request from the server
         }
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .DELETE()
-                .header("Authorization", "Bearer " + token)
-                .build();
+        HttpRequest request = switch (token) {
+            case "" -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .DELETE()
+                        .build();
+            default -> HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .DELETE()
+                        .header("Authorization", "Bearer " + token)
+                        .build();
+        };
 
         return sendRequest(request);
     }
@@ -71,12 +83,20 @@ public class HttpUtils {
             }
 
             String jsonBody = objectMapper.writeValueAsString(requestBody);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .method(method, HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + token)
-                    .build();
+
+            HttpRequest request = switch (token) {
+                case "" -> HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .method(method, HttpRequest.BodyPublishers.ofString(jsonBody))
+                            .header("Content-Type", "application/json")
+                            .build();
+                default -> HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .method(method, HttpRequest.BodyPublishers.ofString(jsonBody))
+                            .header("Content-Type", "application/json")
+                            .header("Authorization", "Bearer " + token)
+                            .build();
+            };
 
             return sendRequest(request);
         } catch (Exception e) {
