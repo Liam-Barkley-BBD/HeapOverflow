@@ -15,7 +15,7 @@ public class HttpUtils {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static CompletableFuture<SafeMap> asyncGet(String url) {
+    public static CompletableFuture<SafeMap> asyncGet(String url) throws Exception{
         String token = "";
         try{
             token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
@@ -50,7 +50,7 @@ public class HttpUtils {
         return sendJsonRequest(url, requestBody, "PATCH");
     }
 
-    public static CompletableFuture<SafeMap> asyncDelete(String url) {
+    public static CompletableFuture<SafeMap> asyncDelete(String url) throws Exception{
         String token = "";
         try{
             token = EnvUtils.getStringEnvOrThrow(EnvConstants.JWT);
@@ -106,7 +106,7 @@ public class HttpUtils {
         }
     }
 
-    private static CompletableFuture<SafeMap> sendRequest(HttpRequest request) {
+    private static CompletableFuture<SafeMap> sendRequest(HttpRequest request) throws Exception {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(response -> {
                 int statusCode = response.statusCode();

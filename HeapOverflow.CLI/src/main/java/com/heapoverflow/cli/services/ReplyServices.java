@@ -9,7 +9,7 @@ import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
 import com.heapoverflow.cli.utils.SafeMap;
 
-public class ApiService {
+public class ReplyServices {
     public static SafeMap getReplies() {
         try{
             return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES).join();
