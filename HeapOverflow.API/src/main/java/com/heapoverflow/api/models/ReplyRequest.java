@@ -24,7 +24,7 @@ public class ReplyRequest {
         this.userId = userId;
     }
 
-    public Integer getCommentdId() {
+    public Integer getCommentId() {
         return commentId;
     }
 

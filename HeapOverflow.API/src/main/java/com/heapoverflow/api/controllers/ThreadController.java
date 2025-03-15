@@ -38,6 +38,13 @@ public class ThreadController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/threads/user/{userId}")
+    public ResponseEntity<Page<Thread>> getThreadsByUserId(@PathVariable String userId, Pageable pageable) {
+        Page<Thread> threads =  threadService.getThreadsByUserId(userId, pageable);
+        
+        return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
+    }
+
     /** POST endpoint */
 
     @PostMapping("/threads")
