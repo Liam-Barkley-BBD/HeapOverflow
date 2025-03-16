@@ -27,21 +27,21 @@ public class CommentUpvoteController {
         return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/commentUpvotes/{id}")
+    @GetMapping("/commentupvotes/{id}")
     public ResponseEntity<CommentUpvote> getCommentUpvoteById(@PathVariable Integer id) {
         return commentUpvoteService.getCommentUpvoteById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/commentUpvotes/user/{userId}")
+    @GetMapping("/commentupvotes/user/{userId}")
     public ResponseEntity<Page<CommentUpvote>> getCommentUpvotesByUserId(@PathVariable String userId, Pageable pageable) {
         Page<CommentUpvote> commentUpvotes =  commentUpvoteService.getCommentUpvotesByUserId(userId, pageable);
         
         return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/commentUpvotes/comment/{commentId}")
+    @GetMapping("/commentupvotes/comment/{commentId}")
     public ResponseEntity<Page<CommentUpvote>> getCommentUpvotesByCommentId(@PathVariable Integer commentId, Pageable pageable) {
         Page<CommentUpvote> commentUpvotes =  commentUpvoteService.getCommentUpvotesByCommentId(commentId, pageable);
         
@@ -50,7 +50,7 @@ public class CommentUpvoteController {
 
     /** POST endpoint */
 
-    @PostMapping("/commentUpvotes")
+    @PostMapping("/commentupvotes")
     public ResponseEntity<CommentUpvote> createCommentUpvote(@RequestBody CommentUpvoteRequest commentUpvoteRequest) {
         CommentUpvote newCommentUpvote = commentUpvoteService.createCommentUpvote(commentUpvoteRequest);
         return ResponseEntity.ok(newCommentUpvote);
@@ -58,7 +58,7 @@ public class CommentUpvoteController {
 
     /** DELETE endpoint */
 
-    @DeleteMapping("/commentUpvotes/{id}")
+    @DeleteMapping("/commentupvotes/{id}")
     public ResponseEntity<Void> deleteCommentUpvote(@PathVariable Integer id) {
         commentUpvoteService.deleteCommentUpvote(id);
         return ResponseEntity.noContent().build();
