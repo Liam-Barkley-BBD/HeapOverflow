@@ -53,4 +53,12 @@ public class ThreadController {
         return ResponseEntity.ok(newThread);
     }
 
+    /** DELETE endpoint */
+
+    @DeleteMapping("/threads/{id}")
+    public ResponseEntity<Void> deleteThread(@PathVariable Integer id) {
+        threadService.deleteThread(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

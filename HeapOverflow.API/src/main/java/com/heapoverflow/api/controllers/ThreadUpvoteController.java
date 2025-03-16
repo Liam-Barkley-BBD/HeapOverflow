@@ -48,7 +48,6 @@ public class ThreadUpvoteController {
         return threadUpvotes.hasContent() ? ResponseEntity.ok(threadUpvotes) : ResponseEntity.notFound().build();
     }
 
-
     /** POST endpoint */
 
     @PostMapping("/threadupvotes")

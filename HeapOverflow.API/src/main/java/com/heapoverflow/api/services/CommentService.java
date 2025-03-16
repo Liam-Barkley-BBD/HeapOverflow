@@ -12,6 +12,7 @@ import com.heapoverflow.api.exceptions.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -44,6 +45,7 @@ public class CommentService {
         return commentRepository.findByThreadId(id, pageable);
     }
 
+    @Transactional
     public Comment createComment(CommentRequest commentRequest) {
         User user = userRepository.findById(commentRequest.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -53,5 +55,13 @@ public class CommentService {
 
         Comment newComment = new Comment(commentRequest.getContent(), user, thread);
         return commentRepository.save(newComment);
+    }
+
+    @Transactional
+    public void deleteComment(Integer id) {
+        if (!commentRepository.existsById(id)) {
+            throw new CommentNotFoundException("Comment with ID " + id + " not found.");
+        }
+        commentRepository.deleteById(id);
     }
 }

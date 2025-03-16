@@ -37,12 +37,4 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** POST endpoints */
-
-    // @PostMapping("/users")
-    // public ResponseEntity<User> createUser(@RequestBody User user) {
-    //     User savedUser = userService.createUser(user);
-    //     return ResponseEntity.ok(savedUser);
-    // }
-
 }

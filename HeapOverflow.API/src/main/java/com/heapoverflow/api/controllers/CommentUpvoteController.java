@@ -48,7 +48,6 @@ public class CommentUpvoteController {
         return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
     }
 
-
     /** POST endpoint */
 
     @PostMapping("/commentUpvotes")

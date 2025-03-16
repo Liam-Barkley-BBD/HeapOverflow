@@ -48,13 +48,20 @@ public class CommentController {
         return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();
     }
 
-
     /** POST endpoint */
 
     @PostMapping("/comments")
     public ResponseEntity<Comment> createComment(@RequestBody CommentRequest commentRequest) {
         Comment newComment = commentService.createComment(commentRequest);
         return ResponseEntity.ok(newComment);
+    }
+
+    /** DELETE endpoint */
+
+    @DeleteMapping("/comments/{id}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Integer id) {
+        commentService.deleteComment(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -49,13 +49,20 @@ public class ReplyController {
         return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
     }
 
-
     /** POST endpoint */
 
     @PostMapping("/replies")
     public ResponseEntity<Reply> createReply(@RequestBody ReplyRequest replyRequest) {
         Reply newReply = replyService.createReply(replyRequest);
         return ResponseEntity.ok(newReply);
+    }
+
+    /** DELETE endpoint */
+
+    @DeleteMapping("/replies/{id}")
+    public ResponseEntity<Void> deleteReply(@PathVariable Integer id) {
+        replyService.deleteReply(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

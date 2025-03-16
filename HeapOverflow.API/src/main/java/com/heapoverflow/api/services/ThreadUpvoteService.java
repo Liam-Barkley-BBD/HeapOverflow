@@ -12,6 +12,7 @@ import com.heapoverflow.api.exceptions.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -44,6 +45,7 @@ public class ThreadUpvoteService {
         return threadUpvoteRepository.findByThreadId(id, pageable);
     }
 
+    @Transactional
     public ThreadUpvote createThreadUpvote(ThreadUpvoteRequest threadUpvoteRequest) {
         User user = userRepository.findById(threadUpvoteRequest.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
