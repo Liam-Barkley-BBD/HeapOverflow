@@ -57,18 +57,26 @@ public class ThreadUpvoteService {
         Thread thread = threadRepository.findById(threadId)
                 .orElseThrow(() -> new ThreadNotFoundException("Thread not found"));
 
+        if (threadUpvoteRepository.existsByUserAndThread(user, thread)) {
+            throw new IllegalStateException("User has already upvoted the thread");
+        }
+        
         ThreadUpvote newThreadUpvote = new ThreadUpvote(user, thread);
         return threadUpvoteRepository.save(newThreadUpvote);
     }
 
     @Transactional
-    public void deleteThreadUpvote(Integer id) {
-        ThreadUpvote threadUpvote = threadUpvoteRepository.findById(id)
-        .orElseThrow(() -> new ThreadNotFoundException("ThreadUpvote with ID " + id + " not found."));
+    public void deleteThreadUpvote(Integer threadId) {
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
 
-        if (!threadUpvote.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
-            throw new UnauthorizedActionException("You do not have permission to delete this thread upvote.");
-        }
+        User user = userRepository.findById(authenticatedUserId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Thread thread = threadRepository.findById(threadId)
+            .orElseThrow(() -> new ThreadNotFoundException("Thread not found"));
+        
+        ThreadUpvote threadUpvote = threadUpvoteRepository.findByUserAndThread(user, thread)
+            .orElseThrow(() -> new ThreadNotFoundException("ThreadUpvote with thread ID: " + threadId + " for user not found"));
 
         threadUpvoteRepository.deleteById(threadUpvote.getId());
     }

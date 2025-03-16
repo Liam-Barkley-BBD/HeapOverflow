@@ -36,9 +36,9 @@ public class ThreadUpvoteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** PATCH endpoint */
+    /** POST endpoint */
 
-    @PatchMapping("/threadupvotes")
+    @PostMapping("/threadupvotes")
     public ResponseEntity<ThreadUpvote> createThreadUpvote(@RequestBody Integer threadId) {
         ThreadUpvote newThreadUpvote = threadUpvoteService.createThreadUpvote(threadId);
         return ResponseEntity.ok(newThreadUpvote);
@@ -46,9 +46,9 @@ public class ThreadUpvoteController {
 
     /** DELETE endpoint */
 
-    @DeleteMapping("/threadupvotes/{id}")
-    public ResponseEntity<Void> deleteThreadUpvote(@PathVariable Integer id) {
-        threadUpvoteService.deleteThreadUpvote(id);
+    @DeleteMapping("/threadupvotes")
+    public ResponseEntity<Void> deleteThreadUpvote(@RequestParam(required = true) Integer threadId) {
+        threadUpvoteService.deleteThreadUpvote(threadId);
         return ResponseEntity.noContent().build();
     }
 

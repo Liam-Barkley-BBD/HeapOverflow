@@ -57,19 +57,27 @@ public class CommentUpvoteService {
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
+            
+        if (commentUpvoteRepository.existsByUserAndComment(user, comment)) {
+            throw new IllegalStateException("User has already upvoted the comment");
+        }
 
         CommentUpvote newCommentUpvote = new CommentUpvote(user, comment);
         return commentUpvoteRepository.save(newCommentUpvote);
     }
 
     @Transactional
-    public void deleteCommentUpvote(Integer id) {
-        CommentUpvote commentUpvote = commentUpvoteRepository.findById(id)
-        .orElseThrow(() -> new ThreadNotFoundException("CommentUpvote with ID " + id + " not found."));
+    public void deleteCommentUpvote(Integer commentId) {
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
 
-        if (!commentUpvote.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
-            throw new UnauthorizedActionException("You do not have permission to delete this comment upvote.");
-        }
+        User user = userRepository.findById(authenticatedUserId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Comment comment = commentRepository.findById(commentId)
+            .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
+        
+        CommentUpvote commentUpvote = commentUpvoteRepository.findByUserAndComment(user, comment)
+            .orElseThrow(() -> new CommentUpvoteNotFoundException("CommentUpvote with comment ID: " + commentId + " for user not found"));
 
         commentUpvoteRepository.deleteById(commentUpvote.getId());
     }

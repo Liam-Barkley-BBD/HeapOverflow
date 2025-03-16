@@ -37,9 +37,9 @@ public class CommentUpvoteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** PATCH endpoint */
+    /** POST endpoint */
 
-    @PatchMapping("/commentupvotes")
+    @PostMapping("/commentupvotes")
     public ResponseEntity<CommentUpvote> createCommentUpvote(@RequestBody Integer commentId) {
         CommentUpvote newCommentUpvote = commentUpvoteService.createCommentUpvote(commentId);
         return ResponseEntity.ok(newCommentUpvote);
@@ -47,9 +47,9 @@ public class CommentUpvoteController {
 
     /** DELETE endpoint */
 
-    @DeleteMapping("/commentupvotes/{id}")
-    public ResponseEntity<Void> deleteCommentUpvote(@PathVariable Integer id) {
-        commentUpvoteService.deleteCommentUpvote(id);
+    @DeleteMapping("/commentupvotes")
+    public ResponseEntity<Void> deleteCommentUpvote(@RequestParam(required = true) Integer commentId) {
+        commentUpvoteService.deleteCommentUpvote(commentId);
         return ResponseEntity.noContent().build();
     }
 
