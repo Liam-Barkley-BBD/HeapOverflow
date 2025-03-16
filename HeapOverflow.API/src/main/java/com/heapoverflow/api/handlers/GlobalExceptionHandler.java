@@ -38,6 +38,16 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ThreadUpvoteNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleThreadUpvoteNotFoundException(ThreadUpvoteNotFoundException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(CommentUpvoteNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCommentUpvoteNotFoundException(CommentUpvoteNotFoundException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);

@@ -56,4 +56,12 @@ public class CommentUpvoteController {
         return ResponseEntity.ok(newCommentUpvote);
     }
 
+    /** DELETE endpoint */
+
+    @DeleteMapping("/commentUpvotes/{id}")
+    public ResponseEntity<Void> deleteCommentUpvote(@PathVariable Integer id) {
+        commentUpvoteService.deleteCommentUpvote(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

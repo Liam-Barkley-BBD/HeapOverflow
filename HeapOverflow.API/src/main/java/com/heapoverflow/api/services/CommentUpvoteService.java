@@ -56,4 +56,12 @@ public class CommentUpvoteService {
         CommentUpvote newCommentUpvote = new CommentUpvote(user, comment);
         return commentUpvoteRepository.save(newCommentUpvote);
     }
+
+    @Transactional
+    public void deleteCommentUpvote(Integer id) {
+        if (!commentUpvoteRepository.existsById(id)) {
+            throw new CommentUpvoteNotFoundException("CommentUpvote with ID " + id + " not found.");
+        }
+        commentUpvoteRepository.deleteById(id);
+    }
 }

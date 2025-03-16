@@ -56,4 +56,12 @@ public class ThreadUpvoteController {
         return ResponseEntity.ok(newThreadUpvote);
     }
 
+    /** DELETE endpoint */
+
+    @DeleteMapping("/threadupvotes/{id}")
+    public ResponseEntity<Void> deleteThreadUpvote(@PathVariable Integer id) {
+        threadUpvoteService.deleteThreadUpvote(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

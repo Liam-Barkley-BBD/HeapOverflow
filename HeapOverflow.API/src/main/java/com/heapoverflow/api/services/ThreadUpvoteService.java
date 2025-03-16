@@ -56,4 +56,12 @@ public class ThreadUpvoteService {
         ThreadUpvote newThreadUpvote = new ThreadUpvote(user, thread);
         return threadUpvoteRepository.save(newThreadUpvote);
     }
+
+    @Transactional
+    public void deleteThreadUpvote(Integer id) {
+        if (!threadUpvoteRepository.existsById(id)) {
+            throw new ThreadUpvoteNotFoundException("ThreadUpvote with ID " + id + " not found.");
+        }
+        threadUpvoteRepository.deleteById(id);
+    }
 }
