@@ -40,8 +40,8 @@ public class ThreadController {
 
     @GetMapping("/threads/user/{userId}")
     public ResponseEntity<Page<Thread>> getThreadsByUserId(@PathVariable String userId, Pageable pageable) {
-        Page<Thread> threads =  threadService.getThreadsByUserId(userId, pageable);
-        
+        Page<Thread> threads = threadService.getThreadsByUserId(userId, pageable);
+
         return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
     }
 
