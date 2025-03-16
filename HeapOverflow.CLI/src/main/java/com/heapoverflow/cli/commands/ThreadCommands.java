@@ -26,7 +26,7 @@ public class ThreadCommands {
 
         page = page - 1;
 
-        if (!EnvUtils.doesJwtExist()) {
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
         } else {
             try {
@@ -78,7 +78,7 @@ public class ThreadCommands {
 
     @ShellMethod(key = "thread", value = "Get a thread by ID")
     public String getThreadById(@ShellOption(help = "Thread ID") int id) {
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
         } else {
 
@@ -123,13 +123,13 @@ public class ThreadCommands {
             @ShellOption(help = "Thread Title") String title,
             @ShellOption(help = "Thread Description") String description) {
 
-        if (!EnvUtils.doesJwtExist()) {
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
         }
 
         try {
 
-            String userId = "100267083676959762550";
+            String userId = EnvUtils.retrieveValue(EnvConstants.GOOGLE_SUB);
             if (userId == null || userId.isEmpty()) {
                 return "User ID not found!";
             }
