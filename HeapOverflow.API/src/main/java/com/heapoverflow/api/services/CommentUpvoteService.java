@@ -37,11 +37,11 @@ public class CommentUpvoteService {
     }
 
     public Page<CommentUpvote> getCommentUpvotesByUserId(String id, Pageable pageable) {
-        return commentUpvoteRepository.findByUserId(id, pageable);
+        return commentUpvoteRepository.findByUser_Id(id, pageable);
     }
 
     public Page<CommentUpvote> getCommentUpvotesByCommentId(Integer id, Pageable pageable) {
-        return commentUpvoteRepository.findByCommentId(id, pageable);
+        return commentUpvoteRepository.findByComment_Id(id, pageable);
     }
 
     public CommentUpvote createCommentUpvote(CommentUpvoteRequest commentUpvoteRequest) {

@@ -33,7 +33,7 @@ public class ThreadService {
     }
 
     public Page<Thread> getThreadsByUserId(String userId, Pageable pageable) {
-        return threadRepository.findByUserId(userId, pageable);
+        return threadRepository.findByUser_Id(userId, pageable);
     }
 
     public Page<Thread> getThreadsByFilter(String title, String description, Pageable pageable) {

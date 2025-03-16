@@ -37,11 +37,11 @@ public class ReplyService {
     }
 
     public Page<Reply> getRepliesByUserId(String id, Pageable pageable) {
-        return replyRepository.findByUserId(id, pageable);
+        return replyRepository.findByUser_Id(id, pageable);
     }
 
     public Page<Reply> getRepliesByCommentId(Integer id, Pageable pageable) {
-        return replyRepository.findByCommentId(id, pageable);
+        return replyRepository.findByComment_Id(id, pageable);
     }
 
     public Reply createReply(ReplyRequest replyRequest) {
