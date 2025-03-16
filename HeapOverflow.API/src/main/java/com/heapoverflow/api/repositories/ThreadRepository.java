@@ -13,7 +13,7 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
 
     Page<Thread> findByDescriptionContainingIgnoreCase(String description, Pageable pageable);
 
-    Page<Thread> findByTitleContainingIgnoreCaseAndDescriptionContainingIgnoreCase(String searchText1, String searchText2, Pageable pageable);
+    Page<Thread> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String searchText1, String searchText2, Pageable pageable);
 
     Page<Thread> findByUser_Id(String userId, Pageable pageable);
 

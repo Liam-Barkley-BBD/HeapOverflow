@@ -73,6 +73,14 @@ public class ReplyController {
         return ResponseEntity.ok(newReply);
     }
 
+    /** PUT endpoint */
+
+    @PutMapping("/replies/{id}")
+    public ResponseEntity<Reply> updateReply(@PathVariable Integer id, @RequestBody String content) {
+        Reply updateReply = replyService.updateReply(id, content);
+        return ResponseEntity.ok(updateReply);
+    }
+    
     /** DELETE endpoint */
 
     @DeleteMapping("/replies/{id}")

@@ -61,6 +61,27 @@ public class ReplyService {
     }
 
     @Transactional
+    public Reply updateReply(Integer replyId, String content) {
+        Reply reply = replyRepository.findById(replyId)
+                .orElseThrow(() -> new ReplyNotFoundException("Reply with ID " + replyId + " not found."));
+        
+        if (!reply.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
+            throw new UnauthorizedActionException("You do not have permission to update this reply.");
+        }
+    
+        if (reply.getComment().getThread().getClosedAt() != null) {
+            throw new IllegalStateException("Thread is already closed.");
+        }
+    
+        // update reply with new info
+        if (content != null) {
+            reply.setContent(content);
+        }
+
+        return replyRepository.save(reply);
+    }
+
+    @Transactional
     public void deleteReply(Integer id) {
 
         Reply reply = replyRepository.findById(id)

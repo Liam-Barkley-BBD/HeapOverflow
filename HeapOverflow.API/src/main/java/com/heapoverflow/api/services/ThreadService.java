@@ -53,7 +53,7 @@ public class ThreadService {
             return threadRepository.findByUser_Id(userId, pageable);
         }
         else if (searchText != null) {
-            return threadRepository.findByTitleContainingIgnoreCaseAndDescriptionContainingIgnoreCase(searchText, searchText, pageable);
+            return threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
         }
         else {
             return threadRepository.findAll(pageable);
