@@ -15,9 +15,13 @@ import com.heapoverflow.cli.utils.TextUtils;
 public class UserCommands {
     @ShellMethod(key = "users", value = "Get all users in the system")
     public String getUsers(
-        @ShellOption(value = "username", defaultValue = "") String username, 
-        @ShellOption(value = "email", defaultValue = "") String email
+        @ShellOption(value = "username", help = "The username you wish to match for", defaultValue = "") String username, 
+        @ShellOption(value = "email", help = "The email you wish to match with", defaultValue = "") String email,
+        @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
+        @ShellOption(value = "help", help = "Page size", defaultValue = "5") int size
     ) {
+        page = page - 1;
+
         if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged, please login!";
         } else{
@@ -25,7 +29,7 @@ public class UserCommands {
         }
 
         try{
-            JsonNode result = UserServices.getUsers(username, email);
+            JsonNode result = UserServices.getUsers(username, email, page, size);
             JsonNode contentArray = result.path("content");
 
             if (!contentArray.isArray() || contentArray.isEmpty()) {
@@ -34,17 +38,24 @@ public class UserCommands {
                 // there are users and we should print them out
             }
 
+            int totalThreads = result.path("totalElements").asInt(0);
+            int totalPages = result.path("totalPages").asInt(1);
+            int currentPage = result.path("number").asInt(0) + 1;
+            boolean isLastPage = result.path("last").asBoolean();
+
             TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
             modelBuilder.addRow().addValue("id").addValue("username").addValue("email");
 
-            for (JsonNode thread : contentArray) {
+            for (JsonNode user : contentArray) {
                 modelBuilder.addRow()
-                        .addValue(thread.path("id").asText("N/A"))
-                        .addValue(thread.path("username").asText("N/A"))
-                        .addValue(thread.path("email").asText("N/A"));
+                        .addValue(user.path("id").asText("N/A"))
+                        .addValue(user.path("username").asText("N/A"))
+                        .addValue(user.path("email").asText("N/A"));
             }
 
-            return TextUtils.renderTable(modelBuilder.build());
+            return TextUtils.renderTable(modelBuilder.build()) + 
+                            String.format("\nPage %d of %d | Total Replies: %d %s",
+                            currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
         } catch(Exception error){
             return error.getMessage();
         }
@@ -52,15 +63,26 @@ public class UserCommands {
 
     @ShellMethod(key = "user", value = "Get a specific user in the system")
     public String getUser(
-        @ShellOption(value = "gid", defaultValue = "") String gid
+        @ShellOption(value = "gid", help = "the google user id you wish to find out more details about", defaultValue = "") String gid
     ) {
         if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged, please login!";
         } else if(gid.equals("")){
-            return "the gid must be specified >_ user --gid {gid_value}";
+            return "the gid must be specified like: \"user --gid {gid_value}\"";
         } else{
             try{
-                return UserServices.getUsersByGoogleId(gid).toString();
+
+                JsonNode user = UserServices.getUsersByGoogleId(gid);
+
+                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
+                modelBuilder.addRow().addValue("id").addValue("username").addValue("email");
+
+                modelBuilder.addRow()
+                        .addValue(user.path("id").asText("N/A"))
+                        .addValue(user.path("username").asText("N/A"))
+                        .addValue(user.path("email").asText("N/A"));
+
+                return TextUtils.renderTable(modelBuilder.build());
             }catch(Exception error){
                 return error.getMessage();
             }

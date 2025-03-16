@@ -27,6 +27,15 @@ public class AuthCommand {
         }
     }
 
+    @ShellMethod(key = "name", value = "See your google name")
+    public String name() {
+        if(EnvUtils.doesKeyExist(EnvConstants.GOOGLE_NAME)){
+            return EnvUtils.retrieveValue(EnvConstants.GOOGLE_NAME);
+        } else {
+            return "You are not logged in or your sub is not set, logout and attempt to login again";
+        }
+    }
+
     @ShellMethod(key = "logout", value = "Attempt to logout")
     public String logout() {
         try {
