@@ -137,6 +137,8 @@ public class ReplyCommands {
     ) {
         if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged, please login!";
+        } else if(id.equals("")){
+            return "the id must be specified like: \"edit-reply --id {id_value} --content \"{content_value}\"\"";
         } else{
             try{
 
