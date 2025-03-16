@@ -104,7 +104,7 @@ public class ReplyCommands {
         if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged, please login!";
         } else if(commentId.equals("")){
-            return "the commentId must be specified like: \"post-reply content-- \"{content_value}\"v--commentId {commentId_value}\"";
+            return "the commentId must be specified like: \"post-reply --content \"{content_value}\" --commentId {commentId_value}\"";
         } else{
             try{
 
