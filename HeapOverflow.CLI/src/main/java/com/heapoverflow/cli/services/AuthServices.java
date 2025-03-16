@@ -20,7 +20,9 @@ public class AuthServices {
                 if (jsonNode.has("jwt")) {
                     EnvUtils.storeValue(EnvConstants.JWT_TOKEN, jsonNode.get("jwt").asText());
                     EnvUtils.storeValue(EnvConstants.GOOGLE_SUB, TokenUtils.decodeJWT("sub", jsonNode.get("jwt").asText()));
-                    return "Authentication successful, welcome to HeapOverflow.CLI!";
+                    String name = TokenUtils.decodeJWT("name", jsonNode.get("jwt").asText());
+                    EnvUtils.storeValue(EnvConstants.GOOGLE_NAME, name);
+                    return "Authentication successful! Hi "+ name +" welcome to HeapOverflow.CLI!";
                 } else{
                     return "Authentication failed as jwt token was not found";
                 }

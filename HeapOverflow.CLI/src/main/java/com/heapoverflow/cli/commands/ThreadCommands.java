@@ -88,7 +88,7 @@ public class ThreadCommands {
     }
 
     @ShellMethod(key = "thread", value = "Get a thread by ID")
-    public String getThreadById(@ShellOption(help = "Thread ID") int id) {
+    public String getThreadById(@ShellOption(value = "id", help = "Thread ID") int id) {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
         } else {
@@ -131,8 +131,8 @@ public class ThreadCommands {
 
     @ShellMethod(key = "post-thread", value = "Create a new thread")
     public String postThread(
-            @ShellOption(help = "Thread Title") String title,
-            @ShellOption(help = "Thread Description") String description) {
+            @ShellOption(value = "title", help = "Thread Title") String title,
+            @ShellOption(value = "description", help = "Thread Description") String description) {
 
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";

@@ -3,7 +3,6 @@ package com.heapoverflow.api.models;
 public class ReplyRequest {
     
     private String content;
-    private String userId;
     private Integer commentId;
 
     public ReplyRequest() {}
@@ -14,14 +13,6 @@ public class ReplyRequest {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public Integer getCommentId() {

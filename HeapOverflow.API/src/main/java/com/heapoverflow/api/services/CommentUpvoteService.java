@@ -1,12 +1,13 @@
 package com.heapoverflow.api.services;
 
 import com.heapoverflow.api.entities.CommentUpvote;
+import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
-import com.heapoverflow.api.models.CommentUpvoteRequest;
 import com.heapoverflow.api.repositories.CommentUpvoteRepository;
 import com.heapoverflow.api.repositories.CommentRepository;
 import com.heapoverflow.api.repositories.UserRepository;
+import com.heapoverflow.api.utils.AuthUtils;
 import com.heapoverflow.api.exceptions.*;
 
 import org.springframework.data.domain.Page;
@@ -37,31 +38,47 @@ public class CommentUpvoteService {
         return commentUpvoteRepository.findById(id);
     }
 
-    public Page<CommentUpvote> getCommentUpvotesByUserId(String id, Pageable pageable) {
-        return commentUpvoteRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<CommentUpvote> getCommentUpvotesByCommentId(Integer id, Pageable pageable) {
-        return commentUpvoteRepository.findByComment_Id(id, pageable);
+    public Page<CommentUpvote> getCommentUpvotesByFilter(String userId, Integer commentId, Pageable pageable) {
+        if (userId != null) {
+            return commentUpvoteRepository.findByUser_Id(userId, pageable);
+        } else if (commentId != null) {
+            return commentUpvoteRepository.findByComment_Id(commentId, pageable);
+        } else {
+            return commentUpvoteRepository.findAll(pageable);
+        }
     }
 
     @Transactional
-    public CommentUpvote createCommentUpvote(CommentUpvoteRequest commentUpvoteRequest) {
-        User user = userRepository.findById(commentUpvoteRequest.getUserId())
+    public CommentUpvote createCommentUpvote(Integer commentId) {
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+
+        User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Comment comment = commentRepository.findById(commentUpvoteRequest.getCommentId())
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
+            
+        if (commentUpvoteRepository.existsByUserAndComment(user, comment)) {
+            throw new IllegalStateException("User has already upvoted the comment");
+        }
 
         CommentUpvote newCommentUpvote = new CommentUpvote(user, comment);
         return commentUpvoteRepository.save(newCommentUpvote);
     }
 
     @Transactional
-    public void deleteCommentUpvote(Integer id) {
-        if (!commentUpvoteRepository.existsById(id)) {
-            throw new CommentUpvoteNotFoundException("CommentUpvote with ID " + id + " not found.");
-        }
-        commentUpvoteRepository.deleteById(id);
+    public void deleteCommentUpvote(Integer commentId) {
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+
+        User user = userRepository.findById(authenticatedUserId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Comment comment = commentRepository.findById(commentId)
+            .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
+        
+        CommentUpvote commentUpvote = commentUpvoteRepository.findByUserAndComment(user, comment)
+            .orElseThrow(() -> new CommentUpvoteNotFoundException("CommentUpvote with comment ID: " + commentId + " for user not found"));
+
+        commentUpvoteRepository.deleteById(commentUpvote.getId());
     }
 }

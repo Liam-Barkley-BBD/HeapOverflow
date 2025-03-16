@@ -12,6 +12,4 @@ public interface ReplyRepository extends JpaRepository<Reply, Integer> {
     Optional<Reply> findById(Integer id);
 
     Page<Reply> findByComment_Id(Integer commentId, Pageable pageable);
-
-    Page<Reply> findByUser_Id(String userGoogleId, Pageable pageable);
 }

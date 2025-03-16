@@ -3,10 +3,10 @@ package com.heapoverflow.api.services;
 import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.entities.User;
-import com.heapoverflow.api.models.ThreadUpvoteRequest;
 import com.heapoverflow.api.repositories.ThreadUpvoteRepository;
 import com.heapoverflow.api.repositories.ThreadRepository;
 import com.heapoverflow.api.repositories.UserRepository;
+import com.heapoverflow.api.utils.AuthUtils;
 import com.heapoverflow.api.exceptions.*;
 
 import org.springframework.data.domain.Page;
@@ -37,31 +37,47 @@ public class ThreadUpvoteService {
         return threadUpvoteRepository.findById(id);
     }
 
-    public Page<ThreadUpvote> getThreadUpvotesByUserId(String id, Pageable pageable) {
-        return threadUpvoteRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<ThreadUpvote> getThreadUpvotesByThreadId(Integer id, Pageable pageable) {
-        return threadUpvoteRepository.findByThread_Id(id, pageable);
+    public Page<ThreadUpvote> getThreadUpvotesByFilter(String userId, Integer threadId, Pageable pageable) {
+        if (userId != null) {
+            return threadUpvoteRepository.findByUser_Id(userId, pageable);
+        } else if (threadId != null) {
+            return threadUpvoteRepository.findByThread_Id(threadId, pageable);
+        } else {
+            return threadUpvoteRepository.findAll(pageable);
+        }
     }
 
     @Transactional
-    public ThreadUpvote createThreadUpvote(ThreadUpvoteRequest threadUpvoteRequest) {
-        User user = userRepository.findById(threadUpvoteRequest.getUserId())
+    public ThreadUpvote createThreadUpvote(Integer threadId) {
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+
+        User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Thread thread = threadRepository.findById(threadUpvoteRequest.getThreadId())
+        Thread thread = threadRepository.findById(threadId)
                 .orElseThrow(() -> new ThreadNotFoundException("Thread not found"));
 
+        if (threadUpvoteRepository.existsByUserAndThread(user, thread)) {
+            throw new IllegalStateException("User has already upvoted the thread");
+        }
+        
         ThreadUpvote newThreadUpvote = new ThreadUpvote(user, thread);
         return threadUpvoteRepository.save(newThreadUpvote);
     }
 
     @Transactional
-    public void deleteThreadUpvote(Integer id) {
-        if (!threadUpvoteRepository.existsById(id)) {
-            throw new ThreadUpvoteNotFoundException("ThreadUpvote with ID " + id + " not found.");
-        }
-        threadUpvoteRepository.deleteById(id);
+    public void deleteThreadUpvote(Integer threadId) {
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+
+        User user = userRepository.findById(authenticatedUserId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Thread thread = threadRepository.findById(threadId)
+            .orElseThrow(() -> new ThreadNotFoundException("Thread not found"));
+        
+        ThreadUpvote threadUpvote = threadUpvoteRepository.findByUserAndThread(user, thread)
+            .orElseThrow(() -> new ThreadNotFoundException("ThreadUpvote with thread ID: " + threadId + " for user not found"));
+
+        threadUpvoteRepository.deleteById(threadUpvote.getId());
     }
 }

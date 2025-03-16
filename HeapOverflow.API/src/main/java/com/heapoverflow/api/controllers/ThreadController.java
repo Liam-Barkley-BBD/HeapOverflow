@@ -2,8 +2,11 @@ package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.models.ThreadRequest;
+import com.heapoverflow.api.models.ThreadUpdate;
 import com.heapoverflow.api.services.ThreadService;
 import com.heapoverflow.api.utils.ApiConstants;
+
+import jakarta.websocket.server.PathParam;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
@@ -27,15 +30,16 @@ public class ThreadController {
 
     @GetMapping("/threads")
     public ResponseEntity<Page<Thread>> getThreads(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String description,
+            @RequestParam(required = false) Boolean isTrending,
+            @RequestParam(required = false) Boolean userThreads,
+            @RequestParam(required = false) String searchText,
             @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
             @SortDefault.SortDefaults({
                 @SortDefault(sort = "threadUpvotesCount", direction = Sort.Direction.DESC),
                 @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             }) Pageable pageable) {
 
-        Page<Thread> threads = threadService.getThreadsByFilter(title, description, pageable);
+        Page<Thread> threads = threadService.getThreadsByFilter(isTrending, userThreads, searchText, pageable);
 
         return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
     }
@@ -47,19 +51,20 @@ public class ThreadController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/threads/user/{userId}")
-    public ResponseEntity<Page<Thread>> getThreadsByUserId(@PathVariable String userId, Pageable pageable) {
-        Page<Thread> threads = threadService.getThreadsByUserId(userId, pageable);
-
-        return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
-    }
-
     /** POST endpoint */
 
     @PostMapping("/threads")
     public ResponseEntity<Thread> createThread(@RequestBody ThreadRequest threadRequest) {
         Thread newThread = threadService.createThread(threadRequest);
         return ResponseEntity.ok(newThread);
+    }
+
+    /** PATCH endpoint */
+
+    @PatchMapping("/threads/{id}")
+    public ResponseEntity<Thread> updateThread(@PathVariable Integer id, @RequestBody ThreadUpdate threadUpdate) {
+        Thread updatedThread = threadService.updateThread(id, threadUpdate);
+        return ResponseEntity.ok(updatedThread);
     }
 
     /** DELETE endpoint */

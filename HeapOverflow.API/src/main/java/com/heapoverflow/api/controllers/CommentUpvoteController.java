@@ -1,7 +1,6 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.CommentUpvote;
-import com.heapoverflow.api.models.CommentUpvoteRequest;
 import com.heapoverflow.api.services.CommentUpvoteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,8 +20,12 @@ public class CommentUpvoteController {
     /** GET endpoints */
 
     @GetMapping("/commentupvotes")
-    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotes(Pageable pageable) {
-        Page<CommentUpvote> commentUpvotes = commentUpvoteService.getAllCommentUpvotes(pageable);
+    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotes(
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Integer commentId,
+            Pageable pageable) {
+        Page<CommentUpvote> commentUpvotes = commentUpvoteService.getCommentUpvotesByFilter(userId, commentId,
+                pageable);
 
         return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
     }
@@ -34,33 +37,19 @@ public class CommentUpvoteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/commentupvotes/user/{userId}")
-    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotesByUserId(@PathVariable String userId, Pageable pageable) {
-        Page<CommentUpvote> commentUpvotes =  commentUpvoteService.getCommentUpvotesByUserId(userId, pageable);
-        
-        return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/commentupvotes/comment/{commentId}")
-    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotesByCommentId(@PathVariable Integer commentId, Pageable pageable) {
-        Page<CommentUpvote> commentUpvotes =  commentUpvoteService.getCommentUpvotesByCommentId(commentId, pageable);
-        
-        return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
-    }
-
     /** POST endpoint */
 
     @PostMapping("/commentupvotes")
-    public ResponseEntity<CommentUpvote> createCommentUpvote(@RequestBody CommentUpvoteRequest commentUpvoteRequest) {
-        CommentUpvote newCommentUpvote = commentUpvoteService.createCommentUpvote(commentUpvoteRequest);
+    public ResponseEntity<CommentUpvote> createCommentUpvote(@RequestBody Integer commentId) {
+        CommentUpvote newCommentUpvote = commentUpvoteService.createCommentUpvote(commentId);
         return ResponseEntity.ok(newCommentUpvote);
     }
 
     /** DELETE endpoint */
 
-    @DeleteMapping("/commentupvotes/{id}")
-    public ResponseEntity<Void> deleteCommentUpvote(@PathVariable Integer id) {
-        commentUpvoteService.deleteCommentUpvote(id);
+    @DeleteMapping("/commentupvotes")
+    public ResponseEntity<Void> deleteCommentUpvote(@RequestParam(required = true) Integer commentId) {
+        commentUpvoteService.deleteCommentUpvote(commentId);
         return ResponseEntity.noContent().build();
     }
 
