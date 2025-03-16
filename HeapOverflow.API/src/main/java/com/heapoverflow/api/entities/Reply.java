@@ -59,13 +59,8 @@ public class Reply {
         this.comment = comment;
     }
 
-    @JsonIgnore
     public User getUser() {
         return this.user;
-    }
-    
-    public String getUserId() {
-        return this.user.getId();
     }
 
     public void setUser(User user) {

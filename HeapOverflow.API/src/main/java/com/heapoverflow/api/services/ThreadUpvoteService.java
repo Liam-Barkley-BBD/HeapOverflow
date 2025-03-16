@@ -12,6 +12,7 @@ import com.heapoverflow.api.exceptions.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -37,13 +38,14 @@ public class ThreadUpvoteService {
     }
 
     public Page<ThreadUpvote> getThreadUpvotesByUserId(String id, Pageable pageable) {
-        return threadUpvoteRepository.findByUserId(id, pageable);
+        return threadUpvoteRepository.findByUser_Id(id, pageable);
     }
 
     public Page<ThreadUpvote> getThreadUpvotesByThreadId(Integer id, Pageable pageable) {
-        return threadUpvoteRepository.findByThreadId(id, pageable);
+        return threadUpvoteRepository.findByThread_Id(id, pageable);
     }
 
+    @Transactional
     public ThreadUpvote createThreadUpvote(ThreadUpvoteRequest threadUpvoteRequest) {
         User user = userRepository.findById(threadUpvoteRequest.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -53,5 +55,13 @@ public class ThreadUpvoteService {
 
         ThreadUpvote newThreadUpvote = new ThreadUpvote(user, thread);
         return threadUpvoteRepository.save(newThreadUpvote);
+    }
+
+    @Transactional
+    public void deleteThreadUpvote(Integer id) {
+        if (!threadUpvoteRepository.existsById(id)) {
+            throw new ThreadUpvoteNotFoundException("ThreadUpvote with ID " + id + " not found.");
+        }
+        threadUpvoteRepository.deleteById(id);
     }
 }

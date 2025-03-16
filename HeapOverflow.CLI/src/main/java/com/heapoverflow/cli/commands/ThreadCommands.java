@@ -78,7 +78,7 @@ public class ThreadCommands {
 
     @ShellMethod(key = "thread", value = "Get a thread by ID")
     public String getThreadById(@ShellOption(help = "Thread ID") int id) {
-        if (!EnvUtils.doesJwtExist()) {
+        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged in, please login!";
         } else {
 

@@ -3,8 +3,13 @@ package com.heapoverflow.api.controllers;
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.models.ThreadRequest;
 import com.heapoverflow.api.services.ThreadService;
+import com.heapoverflow.api.utils.ApiConstants;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +29,11 @@ public class ThreadController {
     public ResponseEntity<Page<Thread>> getThreads(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String description,
-            Pageable pageable) {
+            @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
+            @SortDefault.SortDefaults({
+                @SortDefault(sort = "threadUpvotesCount", direction = Sort.Direction.DESC),
+                @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+            }) Pageable pageable) {
 
         Page<Thread> threads = threadService.getThreadsByFilter(title, description, pageable);
 
@@ -51,6 +60,14 @@ public class ThreadController {
     public ResponseEntity<Thread> createThread(@RequestBody ThreadRequest threadRequest) {
         Thread newThread = threadService.createThread(threadRequest);
         return ResponseEntity.ok(newThread);
+    }
+
+    /** DELETE endpoint */
+
+    @DeleteMapping("/threads/{id}")
+    public ResponseEntity<Void> deleteThread(@PathVariable Integer id) {
+        threadService.deleteThread(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

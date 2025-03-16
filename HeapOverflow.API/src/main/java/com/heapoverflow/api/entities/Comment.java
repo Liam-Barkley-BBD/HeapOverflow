@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.Formula;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -30,8 +32,8 @@ public class Comment {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "comment")
-    private List<CommentUpvote> commentUpvotes;
+    @Formula("(SELECT COUNT(*) FROM comment_upvotes cu WHERE cu.comment_id = comment_id)")
+    private Integer commentUpvotesCount;
 
     public Comment() {}
 
@@ -63,30 +65,16 @@ public class Comment {
         this.thread = thread;
     }
 
-    @JsonIgnore
     public User getUser() {
         return this.user;
-    }
-    
-    public String getUserId() {
-        return this.user.getId();
     }
 
     public void setUser(User user) {
         this.user = user;
     }
 
-    @JsonIgnore
-    public List<CommentUpvote> getCommentUpvotes() {
-        return this.commentUpvotes;
-    }
-
     public Integer getCommentUpvotesCount() {
-        return this.commentUpvotes.size();
-    }
-
-    public void setCommentUpvotes(List<CommentUpvote> commentUpvotes) {
-        this.commentUpvotes = commentUpvotes;
+        return commentUpvotesCount != null ? commentUpvotesCount : 0;
     }
 
     public String getContent() {

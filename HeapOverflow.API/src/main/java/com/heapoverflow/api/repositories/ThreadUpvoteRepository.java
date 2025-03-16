@@ -12,7 +12,7 @@ public interface ThreadUpvoteRepository extends JpaRepository<ThreadUpvote, Inte
     
     Optional<ThreadUpvote> findById(Integer id);
 
-    Page<ThreadUpvote> findByThreadId(Integer threadId, Pageable pageable);
+    Page<ThreadUpvote> findByThread_Id(Integer threadId, Pageable pageable);
 
-    Page<ThreadUpvote> findByUserId(String userId, Pageable pageable);
+    Page<ThreadUpvote> findByUser_Id(String userId, Pageable pageable);
 }

@@ -6,10 +6,10 @@ import org.springframework.shell.standard.ShellOption;
 import org.springframework.shell.table.TableModelBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.UserServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.TextUtils;
-
 
 @ShellComponent
 public class UserCommands {
@@ -18,7 +18,7 @@ public class UserCommands {
         @ShellOption(value = "username", defaultValue = "") String username, 
         @ShellOption(value = "email", defaultValue = "") String email
     ) {
-        if(!EnvUtils.doesJwtExist()){
+        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged, please login!";
         } else{
             // attempt to get users
@@ -54,8 +54,10 @@ public class UserCommands {
     public String getUser(
         @ShellOption(value = "gid", defaultValue = "") String gid
     ) {
-        if(!EnvUtils.doesJwtExist()){
+        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged, please login!";
+        } else if(gid.equals("")){
+            return "the gid must be specified >_ user --gid {gid_value}";
         } else{
             try{
                 return UserServices.getUsersByGoogleId(gid).toString();

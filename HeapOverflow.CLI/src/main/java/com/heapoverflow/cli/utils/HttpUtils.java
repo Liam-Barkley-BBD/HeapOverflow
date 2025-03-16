@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.heapoverflow.cli.constants.EnvConstants;
 
 public class HttpUtils {
     private static final HttpClient client = HttpClient.newHttpClient();
@@ -16,7 +17,7 @@ public class HttpUtils {
     public static CompletableFuture<JsonNode> asyncGet(String url) throws Exception{
         String token = "";
         try{
-            token = EnvUtils.retrieveJwt();
+            token = EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
         }catch(Exception error){
             // we would rather return a bad request from the server
         }
@@ -51,7 +52,7 @@ public class HttpUtils {
     public static CompletableFuture<JsonNode> asyncDelete(String url) throws Exception{
         String token = "";
         try{
-            token = EnvUtils.retrieveJwt();
+            token = EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
         }catch(Exception error){
             // we would rather return a bad request from the server
         }
@@ -75,7 +76,7 @@ public class HttpUtils {
         try {
             String token = "";
             try{
-                token = EnvUtils.retrieveJwt();
+                token = EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
             }catch(Exception error){
                 // we would rather return a bad request from the server
             }
@@ -111,7 +112,7 @@ public class HttpUtils {
 
                 if(statusCode == 401){
                     try{
-                        EnvUtils.deleteJWT();
+                        EnvUtils.deleteKeys();
                     }catch(Exception error){
                         throw new RuntimeException("Your token could not be reset due to" + error.getMessage() + ", please try signing out manually and signing in again.");
                     }

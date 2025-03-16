@@ -9,8 +9,9 @@ CREATE TABLE "threads" (
   "thread_title" varchar(50) NOT NULL,
   "thread_description" text NOT NULL,
   "user_google_id" varchar(30) NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT (now()),
-  "closed_at" timestamp DEFAULT null
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "closed_at" timestamp DEFAULT null,
+  CONSTRAINT fk_threads_user FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id") ON DELETE CASCADE
 );
 
 CREATE TABLE "comments" (
@@ -18,7 +19,9 @@ CREATE TABLE "comments" (
   "user_google_id" varchar(30) NOT NULL,
   "thread_id" int NOT NULL,
   "content" text NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT (now())
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  CONSTRAINT fk_comments_user FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id") ON DELETE CASCADE,
+  CONSTRAINT fk_comments_thread FOREIGN KEY ("thread_id") REFERENCES "threads" ("thread_id") ON DELETE CASCADE
 );
 
 CREATE TABLE "replies" (
@@ -26,35 +29,23 @@ CREATE TABLE "replies" (
   "user_google_id" varchar(30) NOT NULL,
   "comment_id" int NOT NULL,
   "content" text NOT NULL,
-  "created_at" timestamp NOT NULL DEFAULT (now())
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  CONSTRAINT fk_replies_user FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id") ON DELETE CASCADE,
+  CONSTRAINT fk_replies_comment FOREIGN KEY ("comment_id") REFERENCES "comments" ("comment_id") ON DELETE CASCADE
 );
 
 CREATE TABLE "comment_upvotes" (
   "comment_upvote_id" serial PRIMARY KEY,
   "user_google_id" varchar(30) NOT NULL,
-  "comment_id" int NOT NULL
+  "comment_id" int NOT NULL,
+  CONSTRAINT fk_comment_upvotes_user FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id") ON DELETE CASCADE,
+  CONSTRAINT fk_comment_upvotes_comment FOREIGN KEY ("comment_id") REFERENCES "comments" ("comment_id") ON DELETE CASCADE
 );
 
 CREATE TABLE "thread_upvotes" (
   "thread_upvote_id" serial PRIMARY KEY,
   "user_google_id" varchar(30) NOT NULL,
-  "thread_id" int NOT NULL
+  "thread_id" int NOT NULL,
+  CONSTRAINT fk_thread_upvotes_user FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id") ON DELETE CASCADE,
+  CONSTRAINT fk_thread_upvotes_thread FOREIGN KEY ("thread_id") REFERENCES "threads" ("thread_id") ON DELETE CASCADE
 );
-
-ALTER TABLE "threads" ADD FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id");
-
-ALTER TABLE "comments" ADD FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id");
-
-ALTER TABLE "comments" ADD FOREIGN KEY ("thread_id") REFERENCES "threads" ("thread_id");
-
-ALTER TABLE "replies" ADD FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id");
-
-ALTER TABLE "replies" ADD FOREIGN KEY ("comment_id") REFERENCES "comments" ("comment_id");
-
-ALTER TABLE "comment_upvotes" ADD FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id");
-
-ALTER TABLE "comment_upvotes" ADD FOREIGN KEY ("comment_id") REFERENCES "comments" ("comment_id");
-
-ALTER TABLE "thread_upvotes" ADD FOREIGN KEY ("user_google_id") REFERENCES "users" ("user_google_id");
-
-ALTER TABLE "thread_upvotes" ADD FOREIGN KEY ("thread_id") REFERENCES "threads" ("thread_id");

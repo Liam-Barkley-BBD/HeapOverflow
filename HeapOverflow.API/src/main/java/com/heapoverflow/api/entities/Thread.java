@@ -2,9 +2,8 @@ package com.heapoverflow.api.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.Formula;
 
 @Entity
 @Table(name = "threads")
@@ -31,8 +30,8 @@ public class Thread {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
-    @OneToMany(mappedBy = "thread")
-    private List<ThreadUpvote> threadUpvotes;
+    @Formula("(SELECT COUNT(*) FROM thread_upvotes tu WHERE tu.thread_id = thread_id)")
+    private Integer threadUpvotesCount;
 
     public Thread() {}
 
@@ -67,32 +66,18 @@ public class Thread {
         this.description = description;
     }
     
-    @JsonIgnore
     public User getUser() {
         return this.user;
-    }
-    
-    public String getUserId() {
-        return this.user.getId();
     }
 
     public void setUser(User user) {
         this.user = user;
     }
 
-    @JsonIgnore
-    public List<ThreadUpvote> getThreadUpvotes() {
-        return this.threadUpvotes;
-    }
-
     public Integer getThreadUpvotesCount() {
-        return this.threadUpvotes.size();
+        return threadUpvotesCount != null ? threadUpvotesCount : 0;
     }
-
-    public void setThreadUpvotes(List<ThreadUpvote> threadUpvotes) {
-        this.threadUpvotes = threadUpvotes;
-    }
-
+    
     public LocalDateTime getCreatedAt() {
         return this.createdAt;
     }
