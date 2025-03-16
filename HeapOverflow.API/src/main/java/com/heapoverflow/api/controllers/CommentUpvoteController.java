@@ -21,8 +21,12 @@ public class CommentUpvoteController {
     /** GET endpoints */
 
     @GetMapping("/commentupvotes")
-    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotes(Pageable pageable) {
-        Page<CommentUpvote> commentUpvotes = commentUpvoteService.getAllCommentUpvotes(pageable);
+    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotes(
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Integer commentId,
+            Pageable pageable) {
+        Page<CommentUpvote> commentUpvotes = commentUpvoteService.getCommentUpvotesByFilter(userId, commentId,
+                pageable);
 
         return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
     }
@@ -32,20 +36,6 @@ public class CommentUpvoteController {
         return commentUpvoteService.getCommentUpvoteById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/commentupvotes/user/{userId}")
-    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotesByUserId(@PathVariable String userId, Pageable pageable) {
-        Page<CommentUpvote> commentUpvotes =  commentUpvoteService.getCommentUpvotesByUserId(userId, pageable);
-        
-        return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/commentupvotes/comment/{commentId}")
-    public ResponseEntity<Page<CommentUpvote>> getCommentUpvotesByCommentId(@PathVariable Integer commentId, Pageable pageable) {
-        Page<CommentUpvote> commentUpvotes =  commentUpvoteService.getCommentUpvotesByCommentId(commentId, pageable);
-        
-        return commentUpvotes.hasContent() ? ResponseEntity.ok(commentUpvotes) : ResponseEntity.notFound().build();
     }
 
     /** POST endpoint */

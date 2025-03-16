@@ -25,11 +25,13 @@ public class ReplyController {
 
     @GetMapping("/replies")
     public ResponseEntity<Page<Reply>> getReplies(
-        @PageableDefault(size = 5) 
-        @SortDefault.SortDefaults({
-            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-        }) Pageable pageable) {
-        Page<Reply> replies = replyService.getAllReplies(pageable);
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Integer commentId,
+            @PageableDefault(size = 5) @SortDefault.SortDefaults({
+                    @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+            }) Pageable pageable) {
+
+        Page<Reply> replies = replyService.getRepliesByFilter(userId, commentId, pageable);
 
         return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
     }
@@ -39,30 +41,6 @@ public class ReplyController {
         return replyService.getReplyById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/replies/user/{userId}")
-    public ResponseEntity<Page<Reply>> getRepliesByUserId(
-        @PathVariable String userId,
-        @PageableDefault(size = 5) 
-        @SortDefault.SortDefaults({
-            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-        }) Pageable pageable) {
-        Page<Reply> replies =  replyService.getRepliesByUserId(userId, pageable);
-        
-        return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/replies/comment/{commentId}")
-    public ResponseEntity<Page<Reply>> getRepliesByCommentId(
-        @PathVariable Integer commentId,
-        @PageableDefault(size = 5) 
-        @SortDefault.SortDefaults({
-            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-        }) Pageable pageable) {
-        Page<Reply> replies =  replyService.getRepliesByCommentId(commentId, pageable);
-        
-        return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
     }
 
     /** POST endpoint */

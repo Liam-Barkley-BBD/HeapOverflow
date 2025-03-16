@@ -38,12 +38,14 @@ public class ThreadUpvoteService {
         return threadUpvoteRepository.findById(id);
     }
 
-    public Page<ThreadUpvote> getThreadUpvotesByUserId(String id, Pageable pageable) {
-        return threadUpvoteRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<ThreadUpvote> getThreadUpvotesByThreadId(Integer id, Pageable pageable) {
-        return threadUpvoteRepository.findByThread_Id(id, pageable);
+    public Page<ThreadUpvote> getThreadUpvotesByFilter(String userId, Integer threadId, Pageable pageable) {
+        if (userId != null) {
+            return threadUpvoteRepository.findByUser_Id(userId, pageable);
+        } else if (threadId != null) {
+            return threadUpvoteRepository.findByThread_Id(threadId, pageable);
+        } else {
+            return threadUpvoteRepository.findAll(pageable);
+        }
     }
 
     @Transactional

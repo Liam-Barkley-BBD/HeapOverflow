@@ -1,6 +1,7 @@
 package com.heapoverflow.api.services;
 
 import com.heapoverflow.api.entities.Reply;
+import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.models.ReplyRequest;
@@ -38,12 +39,14 @@ public class ReplyService {
         return replyRepository.findById(id);
     }
 
-    public Page<Reply> getRepliesByUserId(String id, Pageable pageable) {
-        return replyRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<Reply> getRepliesByCommentId(Integer id, Pageable pageable) {
-        return replyRepository.findByComment_Id(id, pageable);
+    public Page<Reply> getRepliesByFilter(String userId, Integer commentId, Pageable pageable) {
+        if (userId != null) {
+            return replyRepository.findByUser_Id(userId, pageable);
+        } else if (commentId != null) {
+            return replyRepository.findByComment_Id(commentId, pageable);
+        } else {
+            return replyRepository.findAll(pageable);
+        }
     }
 
     @Transactional

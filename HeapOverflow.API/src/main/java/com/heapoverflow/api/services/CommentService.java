@@ -39,12 +39,14 @@ public class CommentService {
         return commentRepository.findById(id);
     }
 
-    public Page<Comment> getCommentsByUserId(String id, Pageable pageable) {
-        return commentRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<Comment> getCommentsByThreadId(Integer id, Pageable pageable) {
-        return commentRepository.findByThread_Id(id, pageable);
+    public Page<Comment> getCommentsByFilter(String userId, Integer threadId, Pageable pageable) {
+        if (userId != null) {
+            return commentRepository.findByUser_Id(userId, pageable);
+        } else if (threadId != null) {
+            return commentRepository.findByThread_Id(threadId, pageable);
+        } else {
+            return commentRepository.findAll(pageable);
+        }
     }
 
     @Transactional

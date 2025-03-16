@@ -39,12 +39,14 @@ public class CommentUpvoteService {
         return commentUpvoteRepository.findById(id);
     }
 
-    public Page<CommentUpvote> getCommentUpvotesByUserId(String id, Pageable pageable) {
-        return commentUpvoteRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<CommentUpvote> getCommentUpvotesByCommentId(Integer id, Pageable pageable) {
-        return commentUpvoteRepository.findByComment_Id(id, pageable);
+    public Page<CommentUpvote> getCommentUpvotesByFilter(String userId, Integer commentId, Pageable pageable) {
+        if (userId != null) {
+            return commentUpvoteRepository.findByUser_Id(userId, pageable);
+        } else if (commentId != null) {
+            return commentUpvoteRepository.findByComment_Id(commentId, pageable);
+        } else {
+            return commentUpvoteRepository.findAll(pageable);
+        }
     }
 
     @Transactional
