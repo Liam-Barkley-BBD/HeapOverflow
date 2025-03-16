@@ -32,6 +32,16 @@ public class ReplyServices {
                     ).join();
     }
 
+    public static JsonNode patchReply(String content, String id) throws Exception {
+        return HttpUtils
+                    .asyncPatch(
+                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES + "/" + id,
+                        Map.of(
+                            "content", content
+                        )
+                    ).join();
+    }
+
     public static JsonNode deleteReply(String id) throws Exception {
         return HttpUtils
                     .asyncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + id)

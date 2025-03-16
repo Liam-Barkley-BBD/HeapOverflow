@@ -130,6 +130,38 @@ public class ReplyCommands {
         }
     }
 
+    @ShellMethod(key = "edit-reply", value = "Change the content of reply to something else")
+    public String editReply(
+        @ShellOption(value = "id", help = "The id of the reply you wish to edit", defaultValue = "") String id,
+        @ShellOption(value = "content", help = "The content you wish to change to in your reply", defaultValue = "") String content
+    ) {
+        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
+            return "You are not logged, please login!";
+        } else{
+            try{
+
+                JsonNode yourReply = ReplyServices.patchReply(content, id);
+
+                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
+                modelBuilder.addRow().addValue("ID").addValue("Content").addValue("Created At")
+                            .addValue("User").addValue("Email");
+
+                JsonNode userNode = yourReply.path("user");
+
+                modelBuilder.addRow()
+                        .addValue(yourReply.path("id").asText("N/A"))
+                        .addValue(yourReply.path("content").asText("N/A"))
+                        .addValue(yourReply.path("createdAt").asText("N/A"))
+                        .addValue(userNode.path("username").asText("N/A"))
+                        .addValue(userNode.path("email").asText("N/A"));
+
+                return TextUtils.renderTable(modelBuilder.build());
+            }catch(Exception error){
+                return error.getMessage();
+            }
+        }
+    }
+
     @ShellMethod(key = "delete-reply", value = "Delete your reply")
     public String deleteReply(
         @ShellOption(value = "id", help = "The id of the reply you wish to delete", defaultValue = "") String id
