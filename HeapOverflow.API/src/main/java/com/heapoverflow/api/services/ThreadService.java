@@ -8,6 +8,7 @@ import com.heapoverflow.api.repositories.UserRepository;
 import com.heapoverflow.api.exceptions.*;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,14 +38,18 @@ public class ThreadService {
         return threadRepository.findByUser_Id(userId, pageable);
     }
 
-    public Page<Thread> getThreadsByFilter(String title, String description, Pageable pageable) {
-        if (title != null && description != null) {
-            return threadRepository.findByTitleContainingIgnoreCaseAndDescriptionContainingIgnoreCase(title, description, pageable);
-        } else if (title != null) {
-            return threadRepository.findByTitleContainingIgnoreCase(title, pageable);
-        } else if (description != null) {
-            return threadRepository.findByDescriptionContainingIgnoreCase(description, pageable);
-        } else {
+    public Page<Thread> getThreadsByFilter(Boolean isTrending, String userId, String searchText, Pageable pageable) {
+        if (isTrending != null && isTrending) {
+            Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            return threadRepository.findTrendingThreads(pageableWithoutSort);
+        }
+        else if (userId != null) {
+            return threadRepository.findByUser_Id(userId, pageable);
+        }
+        else if (searchText != null) {
+            return threadRepository.findByTitleContainingIgnoreCaseAndDescriptionContainingIgnoreCase(searchText, searchText, pageable);
+        }
+        else {
             return threadRepository.findAll(pageable);
         }
     }

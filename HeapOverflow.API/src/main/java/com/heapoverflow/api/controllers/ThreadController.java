@@ -27,15 +27,16 @@ public class ThreadController {
 
     @GetMapping("/threads")
     public ResponseEntity<Page<Thread>> getThreads(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String description,
+            @RequestParam(required = false) Boolean isTrending,
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) String searchText,
             @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
             @SortDefault.SortDefaults({
                 @SortDefault(sort = "threadUpvotesCount", direction = Sort.Direction.DESC),
                 @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             }) Pageable pageable) {
 
-        Page<Thread> threads = threadService.getThreadsByFilter(title, description, pageable);
+        Page<Thread> threads = threadService.getThreadsByFilter(isTrending, userId, searchText, pageable);
 
         return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
     }
@@ -45,13 +46,6 @@ public class ThreadController {
         return threadService.getThreadById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/threads/user/{userId}")
-    public ResponseEntity<Page<Thread>> getThreadsByUserId(@PathVariable String userId, Pageable pageable) {
-        Page<Thread> threads = threadService.getThreadsByUserId(userId, pageable);
-
-        return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
     }
 
     /** POST endpoint */
