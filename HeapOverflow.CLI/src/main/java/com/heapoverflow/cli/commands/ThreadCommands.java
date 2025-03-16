@@ -7,6 +7,7 @@ import org.springframework.shell.table.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.ThreadsService;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.TextUtils;
@@ -18,7 +19,7 @@ public class ThreadCommands {
 
     @ShellMethod(key = "threads", value = "Get threads")
     public String getThreads() {
-        if (!EnvUtils.doesJwtExist()) {
+        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged in, please login!";
         }
 
@@ -51,7 +52,7 @@ public class ThreadCommands {
 
     @ShellMethod(key = "thread", value = "Get a thread by ID")
     public String getThreadById(@ShellOption(help = "Thread ID") int id) {
-        if (!EnvUtils.doesJwtExist()) {
+        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged in, please login!";
         }
 

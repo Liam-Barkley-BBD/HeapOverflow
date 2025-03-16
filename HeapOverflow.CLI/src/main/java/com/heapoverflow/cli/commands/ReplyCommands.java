@@ -3,6 +3,7 @@ package com.heapoverflow.cli.commands;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
+import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.ReplyServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 
@@ -10,7 +11,7 @@ import com.heapoverflow.cli.utils.EnvUtils;
 public class ReplyCommands {
     @ShellMethod(key = "replies", value = "Get replies")
     public String replies() {
-        if(!EnvUtils.doesJwtExist()){
+        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
             return "You are not logged, please login!";
         } else{
             return ReplyServices.getReplies().toString();

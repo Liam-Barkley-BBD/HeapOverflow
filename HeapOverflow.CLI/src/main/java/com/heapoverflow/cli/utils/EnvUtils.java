@@ -39,19 +39,19 @@ public class EnvUtils {
         return !(value == null || value.isEmpty());
     }
 
-    public static void storeJwt(String jwt) {
-        preferences.put("jwt", jwt);
+    public static void storeValue(String key, String jwt) {
+        preferences.put(key, jwt);
     }
 
-    public static void deleteJWT() throws BackingStoreException {
+    public static void deleteKeys() throws BackingStoreException {
         preferences.clear();
     }
 
-    public static String retrieveJwt() {
-        return preferences.get("jwt", ""); // Returns null if not set
+    public static String retrieveValue(String key) {
+        return preferences.get(key, "");
     }
 
-    public static boolean doesJwtExist(){
-        return !(retrieveJwt().trim().isEmpty());
+    public static boolean doesKeyExist(String key){
+        return !(retrieveValue(key).trim().isEmpty());
     }
 }

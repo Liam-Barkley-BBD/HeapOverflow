@@ -29,7 +29,7 @@ public class UserServices {
 
     public static JsonNode getUsersByGoogleId(String userGoogleId) throws Exception {
         return HttpUtils
-                .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_USERS_GID + "?userGoogleId=" + userGoogleId)
+                .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_USERS_GID + userGoogleId)
                 .join();
     }
 }
