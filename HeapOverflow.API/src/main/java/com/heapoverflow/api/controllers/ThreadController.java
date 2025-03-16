@@ -31,7 +31,7 @@ public class ThreadController {
     @GetMapping("/threads")
     public ResponseEntity<Page<Thread>> getThreads(
             @RequestParam(required = false) Boolean isTrending,
-            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Boolean userThreads,
             @RequestParam(required = false) String searchText,
             @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
             @SortDefault.SortDefaults({
@@ -39,7 +39,7 @@ public class ThreadController {
                 @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             }) Pageable pageable) {
 
-        Page<Thread> threads = threadService.getThreadsByFilter(isTrending, userId, searchText, pageable);
+        Page<Thread> threads = threadService.getThreadsByFilter(isTrending, userThreads, searchText, pageable);
 
         return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
     }

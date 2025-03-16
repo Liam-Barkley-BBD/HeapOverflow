@@ -39,10 +39,8 @@ public class ReplyService {
         return replyRepository.findById(id);
     }
 
-    public Page<Reply> getRepliesByFilter(String userId, Integer commentId, Pageable pageable) {
-        if (userId != null) {
-            return replyRepository.findByUser_Id(userId, pageable);
-        } else if (commentId != null) {
+    public Page<Reply> getRepliesByFilter(Integer commentId, Pageable pageable) {
+        if (commentId != null) {
             return replyRepository.findByComment_Id(commentId, pageable);
         } else {
             return replyRepository.findAll(pageable);

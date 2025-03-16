@@ -27,13 +27,12 @@ public class CommentController {
 
     @GetMapping("/comments")
     public ResponseEntity<Page<Comment>> getComments(
-            @RequestParam(required = false) String userId,
             @RequestParam(required = false) Integer threadId,
             @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) @SortDefault.SortDefaults({
                     @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
                     @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             }) Pageable pageable) {
-        Page<Comment> comments = commentService.getCommentsByFilter(userId, threadId, pageable);
+        Page<Comment> comments = commentService.getCommentsByFilter(threadId, pageable);
 
         return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();
     }

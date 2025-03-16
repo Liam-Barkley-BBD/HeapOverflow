@@ -38,10 +38,8 @@ public class CommentService {
         return commentRepository.findById(id);
     }
 
-    public Page<Comment> getCommentsByFilter(String userId, Integer threadId, Pageable pageable) {
-        if (userId != null) {
-            return commentRepository.findByUser_Id(userId, pageable);
-        } else if (threadId != null) {
+    public Page<Comment> getCommentsByFilter(Integer threadId, Pageable pageable) {
+        if (threadId != null) {
             return commentRepository.findByThread_Id(threadId, pageable);
         } else {
             return commentRepository.findAll(pageable);

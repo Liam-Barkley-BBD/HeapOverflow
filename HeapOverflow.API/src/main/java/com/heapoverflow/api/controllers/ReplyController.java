@@ -25,13 +25,12 @@ public class ReplyController {
 
     @GetMapping("/replies")
     public ResponseEntity<Page<Reply>> getReplies(
-            @RequestParam(required = false) String userId,
             @RequestParam(required = false) Integer commentId,
             @PageableDefault(size = 5) @SortDefault.SortDefaults({
                     @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
             }) Pageable pageable) {
 
-        Page<Reply> replies = replyService.getRepliesByFilter(userId, commentId, pageable);
+        Page<Reply> replies = replyService.getRepliesByFilter(commentId, pageable);
 
         return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
     }
