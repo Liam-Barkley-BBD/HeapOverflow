@@ -1,5 +1,12 @@
 package com.heapoverflow.cli.commands;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -7,9 +14,13 @@ import org.springframework.shell.table.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.heapoverflow.cli.constants.ApiEndpointsConstants;
 import com.heapoverflow.cli.constants.EnvConstants;
+import com.heapoverflow.cli.services.ReplyServices;
 import com.heapoverflow.cli.services.ThreadsService;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.HttpUtils;
 import com.heapoverflow.cli.utils.TextUtils;
 
 @ShellComponent
@@ -19,10 +30,10 @@ public class ThreadCommands {
 
     @ShellMethod(key = "threads", value = "Get threads")
 
-    public String getThreads(@ShellOption(help = "Thread Title", defaultValue = "") String title,
-            @ShellOption(help = "Thread Description", defaultValue = "") String description,
+    public String getThreads(@ShellOption(help = "Search", defaultValue = "") String search,
+            @ShellOption(help = "isTrending", defaultValue = "") Boolean isTrending,
             @ShellOption(help = "Page number", defaultValue = "0") int page,
-            @ShellOption(help = "Page size", defaultValue = "5") int size) {
+            @ShellOption(help = "Page size", defaultValue = "10") int size) {
 
         page = page - 1;
 
@@ -31,7 +42,7 @@ public class ThreadCommands {
         } else {
             try {
 
-                String jsonResponse = ThreadsService.getThreads(title, description, page, size).toString();
+                String jsonResponse = ThreadsService.getThreads(search, page, size, isTrending).toString();
                 JsonNode rootNode = objectMapper.readTree(jsonResponse);
                 JsonNode contentArray = rootNode.path("content");
 
@@ -129,12 +140,8 @@ public class ThreadCommands {
 
         try {
 
-            String userId = EnvUtils.retrieveValue(EnvConstants.GOOGLE_SUB);
-            if (userId == null || userId.isEmpty()) {
-                return "User ID not found!";
-            }
-            String jsonResponse = ThreadsService.postThread(title, description, userId).toString();
-            System.out.println("here is the response: " + jsonResponse);
+            String jsonResponse = ThreadsService.postThread(title, description).toString();
+
             JsonNode rootNode = objectMapper.readTree(jsonResponse);
 
             if (rootNode == null || !rootNode.isObject()) {
@@ -154,6 +161,61 @@ public class ThreadCommands {
 
         } catch (Exception e) {
             return "Error creating thread: " + e.getMessage();
+        }
+    }
+
+    @ShellMethod(key = "update-thread", value = "Update an existing thread")
+    public String updateThread(
+            @ShellOption(help = "Thread ID") int threadId,
+            @ShellOption(help = "New Title", defaultValue = "") String title,
+            @ShellOption(help = "New Description", defaultValue = "") String description,
+            @ShellOption(help = "Close Thread (true/false)", defaultValue = "false") boolean closeThread) {
+
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+            return "You are not logged in, please login!";
+        }
+
+        try {
+            JsonNode responseNode = ThreadsService.patchThread(threadId, title, description, closeThread);
+
+            if (responseNode == null || !responseNode.isObject()) {
+                return "Failed to update thread or invalid response.";
+
+            } else {
+
+                StringBuilder result = new StringBuilder("Thread updated successfully:\n");
+
+                String titleResponse = responseNode.path("title").asText("N/A");
+                String descriptionResponse = responseNode.path("description").asText("N/A");
+                String closedAtResponse = responseNode.has("closedAt") ? responseNode.path("closedAt").asText()
+                        : "Still Open";
+
+                result.append("Title: ").append(titleResponse).append("\n")
+                        .append("Description: ").append(descriptionResponse).append("\n")
+                        .append("Closed At: ").append(closedAtResponse);
+
+                return result.toString();
+            }
+        } catch (Exception e) {
+            return "Error updating thread: " + e.getMessage();
+        }
+    }
+
+    @ShellMethod(key = "delete-thread", value = "Delete your thread")
+    public String deleteReply(
+            @ShellOption(value = "id", help = "The id of the thread you wish to delete", defaultValue = "") String id) {
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+            return "You are not logged, please login!";
+        } else if (id.equals("")) {
+            return "the theadId must be specified like: \"delete-reply --id {id_value}\"";
+        } else {
+            try {
+
+                ThreadsService.deleteThread(id);
+                return String.format("Your thread %s has been deleted", id);
+            } catch (Exception error) {
+                return error.getMessage();
+            }
         }
     }
 }
