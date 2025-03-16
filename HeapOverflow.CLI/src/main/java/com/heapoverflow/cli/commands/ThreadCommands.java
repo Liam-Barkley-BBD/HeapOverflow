@@ -1,12 +1,5 @@
 package com.heapoverflow.cli.commands;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -14,13 +7,11 @@ import org.springframework.shell.table.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.heapoverflow.cli.constants.ApiEndpointsConstants;
+
 import com.heapoverflow.cli.constants.EnvConstants;
-import com.heapoverflow.cli.services.ReplyServices;
+
 import com.heapoverflow.cli.services.ThreadsService;
 import com.heapoverflow.cli.utils.EnvUtils;
-import com.heapoverflow.cli.utils.HttpUtils;
 import com.heapoverflow.cli.utils.TextUtils;
 
 @ShellComponent
@@ -32,6 +23,7 @@ public class ThreadCommands {
 
     public String getThreads(@ShellOption(help = "Search", defaultValue = "") String search,
             @ShellOption(help = "isTrending", defaultValue = "") Boolean isTrending,
+            @ShellOption(help = "Get all my Threads", defaultValue = "") Boolean userThreads,
             @ShellOption(help = "Page number", defaultValue = "0") int page,
             @ShellOption(help = "Page size", defaultValue = "10") int size) {
 
@@ -42,7 +34,7 @@ public class ThreadCommands {
         } else {
             try {
 
-                String jsonResponse = ThreadsService.getThreads(search, page, size, isTrending).toString();
+                String jsonResponse = ThreadsService.getThreads(search, page, size, isTrending, userThreads).toString();
                 JsonNode rootNode = objectMapper.readTree(jsonResponse);
                 JsonNode contentArray = rootNode.path("content");
 
@@ -183,19 +175,23 @@ public class ThreadCommands {
 
             } else {
 
-                StringBuilder result = new StringBuilder("Thread updated successfully:\n");
+                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
 
-                String titleResponse = responseNode.path("title").asText("N/A");
-                String descriptionResponse = responseNode.path("description").asText("N/A");
-                String closedAtResponse = responseNode.has("closedAt") ? responseNode.path("closedAt").asText()
-                        : "Still Open";
+                modelBuilder.addRow()
+                        .addValue("ID")
+                        .addValue("Title")
+                        .addValue("Description")
+                        .addValue("Closed At");
 
-                result.append("Title: ").append(titleResponse).append("\n")
-                        .append("Description: ").append(descriptionResponse).append("\n")
-                        .append("Closed At: ").append(closedAtResponse);
+                modelBuilder.addRow()
+                        .addValue(responseNode.path("id").asText("N/A"))
+                        .addValue(responseNode.path("title").asText("N/A"))
+                        .addValue(responseNode.path("description").asText("N/A"))
+                        .addValue(responseNode.has("closedAt") ? responseNode.path("closedAt").asText() : "Still Open");
 
-                return result.toString();
+                return TextUtils.renderTable(modelBuilder.build());
             }
+
         } catch (Exception e) {
             return "Error updating thread: " + e.getMessage();
         }
@@ -207,7 +203,7 @@ public class ThreadCommands {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged, please login!";
         } else if (id.equals("")) {
-            return "the theadId must be specified like: \"delete-reply --id {id_value}\"";
+            return "the theadId must be specified like: \"delete-thread --id {id_value}\"";
         } else {
             try {
 
