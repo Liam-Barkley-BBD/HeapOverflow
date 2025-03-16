@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.heapoverflow.cli.services.ThreadsService;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.TextUtils;
 
 @ShellComponent
 public class ThreadCommands {
@@ -17,7 +18,7 @@ public class ThreadCommands {
 
     @ShellMethod(key = "threads", value = "Get threads")
     public String getThreads() {
-        if (EnvUtils.retrieveJwt().isEmpty()) {
+        if (!EnvUtils.doesJwtExist()) {
             return "You are not logged in, please login!";
         }
 
@@ -41,7 +42,7 @@ public class ThreadCommands {
                         .addValue(thread.path("closedAt").isNull() ? "Open" : thread.path("closedAt").asText());
             }
 
-            return renderTable(modelBuilder.build());
+            return TextUtils.renderTable(modelBuilder.build());
 
         } catch (Exception e) {
             return "Error retrieving threads: " + e.getMessage();
@@ -50,7 +51,7 @@ public class ThreadCommands {
 
     @ShellMethod(key = "thread", value = "Get a thread by ID")
     public String getThreadById(@ShellOption(help = "Thread ID") int id) {
-        if (EnvUtils.retrieveJwt().isEmpty()) {
+        if (!EnvUtils.doesJwtExist()) {
             return "You are not logged in, please login!";
         }
 
@@ -80,7 +81,7 @@ public class ThreadCommands {
                     .addValue(rootNode.path("userId").asText("N/A"))
                     .addValue(rootNode.path("threadUpvotesCount").asText("0"));
 
-            return renderTable(modelBuilder.build());
+            return TextUtils.renderTable(modelBuilder.build());
 
         } catch (Exception e) {
             return "Error retrieving thread: " + e.getMessage();
@@ -93,7 +94,7 @@ public class ThreadCommands {
     // @ShellOption(help = "Thread Title") String title,
     // @ShellOption(help = "Thread Description") String description) {
 
-    // if (EnvUtils.retrieveJwt().isEmpty()) {
+    // if (!EnvUtils.doesJwtExist()) {
     // return "You are not logged in, please login!";
     // }
 
@@ -121,10 +122,4 @@ public class ThreadCommands {
     // return "Error creating thread: " + e.getMessage();
     // }
     // }
-
-    private String renderTable(TableModel model) {
-        TableBuilder tableBuilder = new TableBuilder(model);
-        tableBuilder.addFullBorder(BorderStyle.oldschool);
-        return tableBuilder.build().render(120);
-    }
 }

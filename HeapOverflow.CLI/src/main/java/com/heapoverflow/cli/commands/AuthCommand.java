@@ -10,7 +10,7 @@ import com.heapoverflow.cli.utils.EnvUtils;
 public class AuthCommand {
     @ShellMethod(key = "login", value = "Attempt to login")
     public String login() {
-        if (EnvUtils.retrieveJwt().equals("")) {
+        if (!EnvUtils.doesJwtExist()) {
             return AuthServices.attemptGoogleLogin();
         } else {
             return "You are already logged in";
@@ -20,7 +20,7 @@ public class AuthCommand {
     @ShellMethod(key = "logout", value = "Attempt to logout")
     public String logout() {
         try {
-            if (EnvUtils.retrieveJwt().equals("")) {
+            if (!EnvUtils.doesJwtExist()) {
                 return "You are not logged in";
             } else {
                 EnvUtils.deleteJWT();

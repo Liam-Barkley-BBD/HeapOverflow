@@ -50,4 +50,8 @@ public class EnvUtils {
     public static String retrieveJwt() {
         return preferences.get("jwt", ""); // Returns null if not set
     }
+
+    public static boolean doesJwtExist(){
+        return !(retrieveJwt().trim().isEmpty());
+    }
 }

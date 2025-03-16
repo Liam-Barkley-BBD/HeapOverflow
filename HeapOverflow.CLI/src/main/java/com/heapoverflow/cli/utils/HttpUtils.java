@@ -109,15 +109,23 @@ public class HttpUtils {
             .thenApply(response -> {
                 int statusCode = response.statusCode();
 
-                if (statusCode >= 400) {
+                if(statusCode == 401){
+                    try{
+                        EnvUtils.deleteJWT();
+                    }catch(Exception error){
+                        throw new RuntimeException("Your token could not be reset due to" + error.getMessage() + ", please try signing out manually and signing in again.");
+                    }
+                    throw new RuntimeException("Your session has expired, please type the login command to login again");
+                } else if (statusCode >= 400) {
                     throw new RuntimeException(statusCode + " " + response.body());
+                } else{
+                    try{
+                        return objectMapper.readTree(response.body());
+                    } catch(Exception error){
+                        throw new RuntimeException("Could not parse JSON response body");
+                    }
                 }
 
-                try{
-                    return objectMapper.readTree(response.body());
-                } catch(Exception error){
-                    throw new RuntimeException("Could not parse JSON response body");
-                }
             });
     }
 }
