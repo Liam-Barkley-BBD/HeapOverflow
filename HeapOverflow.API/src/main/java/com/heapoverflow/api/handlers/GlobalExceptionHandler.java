@@ -53,6 +53,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthorizedAction(UnauthorizedActionException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
     private ResponseEntity<Map<String, String>> buildErrorResponse(String message, HttpStatus status) {
         Map<String, String> error = new HashMap<>();
         error.put("error", message);

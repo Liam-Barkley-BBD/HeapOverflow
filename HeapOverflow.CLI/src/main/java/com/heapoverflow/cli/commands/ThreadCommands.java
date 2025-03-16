@@ -19,14 +19,15 @@ public class ThreadCommands {
 
     @ShellMethod(key = "threads", value = "Get threads")
 
-    public String getThreads(@ShellOption(help = "Thread Title", defaultValue = "") String title,
-            @ShellOption(help = "Thread Description", defaultValue = "") String description,
-            @ShellOption(help = "Page number", defaultValue = "0") int page,
-            @ShellOption(help = "Page size", defaultValue = "5") int size) {
+    public String getThreads(
+            @ShellOption(value = "title", help = "Thread Title", defaultValue = "") String title,
+            @ShellOption(value = "description", help = "Thread Description", defaultValue = "") String description,
+            @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
+            @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size) {
 
         page = page - 1;
 
-        if (!EnvUtils.doesJwtExist()) {
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
         } else {
             try {
@@ -77,8 +78,8 @@ public class ThreadCommands {
     }
 
     @ShellMethod(key = "thread", value = "Get a thread by ID")
-    public String getThreadById(@ShellOption(help = "Thread ID") int id) {
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
+    public String getThreadById(@ShellOption(value = "id", help = "Thread ID") int id) {
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
         } else {
 
@@ -120,16 +121,16 @@ public class ThreadCommands {
 
     @ShellMethod(key = "post-thread", value = "Create a new thread")
     public String postThread(
-            @ShellOption(help = "Thread Title") String title,
-            @ShellOption(help = "Thread Description") String description) {
+            @ShellOption(value = "title", help = "Thread Title") String title,
+            @ShellOption(value = "description", help = "Thread Description") String description) {
 
-        if (!EnvUtils.doesJwtExist()) {
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
         }
 
         try {
 
-            String userId = "100267083676959762550";
+            String userId = EnvUtils.retrieveValue(EnvConstants.GOOGLE_SUB);
             if (userId == null || userId.isEmpty()) {
                 return "User ID not found!";
             }

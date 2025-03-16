@@ -1,14 +1,25 @@
 package com.heapoverflow.api.models;
 
-public class ThreadRequest {
+import java.time.LocalDateTime;
+
+public class ThreadUpdate {
 
     private String title;
     private String description;
+    private LocalDateTime closedAt;
 
-    public ThreadRequest() {}
+    public ThreadUpdate() {}
 
     public String getTitle() {
         return title;
+    }
+    
+    public LocalDateTime getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(LocalDateTime closedAt) {
+        this.closedAt = closedAt;
     }
 
     public void setTitle(String title) {

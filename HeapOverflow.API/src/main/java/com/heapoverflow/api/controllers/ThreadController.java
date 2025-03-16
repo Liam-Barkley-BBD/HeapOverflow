@@ -2,8 +2,11 @@ package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.models.ThreadRequest;
+import com.heapoverflow.api.models.ThreadUpdate;
 import com.heapoverflow.api.services.ThreadService;
 import com.heapoverflow.api.utils.ApiConstants;
+
+import jakarta.websocket.server.PathParam;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
@@ -54,6 +57,14 @@ public class ThreadController {
     public ResponseEntity<Thread> createThread(@RequestBody ThreadRequest threadRequest) {
         Thread newThread = threadService.createThread(threadRequest);
         return ResponseEntity.ok(newThread);
+    }
+
+    /** PUT endpoint */
+
+    @PutMapping("/threads/{id}")
+    public ResponseEntity<Thread> updateThread(@PathVariable Integer id, @RequestBody ThreadUpdate threadUpdate) {
+        Thread updatedThread = threadService.updateThread(id, threadUpdate);
+        return ResponseEntity.ok(updatedThread);
     }
 
     /** DELETE endpoint */
