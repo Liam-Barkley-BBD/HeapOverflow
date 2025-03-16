@@ -57,6 +57,10 @@ public class CommentService {
         Thread thread = threadRepository.findById(commentRequest.getThreadId())
                 .orElseThrow(() -> new ThreadNotFoundException("Thread not found"));
 
+        if (thread.getClosedAt() != null) {
+            throw new IllegalStateException("Thread is already closed.");
+        }
+
         Comment newComment = new Comment(commentRequest.getContent(), user, thread);
         return commentRepository.save(newComment);
     }

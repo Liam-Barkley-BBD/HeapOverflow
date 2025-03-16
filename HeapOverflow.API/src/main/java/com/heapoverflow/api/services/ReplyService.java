@@ -57,6 +57,10 @@ public class ReplyService {
         Comment comment = commentRepository.findById(replyRequest.getCommentId())
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
 
+        if (comment.getThread().getClosedAt() != null) {
+            throw new IllegalStateException("Thread is already closed.");
+        }
+
         Reply newReply = new Reply(replyRequest.getContent(), user, comment);
         return replyRepository.save(newReply);
     }
