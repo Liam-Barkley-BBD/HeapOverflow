@@ -87,6 +87,6 @@ public class AuthService {
         String email = (String) payloadMap.get("email");
         String username = (String) payloadMap.get("name");
 
-        return new User(sub, email, username);
+        return new User(sub, username, email);
     }
 }
