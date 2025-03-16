@@ -1,6 +1,7 @@
 package com.heapoverflow.api.services;
 
 import com.heapoverflow.api.entities.Reply;
+import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.models.ReplyRequest;
@@ -38,12 +39,12 @@ public class ReplyService {
         return replyRepository.findById(id);
     }
 
-    public Page<Reply> getRepliesByUserId(String id, Pageable pageable) {
-        return replyRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<Reply> getRepliesByCommentId(Integer id, Pageable pageable) {
-        return replyRepository.findByComment_Id(id, pageable);
+    public Page<Reply> getRepliesByFilter(Integer commentId, Pageable pageable) {
+        if (commentId != null) {
+            return replyRepository.findByComment_Id(commentId, pageable);
+        } else {
+            return replyRepository.findAll(pageable);
+        }
     }
 
     @Transactional
@@ -56,8 +57,33 @@ public class ReplyService {
         Comment comment = commentRepository.findById(replyRequest.getCommentId())
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
 
+        if (comment.getThread().getClosedAt() != null) {
+            throw new IllegalStateException("Thread is already closed.");
+        }
+
         Reply newReply = new Reply(replyRequest.getContent(), user, comment);
         return replyRepository.save(newReply);
+    }
+
+    @Transactional
+    public Reply updateReply(Integer replyId, String content) {
+        Reply reply = replyRepository.findById(replyId)
+                .orElseThrow(() -> new ReplyNotFoundException("Reply with ID " + replyId + " not found."));
+        
+        if (!reply.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
+            throw new UnauthorizedActionException("You do not have permission to update this reply.");
+        }
+    
+        if (reply.getComment().getThread().getClosedAt() != null) {
+            throw new IllegalStateException("Thread is already closed.");
+        }
+    
+        // update reply with new info
+        if (content != null) {
+            reply.setContent(content);
+        }
+
+        return replyRepository.save(reply);
     }
 
     @Transactional

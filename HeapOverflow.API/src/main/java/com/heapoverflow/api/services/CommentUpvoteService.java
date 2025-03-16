@@ -4,7 +4,6 @@ import com.heapoverflow.api.entities.CommentUpvote;
 import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
-import com.heapoverflow.api.models.CommentUpvoteRequest;
 import com.heapoverflow.api.repositories.CommentUpvoteRepository;
 import com.heapoverflow.api.repositories.CommentRepository;
 import com.heapoverflow.api.repositories.UserRepository;
@@ -39,22 +38,24 @@ public class CommentUpvoteService {
         return commentUpvoteRepository.findById(id);
     }
 
-    public Page<CommentUpvote> getCommentUpvotesByUserId(String id, Pageable pageable) {
-        return commentUpvoteRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<CommentUpvote> getCommentUpvotesByCommentId(Integer id, Pageable pageable) {
-        return commentUpvoteRepository.findByComment_Id(id, pageable);
+    public Page<CommentUpvote> getCommentUpvotesByFilter(String userId, Integer commentId, Pageable pageable) {
+        if (userId != null) {
+            return commentUpvoteRepository.findByUser_Id(userId, pageable);
+        } else if (commentId != null) {
+            return commentUpvoteRepository.findByComment_Id(commentId, pageable);
+        } else {
+            return commentUpvoteRepository.findAll(pageable);
+        }
     }
 
     @Transactional
-    public CommentUpvote createCommentUpvote(CommentUpvoteRequest commentUpvoteRequest) {
+    public CommentUpvote createCommentUpvote(Integer commentId) {
         String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
 
         User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Comment comment = commentRepository.findById(commentUpvoteRequest.getCommentId())
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
 
         CommentUpvote newCommentUpvote = new CommentUpvote(user, comment);

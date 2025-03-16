@@ -27,12 +27,12 @@ public class CommentController {
 
     @GetMapping("/comments")
     public ResponseEntity<Page<Comment>> getComments(
-        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
-        @SortDefault.SortDefaults({
-            @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
-            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-        }) Pageable pageable) {
-        Page<Comment> comments = commentService.getAllComments(pageable);
+            @RequestParam(required = false) Integer threadId,
+            @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) @SortDefault.SortDefaults({
+                    @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
+                    @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+            }) Pageable pageable) {
+        Page<Comment> comments = commentService.getCommentsByFilter(threadId, pageable);
 
         return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();
     }
@@ -44,38 +44,20 @@ public class CommentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/comments/user/{userId}")
-    public ResponseEntity<Page<Comment>> getCommentsByUserId(
-        @PathVariable String userId,
-        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
-        @SortDefault.SortDefaults({
-            @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
-            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-        }) Pageable pageable) {
-        Page<Comment> comments =  commentService.getCommentsByUserId(userId, pageable);
-        
-        return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/comments/thread/{threadId}")
-    public ResponseEntity<Page<Comment>> getCommentsByThreadId(
-        @PathVariable Integer threadId, 
-        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
-        @SortDefault.SortDefaults({
-            @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
-            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-        }) Pageable pageable) {
-        Page<Comment> comments =  commentService.getCommentsByThreadId(threadId, pageable);
-        
-        return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();
-    }
-
     /** POST endpoint */
 
     @PostMapping("/comments")
     public ResponseEntity<Comment> createComment(@RequestBody CommentRequest commentRequest) {
         Comment newComment = commentService.createComment(commentRequest);
         return ResponseEntity.ok(newComment);
+    }
+
+    /** PUT endpoint */
+
+    @PutMapping("/comments/{id}")
+    public ResponseEntity<Comment> updateComment(@PathVariable Integer id, @RequestBody String content) {
+        Comment updateComment = commentService.updateComment(id, content);
+        return ResponseEntity.ok(updateComment);
     }
 
     /** DELETE endpoint */

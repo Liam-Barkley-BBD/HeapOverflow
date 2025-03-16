@@ -1,7 +1,6 @@
 package com.heapoverflow.api.services;
 
 import com.heapoverflow.api.entities.Comment;
-import com.heapoverflow.api.entities.Reply;
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.models.CommentRequest;
@@ -39,12 +38,12 @@ public class CommentService {
         return commentRepository.findById(id);
     }
 
-    public Page<Comment> getCommentsByUserId(String id, Pageable pageable) {
-        return commentRepository.findByUser_Id(id, pageable);
-    }
-
-    public Page<Comment> getCommentsByThreadId(Integer id, Pageable pageable) {
-        return commentRepository.findByThread_Id(id, pageable);
+    public Page<Comment> getCommentsByFilter(Integer threadId, Pageable pageable) {
+        if (threadId != null) {
+            return commentRepository.findByThread_Id(threadId, pageable);
+        } else {
+            return commentRepository.findAll(pageable);
+        }
     }
 
     @Transactional
@@ -58,8 +57,33 @@ public class CommentService {
         Thread thread = threadRepository.findById(commentRequest.getThreadId())
                 .orElseThrow(() -> new ThreadNotFoundException("Thread not found"));
 
+        if (thread.getClosedAt() != null) {
+            throw new IllegalStateException("Thread is already closed.");
+        }
+
         Comment newComment = new Comment(commentRequest.getContent(), user, thread);
         return commentRepository.save(newComment);
+    }
+
+    @Transactional
+    public Comment updateComment(Integer commentId, String content) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException("Comment with ID " + commentId + " not found."));
+        
+        if (!comment.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
+            throw new UnauthorizedActionException("You do not have permission to update this comment.");
+        }
+    
+        if (comment.getThread().getClosedAt() != null) {
+            throw new IllegalStateException("Thread is already closed.");
+        }
+    
+        // update comment with new info
+        if (content != null) {
+            comment.setContent(content);
+        }
+
+        return commentRepository.save(comment);
     }
 
     @Transactional
