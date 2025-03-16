@@ -59,9 +59,9 @@ public class ThreadController {
         return ResponseEntity.ok(newThread);
     }
 
-    /** PUT endpoint */
+    /** PATCH endpoint */
 
-    @PutMapping("/threads/{id}")
+    @PatchMapping("/threads/{id}")
     public ResponseEntity<Thread> updateThread(@PathVariable Integer id, @RequestBody ThreadUpdate threadUpdate) {
         Thread updatedThread = threadService.updateThread(id, threadUpdate);
         return ResponseEntity.ok(updatedThread);

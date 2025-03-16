@@ -36,9 +36,9 @@ public class ThreadUpvoteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** POST endpoint */
+    /** PATCH endpoint */
 
-    @PostMapping("/threadupvotes")
+    @PatchMapping("/threadupvotes")
     public ResponseEntity<ThreadUpvote> createThreadUpvote(@RequestBody Integer threadId) {
         ThreadUpvote newThreadUpvote = threadUpvoteService.createThreadUpvote(threadId);
         return ResponseEntity.ok(newThreadUpvote);

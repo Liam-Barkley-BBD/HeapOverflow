@@ -52,9 +52,9 @@ public class CommentController {
         return ResponseEntity.ok(newComment);
     }
 
-    /** PUT endpoint */
+    /** PATCH endpoint */
 
-    @PutMapping("/comments/{id}")
+    @PatchMapping("/comments/{id}")
     public ResponseEntity<Comment> updateComment(@PathVariable Integer id, @RequestBody String content) {
         Comment updateComment = commentService.updateComment(id, content);
         return ResponseEntity.ok(updateComment);

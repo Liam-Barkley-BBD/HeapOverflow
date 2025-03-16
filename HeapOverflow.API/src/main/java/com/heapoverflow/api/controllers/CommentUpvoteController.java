@@ -37,9 +37,9 @@ public class CommentUpvoteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** POST endpoint */
+    /** PATCH endpoint */
 
-    @PostMapping("/commentupvotes")
+    @PatchMapping("/commentupvotes")
     public ResponseEntity<CommentUpvote> createCommentUpvote(@RequestBody Integer commentId) {
         CommentUpvote newCommentUpvote = commentUpvoteService.createCommentUpvote(commentId);
         return ResponseEntity.ok(newCommentUpvote);
