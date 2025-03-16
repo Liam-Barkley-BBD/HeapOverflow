@@ -13,185 +13,131 @@ import com.heapoverflow.cli.utils.TextUtils;
 
 @ShellComponent
 public class ReplyCommands {
-    @ShellMethod(key = "replies", value = "Get replies from the system")
+
+    @ShellMethod(key = "replies", value = "Manage replies in the system")
     public String replies(
+        @ShellOption(value = "list", help = "List replies", defaultValue = "false") boolean list,
+        @ShellOption(value = "get", help = "Get a specific reply", defaultValue = "false") boolean get,
+        @ShellOption(value = "post", help = "Post a new reply", defaultValue = "false") boolean post,
+        @ShellOption(value = "edit", help = "Edit a reply", defaultValue = "false") boolean edit,
+        @ShellOption(value = "delete", help = "Delete a reply", defaultValue = "false") boolean delete,
+        @ShellOption(value = "id", help = "Reply ID", defaultValue = "") String id,
+        @ShellOption(value = "content", help = "Reply content", defaultValue = "") String content,
+        @ShellOption(value = "commentId", help = "Comment ID", defaultValue = "") String commentId,
         @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
         @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size
     ) {
-        page = page - 1;
-
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
-            return "You are not logged, please login!";
-        } else{
-            try {
-
-                JsonNode jsonResponse = ReplyServices.getReplies(page, size);
-                JsonNode contentArray = jsonResponse.path("content");
-
-                if (!contentArray.isArray() || contentArray.isEmpty()) {
-                    return "No replies found.";
-                } else {
-
-                    int totalThreads = jsonResponse.path("totalElements").asInt(0);
-                    int totalPages = jsonResponse.path("totalPages").asInt(1);
-                    int currentPage = jsonResponse.path("number").asInt(0) + 1;
-                    boolean isLastPage = jsonResponse.path("last").asBoolean();
-
-                    TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-                    modelBuilder.addRow().addValue("ID").addValue("Content")
-                        .addValue("GID").addValue("User").addValue("Email")
-                        .addValue("Created At").addValue("CommentId");
-
-                    for (JsonNode reply : contentArray) {
-                        JsonNode userNode = reply.path("user");
-
-                        modelBuilder.addRow()
-                                .addValue(reply.path("id").asText("N/A"))
-                                .addValue(reply.path("content").asText("N/A"))
-                                .addValue(userNode.path("id").asText("N/A"))
-                                .addValue(userNode.path("username").asText("N/A"))
-                                .addValue(userNode.path("email").asText("N/A"))
-                                .addValue(reply.path("createdAt").asText("N/A"))
-                                .addValue(reply.path("commentId").asText("N/A"));
-                    }
-
-                    return TextUtils.renderTable(modelBuilder.build()) + 
-                            String.format("\nPage %d of %d | Total Replies: %d %s",
-                            currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
-
-                }
-            } catch (Exception e) {
-                return "Error retrieving replies: " + e.getMessage();
-            }
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+            return "You are not logged in. Please log in!";
+        } else if (list) {
+            return listReplies(page, size);
+        } else if (get) {
+            return getReplyById(id);
+        } else if (post) {
+            return postReply(content, commentId);
+        } else if (edit) {
+            return editReply(id, content);
+        } else if (delete) {
+            return deleteReply(id);
+        } else {
+            return "Invalid command. Use --list, --get --id {id}, --post --content \"text\" --commentId {id}, --edit --id {id} --content \"text\", or --delete --id {id}.";
         }
     }
 
-    @ShellMethod(key = "reply", value = "Get a specific reply in the system")
-    public String reply(
-        @ShellOption(value = "id", help = "the id you wish to find out more details about", defaultValue = "") String id
-    ) {
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
-            return "You are not logged, please login!";
-        } else if(id.equals("")){
-            return "the id must be specified like: \"reply --id {id_value}\"";
-        } else{
-            try{
+    private String listReplies(int page, int size) {
+        try {
+            JsonNode jsonResponse = ReplyServices.getReplies(Math.max(0, page - 1), size);
+            JsonNode contentArray = jsonResponse.path("content");
+            if (!contentArray.isArray() || contentArray.isEmpty()) {
+                return "No replies found.";
+            } else{
+                TableModelBuilder<String> modelBuilder = buildReplyTable(contentArray);
 
-                JsonNode reply = ReplyServices.getReplyById(id);
+                int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                int totalPages = jsonResponse.path("totalPages").asInt(1);
+                int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                boolean isLastPage = jsonResponse.path("last").asBoolean();
+                
+                return TextUtils.renderTable(modelBuilder.build()) +
+                    String.format("\nPage %d of %d | Total Replies: %d %s", currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+            }
+        } catch (Exception e) {
+            return "Error retrieving replies: " + e.getMessage();
+        }
+    }
 
-                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-                    modelBuilder.addRow().addValue("ID").addValue("Content")
-                        .addValue("GID").addValue("User").addValue("Email")
-                        .addValue("Created At").addValue("CommentId");
+    private String getReplyById(String id) {
+        if (id.isEmpty()) {
+            return "The ID must be specified like: replies --get --id {id}";
+        }
+        try {
+            JsonNode reply = ReplyServices.getReplyById(id);
+            return TextUtils.renderTable(buildReplyTable(reply).build());
+        } catch (Exception e) {
+            return "Error retrieving reply: " + e.getMessage();
+        }
+    }
 
-                JsonNode userNode = reply.path("user");
+    private String postReply(String content, String commentId) {
+        if (commentId.isEmpty()) {
+            return "The commentId must be specified: replies --post --content \"{content}\" --commentId {commentId}";
+        }
+        try {
+            JsonNode reply = ReplyServices.postReply(content, commentId);
+            return TextUtils.renderTable(buildReplyTable(reply).build());
+        } catch (Exception e) {
+            return "Error posting reply: " + e.getMessage();
+        }
+    }
 
-                modelBuilder.addRow()
-                        .addValue(reply.path("id").asText("N/A"))
+    private String editReply(String id, String content) {
+        if (id.isEmpty()) {
+            return "The ID must be specified: replies --edit --id {id} --content \"{content}\"";
+        }
+        try {
+            JsonNode reply = ReplyServices.patchReply(content, id);
+            return TextUtils.renderTable(buildReplyTable(reply).build());
+        } catch (Exception e) {
+            return "Error editing reply: " + e.getMessage();
+        }
+    }
+
+    private String deleteReply(String id) {
+        if (id.isEmpty()) {
+            return "The ID must be specified: replies --delete --id {id}";
+        }
+        try {
+            ReplyServices.deleteReply(id);
+            return "Reply with ID " + id + " has been deleted.";
+        } catch (Exception e) {
+            return "Error deleting reply: " + e.getMessage();
+        }
+    }
+
+    private TableModelBuilder<String> buildReplyTable(JsonNode replyNode) {
+        TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
+        modelBuilder.addRow().addValue("ID").addValue("Content")
+                .addValue("GID").addValue("User").addValue("Email")
+                .addValue("Created At").addValue("CommentId");
+        if (replyNode.isArray()) {
+            for (JsonNode reply : replyNode) {
+                modelBuilder.addRow().addValue(reply.path("id").asText("N/A"))
                         .addValue(reply.path("content").asText("N/A"))
-                        .addValue(userNode.path("id").asText("N/A"))
-                        .addValue(userNode.path("username").asText("N/A"))
-                        .addValue(userNode.path("email").asText("N/A"))
+                        .addValue(reply.path("user").path("id").asText("N/A"))
+                        .addValue(reply.path("user").path("username").asText("N/A"))
+                        .addValue(reply.path("user").path("email").asText("N/A"))
                         .addValue(reply.path("createdAt").asText("N/A"))
                         .addValue(reply.path("commentId").asText("N/A"));
-
-                return TextUtils.renderTable(modelBuilder.build());
-            }catch(Exception error){
-                return error.getMessage();
             }
+        } else {
+            modelBuilder.addRow().addValue(replyNode.path("id").asText("N/A"))
+                    .addValue(replyNode.path("content").asText("N/A"))
+                    .addValue(replyNode.path("user").path("id").asText("N/A"))
+                    .addValue(replyNode.path("user").path("username").asText("N/A"))
+                    .addValue(replyNode.path("user").path("email").asText("N/A"))
+                    .addValue(replyNode.path("createdAt").asText("N/A"))
+                    .addValue(replyNode.path("commentId").asText("N/A"));
         }
-    }
-
-    @ShellMethod(key = "post-reply", value = "Post a new reply to a comment")
-    public String postReply(
-        @ShellOption(value = "content", help = "The content you wish to add in your reply", defaultValue = "") String content,
-        @ShellOption(value = "commentId", help = "The id of the comment you wish to reply to", defaultValue = "") String commentId
-    ) {
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
-            return "You are not logged, please login!";
-        } else if(commentId.equals("")){
-            return "the commentId must be specified like: \"post-reply --content \"{content_value}\" --commentId {commentId_value}\"";
-        } else{
-            try{
-
-                JsonNode yourReply = ReplyServices.postReply(content, commentId);
-
-                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-                    modelBuilder.addRow().addValue("ID").addValue("Content")
-                        .addValue("GID").addValue("User").addValue("Email")
-                        .addValue("Created At").addValue("CommentId");
-
-                JsonNode userNode = yourReply.path("user");
-
-                modelBuilder.addRow()
-                        .addValue(yourReply.path("id").asText("N/A"))
-                        .addValue(yourReply.path("content").asText("N/A"))
-                        .addValue(userNode.path("id").asText("N/A"))
-                        .addValue(userNode.path("username").asText("N/A"))
-                        .addValue(userNode.path("email").asText("N/A"))
-                        .addValue(yourReply.path("createdAt").asText("N/A"))
-                        .addValue(yourReply.path("commentId").asText("N/A"));
-
-                return TextUtils.renderTable(modelBuilder.build());
-            }catch(Exception error){
-                return error.getMessage();
-            }
-        }
-    }
-
-    @ShellMethod(key = "edit-reply", value = "Change the content of a reply to something else")
-    public String editReply(
-        @ShellOption(value = "id", help = "The id of the reply you wish to edit", defaultValue = "") String id,
-        @ShellOption(value = "content", help = "The content you wish to change to in your reply", defaultValue = "") String content
-    ) {
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
-            return "You are not logged, please login!";
-        } else if(id.equals("")){
-            return "the id must be specified like: \"edit-reply --id {id_value} --content \"{content_value}\"\"";
-        } else{
-            try{
-
-                JsonNode yourReply = ReplyServices.patchReply(content, id);
-
-                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-                    modelBuilder.addRow().addValue("ID").addValue("Content")
-                        .addValue("GID").addValue("User").addValue("Email")
-                        .addValue("Created At").addValue("CommentId");
-
-                JsonNode userNode = yourReply.path("user");
-
-                modelBuilder.addRow()
-                        .addValue(yourReply.path("id").asText("N/A"))
-                        .addValue(yourReply.path("content").asText("N/A"))
-                        .addValue(userNode.path("id").asText("N/A"))
-                        .addValue(userNode.path("username").asText("N/A"))
-                        .addValue(userNode.path("email").asText("N/A"))
-                        .addValue(yourReply.path("createdAt").asText("N/A"))
-                        .addValue(yourReply.path("commentId").asText("N/A"));
-
-                return TextUtils.renderTable(modelBuilder.build());
-            }catch(Exception error){
-                return error.getMessage();
-            }
-        }
-    }
-
-    @ShellMethod(key = "delete-reply", value = "Delete your reply")
-    public String deleteReply(
-        @ShellOption(value = "id", help = "The id of the reply you wish to delete", defaultValue = "") String id
-    ) {
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
-            return "You are not logged, please login!";
-        } else if(id.equals("")){
-            return "the id must be specified like: \"delete-reply --id {id_value}\"";
-        } else{
-            try{
-
-                ReplyServices.deleteReply(id);
-                return String.format("Your reply to id %s has been deleted", id); 
-            }catch(Exception error){
-                return error.getMessage();
-            }
-        }
+        return modelBuilder;
     }
 }

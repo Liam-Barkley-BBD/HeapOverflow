@@ -13,29 +13,67 @@ import com.heapoverflow.cli.utils.TextUtils;
 
 @ShellComponent
 public class UserCommands {
-    @ShellMethod(key = "users", value = "Get all users in the system")
+    @ShellMethod(key = "users", value = "Manage users in the system")
     public String users(
-        @ShellOption(value = "username", help = "The username you wish to match for", defaultValue = "") String username, 
-        @ShellOption(value = "email", help = "The email you wish to match with", defaultValue = "") String email,
+        @ShellOption(value = "list", help = "List all users", defaultValue = "false") boolean list,
+        @ShellOption(value = "get", help = "Get a specific user", defaultValue = "false") boolean get,
+        @ShellOption(value = "gid", help = "Google user ID", defaultValue = "") String gid,
+        @ShellOption(value = "username", help = "Filter by username", defaultValue = "") String username,
+        @ShellOption(value = "email", help = "Filter by email", defaultValue = "") String email,
         @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
-        @ShellOption(value = "help", help = "Page size", defaultValue = "5") int size
+        @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size
     ) {
-        page = page - 1;
-
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
-            return "You are not logged, please login!";
+        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+            return "You are not logged in, please login!";
         } else{
-            // attempt to get users
+            if (get) {
+                if (gid.isEmpty()) {
+                    return "You must specify a Google ID with --gid";
+                } else{
+                    return getUserByGid(gid);
+                }
+            }
+            else if (list) {
+                return listUsers(username, email, page, size);
+            } else{
+                return "Specify --list to retrieve users or --get --gid {gid} to get a specific user.";
+            }
         }
 
-        try{
-            JsonNode result = UserServices.getUsers(username, email, page, size);
-            JsonNode contentArray = result.path("content");
+    }
 
+    private String getUserByGid(String gid) {
+        try {
+            JsonNode user = UserServices.getUsersByGoogleId(gid);
+            TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
+            modelBuilder.addRow().addValue("id").addValue("username").addValue("email");
+            modelBuilder.addRow()
+                .addValue(user.path("id").asText("N/A"))
+                .addValue(user.path("username").asText("N/A"))
+                .addValue(user.path("email").asText("N/A"));
+            return TextUtils.renderTable(modelBuilder.build());
+        } catch (Exception error) {
+            return error.getMessage();
+        }
+    }
+
+    private String listUsers(String username, String email, int page, int size) {
+        try {
+            JsonNode result = UserServices.getUsers(username, email, Math.max(0, page - 1), size);
+            JsonNode contentArray = result.path("content");
             if (!contentArray.isArray() || contentArray.isEmpty()) {
                 return "No users found.";
             } else{
-                // there are users and we should print them out
+                // continue
+            }
+
+            TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
+            modelBuilder.addRow().addValue("id").addValue("username").addValue("email");
+            for (JsonNode user : contentArray) {
+                modelBuilder.addRow()
+                    .addValue(user.path("id").asText("N/A"))
+                    .addValue(user.path("username").asText("N/A"))
+                    .addValue(user.path("email").asText("N/A"));
             }
 
             int totalThreads = result.path("totalElements").asInt(0);
@@ -43,49 +81,11 @@ public class UserCommands {
             int currentPage = result.path("number").asInt(0) + 1;
             boolean isLastPage = result.path("last").asBoolean();
 
-            TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-            modelBuilder.addRow().addValue("id").addValue("username").addValue("email");
-
-            for (JsonNode user : contentArray) {
-                modelBuilder.addRow()
-                        .addValue(user.path("id").asText("N/A"))
-                        .addValue(user.path("username").asText("N/A"))
-                        .addValue(user.path("email").asText("N/A"));
-            }
-
             return TextUtils.renderTable(modelBuilder.build()) + 
-                            String.format("\nPage %d of %d | Total Replies: %d %s",
-                            currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
-        } catch(Exception error){
+                String.format("\nPage %d of %d | Total Users: %d %s",
+                currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+        } catch (Exception error) {
             return error.getMessage();
-        }
-    }
-
-    @ShellMethod(key = "user", value = "Get a specific user in the system")
-    public String user(
-        @ShellOption(value = "gid", help = "the google user id you wish to find out more details about", defaultValue = "") String gid
-    ) {
-        if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
-            return "You are not logged, please login!";
-        } else if(gid.equals("")){
-            return "the gid must be specified like: \"user --gid {gid_value}\"";
-        } else{
-            try{
-
-                JsonNode user = UserServices.getUsersByGoogleId(gid);
-
-                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-                modelBuilder.addRow().addValue("id").addValue("username").addValue("email");
-
-                modelBuilder.addRow()
-                        .addValue(user.path("id").asText("N/A"))
-                        .addValue(user.path("username").asText("N/A"))
-                        .addValue(user.path("email").asText("N/A"));
-
-                return TextUtils.renderTable(modelBuilder.build());
-            }catch(Exception error){
-                return error.getMessage();
-            }
         }
     }
 }
