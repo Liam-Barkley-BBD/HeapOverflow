@@ -53,6 +53,14 @@ public class CommentController {
         return ResponseEntity.ok(newComment);
     }
 
+    /** PUT endpoint */
+
+    @PutMapping("/comments/{id}")
+    public ResponseEntity<Comment> updateComment(@PathVariable Integer id, @RequestBody String content) {
+        Comment updateComment = commentService.updateComment(id, content);
+        return ResponseEntity.ok(updateComment);
+    }
+
     /** DELETE endpoint */
 
     @DeleteMapping("/comments/{id}")
