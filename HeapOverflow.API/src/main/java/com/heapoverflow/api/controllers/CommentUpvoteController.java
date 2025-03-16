@@ -1,7 +1,6 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.CommentUpvote;
-import com.heapoverflow.api.models.CommentUpvoteRequest;
 import com.heapoverflow.api.services.CommentUpvoteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,8 +40,8 @@ public class CommentUpvoteController {
     /** POST endpoint */
 
     @PostMapping("/commentupvotes")
-    public ResponseEntity<CommentUpvote> createCommentUpvote(@RequestBody CommentUpvoteRequest commentUpvoteRequest) {
-        CommentUpvote newCommentUpvote = commentUpvoteService.createCommentUpvote(commentUpvoteRequest);
+    public ResponseEntity<CommentUpvote> createCommentUpvote(@RequestBody Integer commentId) {
+        CommentUpvote newCommentUpvote = commentUpvoteService.createCommentUpvote(commentId);
         return ResponseEntity.ok(newCommentUpvote);
     }
 

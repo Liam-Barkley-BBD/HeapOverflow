@@ -4,7 +4,6 @@ import com.heapoverflow.api.entities.CommentUpvote;
 import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
-import com.heapoverflow.api.models.CommentUpvoteRequest;
 import com.heapoverflow.api.repositories.CommentUpvoteRepository;
 import com.heapoverflow.api.repositories.CommentRepository;
 import com.heapoverflow.api.repositories.UserRepository;
@@ -50,13 +49,13 @@ public class CommentUpvoteService {
     }
 
     @Transactional
-    public CommentUpvote createCommentUpvote(CommentUpvoteRequest commentUpvoteRequest) {
+    public CommentUpvote createCommentUpvote(Integer commentId) {
         String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
 
         User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Comment comment = commentRepository.findById(commentUpvoteRequest.getCommentId())
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
 
         CommentUpvote newCommentUpvote = new CommentUpvote(user, comment);

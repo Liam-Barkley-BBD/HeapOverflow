@@ -3,7 +3,6 @@ package com.heapoverflow.api.services;
 import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Thread;
 import com.heapoverflow.api.entities.User;
-import com.heapoverflow.api.models.ThreadUpvoteRequest;
 import com.heapoverflow.api.repositories.ThreadUpvoteRepository;
 import com.heapoverflow.api.repositories.ThreadRepository;
 import com.heapoverflow.api.repositories.UserRepository;
@@ -49,13 +48,13 @@ public class ThreadUpvoteService {
     }
 
     @Transactional
-    public ThreadUpvote createThreadUpvote(ThreadUpvoteRequest threadUpvoteRequest) {
+    public ThreadUpvote createThreadUpvote(Integer threadId) {
         String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
 
         User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Thread thread = threadRepository.findById(threadUpvoteRequest.getThreadId())
+        Thread thread = threadRepository.findById(threadId)
                 .orElseThrow(() -> new ThreadNotFoundException("Thread not found"));
 
         ThreadUpvote newThreadUpvote = new ThreadUpvote(user, thread);

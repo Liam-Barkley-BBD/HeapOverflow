@@ -1,7 +1,6 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.ThreadUpvote;
-import com.heapoverflow.api.models.ThreadUpvoteRequest;
 import com.heapoverflow.api.services.ThreadUpvoteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,8 +39,8 @@ public class ThreadUpvoteController {
     /** POST endpoint */
 
     @PostMapping("/threadupvotes")
-    public ResponseEntity<ThreadUpvote> createThreadUpvote(@RequestBody ThreadUpvoteRequest threadUpvoteRequest) {
-        ThreadUpvote newThreadUpvote = threadUpvoteService.createThreadUpvote(threadUpvoteRequest);
+    public ResponseEntity<ThreadUpvote> createThreadUpvote(@RequestBody Integer threadId) {
+        ThreadUpvote newThreadUpvote = threadUpvoteService.createThreadUpvote(threadId);
         return ResponseEntity.ok(newThreadUpvote);
     }
 
