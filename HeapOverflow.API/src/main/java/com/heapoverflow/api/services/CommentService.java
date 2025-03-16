@@ -38,11 +38,11 @@ public class CommentService {
     }
 
     public Page<Comment> getCommentsByUserId(String id, Pageable pageable) {
-        return commentRepository.findByUserId(id, pageable);
+        return commentRepository.findByUser_Id(id, pageable);
     }
 
     public Page<Comment> getCommentsByThreadId(Integer id, Pageable pageable) {
-        return commentRepository.findByThreadId(id, pageable);
+        return commentRepository.findByThread_Id(id, pageable);
     }
 
     @Transactional

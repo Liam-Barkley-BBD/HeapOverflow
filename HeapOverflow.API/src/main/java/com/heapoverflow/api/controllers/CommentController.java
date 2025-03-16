@@ -3,8 +3,13 @@ package com.heapoverflow.api.controllers;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.models.CommentRequest;
 import com.heapoverflow.api.services.CommentService;
+import com.heapoverflow.api.utils.ApiConstants;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +26,12 @@ public class CommentController {
     /** GET endpoints */
 
     @GetMapping("/comments")
-    public ResponseEntity<Page<Comment>> getComments(Pageable pageable) {
+    public ResponseEntity<Page<Comment>> getComments(
+        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
+        @SortDefault.SortDefaults({
+            @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
+            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+        }) Pageable pageable) {
         Page<Comment> comments = commentService.getAllComments(pageable);
 
         return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();
@@ -35,14 +45,26 @@ public class CommentController {
     }
 
     @GetMapping("/comments/user/{userId}")
-    public ResponseEntity<Page<Comment>> getCommentsByUserId(@PathVariable String userId, Pageable pageable) {
+    public ResponseEntity<Page<Comment>> getCommentsByUserId(
+        @PathVariable String userId,
+        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
+        @SortDefault.SortDefaults({
+            @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
+            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+        }) Pageable pageable) {
         Page<Comment> comments =  commentService.getCommentsByUserId(userId, pageable);
         
         return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/comments/thread/{threadId}")
-    public ResponseEntity<Page<Comment>> getCommentsByThreadId(@PathVariable Integer threadId, Pageable pageable) {
+    public ResponseEntity<Page<Comment>> getCommentsByThreadId(
+        @PathVariable Integer threadId, 
+        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
+        @SortDefault.SortDefaults({
+            @SortDefault(sort = "commentUpvotesCount", direction = Sort.Direction.DESC),
+            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+        }) Pageable pageable) {
         Page<Comment> comments =  commentService.getCommentsByThreadId(threadId, pageable);
         
         return comments.hasContent() ? ResponseEntity.ok(comments) : ResponseEntity.notFound().build();

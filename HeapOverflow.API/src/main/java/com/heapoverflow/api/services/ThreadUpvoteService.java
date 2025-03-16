@@ -38,11 +38,11 @@ public class ThreadUpvoteService {
     }
 
     public Page<ThreadUpvote> getThreadUpvotesByUserId(String id, Pageable pageable) {
-        return threadUpvoteRepository.findByUserId(id, pageable);
+        return threadUpvoteRepository.findByUser_Id(id, pageable);
     }
 
     public Page<ThreadUpvote> getThreadUpvotesByThreadId(Integer id, Pageable pageable) {
-        return threadUpvoteRepository.findByThreadId(id, pageable);
+        return threadUpvoteRepository.findByThread_Id(id, pageable);
     }
 
     @Transactional
