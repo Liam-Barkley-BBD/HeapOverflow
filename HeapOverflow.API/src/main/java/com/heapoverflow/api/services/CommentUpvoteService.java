@@ -1,12 +1,14 @@
 package com.heapoverflow.api.services;
 
 import com.heapoverflow.api.entities.CommentUpvote;
+import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.models.CommentUpvoteRequest;
 import com.heapoverflow.api.repositories.CommentUpvoteRepository;
 import com.heapoverflow.api.repositories.CommentRepository;
 import com.heapoverflow.api.repositories.UserRepository;
+import com.heapoverflow.api.utils.AuthUtils;
 import com.heapoverflow.api.exceptions.*;
 
 import org.springframework.data.domain.Page;
@@ -47,7 +49,9 @@ public class CommentUpvoteService {
 
     @Transactional
     public CommentUpvote createCommentUpvote(CommentUpvoteRequest commentUpvoteRequest) {
-        User user = userRepository.findById(commentUpvoteRequest.getUserId())
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+
+        User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Comment comment = commentRepository.findById(commentUpvoteRequest.getCommentId())
@@ -59,9 +63,13 @@ public class CommentUpvoteService {
 
     @Transactional
     public void deleteCommentUpvote(Integer id) {
-        if (!commentUpvoteRepository.existsById(id)) {
-            throw new CommentUpvoteNotFoundException("CommentUpvote with ID " + id + " not found.");
+        CommentUpvote commentUpvote = commentUpvoteRepository.findById(id)
+        .orElseThrow(() -> new ThreadNotFoundException("CommentUpvote with ID " + id + " not found."));
+
+        if (!commentUpvote.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
+            throw new UnauthorizedActionException("You do not have permission to delete this comment upvote.");
         }
-        commentUpvoteRepository.deleteById(id);
+
+        commentUpvoteRepository.deleteById(commentUpvote.getId());
     }
 }

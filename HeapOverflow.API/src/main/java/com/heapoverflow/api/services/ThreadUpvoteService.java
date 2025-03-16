@@ -7,6 +7,7 @@ import com.heapoverflow.api.models.ThreadUpvoteRequest;
 import com.heapoverflow.api.repositories.ThreadUpvoteRepository;
 import com.heapoverflow.api.repositories.ThreadRepository;
 import com.heapoverflow.api.repositories.UserRepository;
+import com.heapoverflow.api.utils.AuthUtils;
 import com.heapoverflow.api.exceptions.*;
 
 import org.springframework.data.domain.Page;
@@ -47,7 +48,9 @@ public class ThreadUpvoteService {
 
     @Transactional
     public ThreadUpvote createThreadUpvote(ThreadUpvoteRequest threadUpvoteRequest) {
-        User user = userRepository.findById(threadUpvoteRequest.getUserId())
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+
+        User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Thread thread = threadRepository.findById(threadUpvoteRequest.getThreadId())
@@ -59,9 +62,13 @@ public class ThreadUpvoteService {
 
     @Transactional
     public void deleteThreadUpvote(Integer id) {
-        if (!threadUpvoteRepository.existsById(id)) {
-            throw new ThreadUpvoteNotFoundException("ThreadUpvote with ID " + id + " not found.");
+        ThreadUpvote threadUpvote = threadUpvoteRepository.findById(id)
+        .orElseThrow(() -> new ThreadNotFoundException("ThreadUpvote with ID " + id + " not found."));
+
+        if (!threadUpvote.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
+            throw new UnauthorizedActionException("You do not have permission to delete this thread upvote.");
         }
-        threadUpvoteRepository.deleteById(id);
+
+        threadUpvoteRepository.deleteById(threadUpvote.getId());
     }
 }

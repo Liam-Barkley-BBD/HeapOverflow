@@ -7,6 +7,7 @@ import com.heapoverflow.api.models.ReplyRequest;
 import com.heapoverflow.api.repositories.ReplyRepository;
 import com.heapoverflow.api.repositories.CommentRepository;
 import com.heapoverflow.api.repositories.UserRepository;
+import com.heapoverflow.api.utils.AuthUtils;
 import com.heapoverflow.api.exceptions.*;
 
 import org.springframework.data.domain.Page;
@@ -47,7 +48,9 @@ public class ReplyService {
 
     @Transactional
     public Reply createReply(ReplyRequest replyRequest) {
-        User user = userRepository.findById(replyRequest.getUserId())
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+
+        User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Comment comment = commentRepository.findById(replyRequest.getCommentId())
@@ -59,9 +62,14 @@ public class ReplyService {
 
     @Transactional
     public void deleteReply(Integer id) {
-        if (!replyRepository.existsById(id)) {
-            throw new ReplyNotFoundException("REply with ID " + id + " not found.");
+
+        Reply reply = replyRepository.findById(id)
+        .orElseThrow(() -> new ReplyNotFoundException("Reply with ID " + id + " not found."));
+
+        if (!reply.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
+            throw new UnauthorizedActionException("You do not have permission to delete this reply.");
         }
-        replyRepository.deleteById(id);
+
+        replyRepository.deleteById(reply.getId());
     }
 }
