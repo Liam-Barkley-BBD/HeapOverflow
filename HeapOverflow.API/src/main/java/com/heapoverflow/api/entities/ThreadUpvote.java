@@ -43,13 +43,8 @@ public class ThreadUpvote {
         this.id = id;
     }
 
-    @JsonIgnore
     public User getUser() {
         return this.user;
-    }
-    
-    public String getUserId() {
-        return this.user.getId();
     }
 
     public void setUser(User user) {

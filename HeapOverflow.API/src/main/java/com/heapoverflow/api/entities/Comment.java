@@ -63,13 +63,8 @@ public class Comment {
         this.thread = thread;
     }
 
-    @JsonIgnore
     public User getUser() {
         return this.user;
-    }
-    
-    public String getUserId() {
-        return this.user.getId();
     }
 
     public void setUser(User user) {

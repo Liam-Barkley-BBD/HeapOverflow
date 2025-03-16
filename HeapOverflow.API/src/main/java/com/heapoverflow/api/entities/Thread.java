@@ -67,13 +67,8 @@ public class Thread {
         this.description = description;
     }
     
-    @JsonIgnore
     public User getUser() {
         return this.user;
-    }
-    
-    public String getUserId() {
-        return this.user.getId();
     }
 
     public void setUser(User user) {
