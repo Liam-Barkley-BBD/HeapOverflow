@@ -117,6 +117,8 @@ public class HttpUtils {
                         throw new RuntimeException("Your token could not be reset due to" + error.getMessage() + ", please try signing out manually and signing in again.");
                     }
                     throw new RuntimeException("Your session has expired, please type the login command to login again");
+                } else if(statusCode == 404){
+                    throw new RuntimeException("Resource not found in server or db");
                 } else if (statusCode >= 400) {
                     throw new RuntimeException(statusCode + " " + response.body());
                 } else{

@@ -1,9 +1,10 @@
 package com.heapoverflow.cli.services;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.heapoverflow.cli.constants.ApiEndpointsConstants;
 import com.heapoverflow.cli.constants.EnvConstants;
-import com.heapoverflow.cli.models.ReplyRequest;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
 
@@ -14,29 +15,26 @@ public class ReplyServices {
                     .join();
     }
 
-    public static JsonNode getRepliesById(String id) throws Exception {
+    public static JsonNode getReplyById(String id) throws Exception {
         return HttpUtils
-                    .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + "?id=" + id)
+                    .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + id)
                     .join();
     }
 
-    public static JsonNode getCommentsById(String commentId) throws Exception {
-        return HttpUtils
-                    .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_COMMENT_COMMENT_ID + "?commentId=" + commentId)
-                    .join();
-    }
-
-    public static JsonNode getRepliesFromUser(String userGoogleId) throws Exception {
-        return HttpUtils
-                    .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_USER_GID + "?userGoogleId=" + userGoogleId)
-                    .join();
-    }
-
-    public static JsonNode postReply(String content, String userId, Integer commentId) throws Exception {
+    public static JsonNode postReply(String content, String commentId) throws Exception {
         return HttpUtils
                     .asyncPost(
                         EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES,
-                        new ReplyRequest(content, userId, commentId)
+                        Map.of(
+                            "content", content,
+                            "commentId", commentId
+                        )
                     ).join();
+    }
+
+    public static JsonNode deleteReply(String id) throws Exception {
+        return HttpUtils
+                    .asyncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID + id)
+                    .join();
     }
 }
