@@ -14,7 +14,7 @@ import com.heapoverflow.cli.utils.TextUtils;
 @ShellComponent
 public class UserCommands {
     @ShellMethod(key = "users", value = "Get all users in the system")
-    public String getUsers(
+    public String users(
         @ShellOption(value = "username", help = "The username you wish to match for", defaultValue = "") String username, 
         @ShellOption(value = "email", help = "The email you wish to match with", defaultValue = "") String email,
         @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
@@ -62,7 +62,7 @@ public class UserCommands {
     }
 
     @ShellMethod(key = "user", value = "Get a specific user in the system")
-    public String getUser(
+    public String user(
         @ShellOption(value = "gid", help = "the google user id you wish to find out more details about", defaultValue = "") String gid
     ) {
         if(!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)){
