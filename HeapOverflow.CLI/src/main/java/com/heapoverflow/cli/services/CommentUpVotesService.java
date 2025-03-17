@@ -19,7 +19,7 @@ public class CommentUpVotesService {
 
         public static JsonNode postCommentUpVote(int commentId) throws Exception {
                 return HttpUtils
-                                .asyncPost(
+                                .syncPost(
                                                 EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
                                                                 + ApiEndpointsConstants.API_COMMENTS_UPVOTES,
                                                 Map.of(
