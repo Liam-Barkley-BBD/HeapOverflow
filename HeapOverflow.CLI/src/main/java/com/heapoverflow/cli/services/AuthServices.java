@@ -15,7 +15,7 @@ public class AuthServices {
             if(authCode.equals("")){
                 return "Browser authentication took too long or failed, releasing resources";
             } else{
-                JsonNode jsonNode = HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + AuthEndpointsConstants.AUTH_TOKEN + authCode).join();
+                JsonNode jsonNode = HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + AuthEndpointsConstants.AUTH_TOKEN + authCode);
 
                 if (jsonNode.has("jwt")) {
                     EnvUtils.storeValue(EnvConstants.JWT_TOKEN, jsonNode.get("jwt").asText());

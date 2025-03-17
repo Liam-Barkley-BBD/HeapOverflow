@@ -4,7 +4,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,11 +13,11 @@ public class HttpUtils {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static CompletableFuture<JsonNode> asyncGet(String url) throws Exception{
+    public static JsonNode syncGet(String url) throws Exception {
         String token = "";
-        try{
+        try {
             token = EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
-        }catch(Exception error){
+        } catch (Exception error) {
             // we would rather return a bad request from the server
         }
 
@@ -37,23 +36,23 @@ public class HttpUtils {
         return sendRequest(request);
     }
 
-    public static CompletableFuture<JsonNode> asyncPost(String url, Object requestBody) {
+    public static JsonNode syncPost(String url, Object requestBody) throws Exception {
         return sendJsonRequest(url, requestBody, "POST");
     }
 
-    public static CompletableFuture<JsonNode> asyncPut(String url, Object requestBody) {
+    public static JsonNode syncPut(String url, Object requestBody) throws Exception {
         return sendJsonRequest(url, requestBody, "PUT");
     }
 
-    public static CompletableFuture<JsonNode> asyncPatch(String url, Object requestBody) {
+    public static JsonNode syncPatch(String url, Object requestBody) throws Exception {
         return sendJsonRequest(url, requestBody, "PATCH");
     }
 
-    public static CompletableFuture<JsonNode> asyncDelete(String url) throws Exception{
+    public static JsonNode syncDelete(String url) throws Exception {
         String token = "";
-        try{
+        try {
             token = EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
-        }catch(Exception error){
+        } catch (Exception error) {
             // we would rather return a bad request from the server
         }
 
@@ -72,12 +71,12 @@ public class HttpUtils {
         return sendRequest(request);
     }
 
-    private static CompletableFuture<JsonNode> sendJsonRequest(String url, Object requestBody, String method) {
+    private static JsonNode sendJsonRequest(String url, Object requestBody, String method) throws Exception {
         try {
             String token = "";
-            try{
+            try {
                 token = EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
-            }catch(Exception error){
+            } catch (Exception error) {
                 // we would rather return a bad request from the server
             }
 
@@ -99,36 +98,31 @@ public class HttpUtils {
 
             return sendRequest(request);
         } catch (Exception e) {
-            CompletableFuture<JsonNode> failedFuture = new CompletableFuture<>();
-            failedFuture.completeExceptionally(e);
-            return failedFuture;
+            throw new RuntimeException("Request failed: " + e.getMessage(), e);
         }
     }
 
-    private static CompletableFuture<JsonNode> sendRequest(HttpRequest request) throws Exception {
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApply(response -> {
-                int statusCode = response.statusCode();
+    private static JsonNode sendRequest(HttpRequest request) throws Exception {
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
 
-                if(statusCode == 401){
-                    try{
-                        EnvUtils.deleteKeys();
-                    }catch(Exception error){
-                        throw new RuntimeException("Your token could not be reset due to" + error.getMessage() + ", please try signing out manually and signing in again.");
-                    }
-                    throw new RuntimeException("Your session has expired, please type the login command to login again");
-                } else if(statusCode == 404){
-                    throw new RuntimeException("Resource not found in server or db");
-                } else if (statusCode >= 400) {
-                    throw new RuntimeException(statusCode + " " + response.body());
-                } else{
-                    try{
-                        return objectMapper.readTree(response.body());
-                    } catch(Exception error){
-                        throw new RuntimeException("Could not parse JSON response body");
-                    }
-                }
-
-            });
+        if (statusCode == 401) {
+            try {
+                EnvUtils.deleteKeys();
+            } catch (Exception error) {
+                throw new RuntimeException("Your token could not be reset due to" + error.getMessage() + ", please try signing out manually and signing in again.");
+            }
+            throw new RuntimeException("Your session has expired, please type the login command to login again");
+        } else if (statusCode == 404) {
+            throw new RuntimeException("Resource not found in server or db");
+        } else if (statusCode >= 400) {
+            throw new RuntimeException(statusCode + " " + response.body());
+        } else {
+            try {
+                return objectMapper.readTree(response.body());
+            } catch (Exception error) {
+                throw new RuntimeException("Could not parse JSON response body", error);
+            }
+        }
     }
 }

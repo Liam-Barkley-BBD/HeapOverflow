@@ -11,19 +11,17 @@ import com.heapoverflow.cli.utils.HttpUtils;
 public class ThreadUpvoteServices {
     public static JsonNode deleteThreadUpVote(String userId, int id) throws Exception {
         return HttpUtils
-                .asyncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                        + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + id)
-                .join();
+                .syncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + id);
     }
 
     public static JsonNode postThreadUpVote(String userId, String threadId) throws Exception {
         return HttpUtils
-                .asyncPost(
+                .syncPost(
                         EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES,
                         Map.of(
                                 "userId", userId,
-                                "threadId", threadId))
-                .join();
+                                "threadId", threadId));
     }
 
 }
