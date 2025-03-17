@@ -10,20 +10,21 @@ import com.heapoverflow.cli.utils.HttpUtils;
 
 public class ThreadUpvoteServices {
         public static JsonNode deleteThreadUpVote(String id) throws Exception {
+
                 return HttpUtils
-                                .asyncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                                + ApiEndpointsConstants.API_THREADS_UPVOTES) + "/" + id)
-                                .join();
+                                .syncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                                + ApiEndpointsConstants.API_THREADS_UPVOTES) + "?threadId=" + id);
         }
 
         public static JsonNode postThreadUpVote(int threadId) throws Exception {
-                return HttpUtils
-                                .asyncPost(
+                return
+
+                HttpUtils
+                                .syncPost(
                                                 EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
                                                                 + ApiEndpointsConstants.API_THREADS_UPVOTES,
-                                                Map.of(
-                                                                "threadId", threadId))
-                                .join();
+
+                                                Map.of("threadId", threadId));
         }
 
 }

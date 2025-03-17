@@ -12,9 +12,8 @@ public class CommentUpVotesService {
 
         public static JsonNode deleteCommentUpVote(int commentId) throws Exception {
                 return HttpUtils
-                                .asyncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                                + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + "/" + commentId)
-                                .join();
+                                .syncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                                + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + "/" + commentId);
         }
 
         public static JsonNode postCommentUpVote(int commentId) throws Exception {
@@ -24,8 +23,7 @@ public class CommentUpVotesService {
                                                                 + ApiEndpointsConstants.API_COMMENTS_UPVOTES,
                                                 Map.of(
 
-                                                                "commentId", commentId))
-                                .join();
+                                                                "commentId", commentId));
         }
 
 }

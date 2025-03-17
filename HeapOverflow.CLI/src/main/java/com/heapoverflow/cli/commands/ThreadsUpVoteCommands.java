@@ -13,7 +13,7 @@ import com.heapoverflow.cli.utils.EnvUtils;
 @ShellComponent
 public class ThreadsUpVoteCommands {
 
-    @ShellMethod(key = "delete-tread-up-vote", value = "Delete your tread up vote")
+    @ShellMethod(key = "delete-thread-up-vote", value = "Delete your tread up vote")
     public String deleteThreadUpVote(
             @ShellOption(value = "id", help = "The tread up vote you wish to delete", defaultValue = "") String id) {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
