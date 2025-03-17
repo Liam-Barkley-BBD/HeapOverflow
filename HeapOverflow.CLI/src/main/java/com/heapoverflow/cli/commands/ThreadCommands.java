@@ -8,6 +8,7 @@ import org.springframework.shell.table.TableModelBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.ThreadsService;
+import com.heapoverflow.cli.services.CommentsServices;
 import com.heapoverflow.cli.services.ThreadUpvoteServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.TextUtils;
@@ -25,9 +26,9 @@ public class ThreadCommands {
             @ShellOption(value = "upvote", help = "Upvote a thread", defaultValue = "false") boolean upvote,
             @ShellOption(value = "removeUpvote", help = "Remove upvote from a thread", defaultValue = "false") boolean removeUpvote,
             @ShellOption(value = "search", help = "Search query", defaultValue = "") String search,
-            @ShellOption(value = "isTrending", help = "Filter trending threads", defaultValue = "") Boolean isTrending,
+            @ShellOption(value = "trending", help = "Filter trending threads", defaultValue = "") Boolean trending,
             @ShellOption(value = "closeThread", help = "Close Thread (true/false)", defaultValue = "false") boolean closeThread,
-            @ShellOption(value = "userThreads", help = "Get my threads", defaultValue = "") Boolean userThreads,
+            @ShellOption(value = "user", help = "Get my threads", defaultValue = "") Boolean user,
             @ShellOption(value = "threadId", help = "Thread ID", defaultValue = "") String threadId,
             @ShellOption(value = "title", help = "Thread title", defaultValue = "") String title,
             @ShellOption(value = "description", help = "Thread description", defaultValue = "") String description,
@@ -36,9 +37,9 @@ public class ThreadCommands {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return getAllThreads(search, isTrending, userThreads, page, size);
+            return getAllThreads(search, trending, user, page, size);
         } else if (get) {
-            return getThread(threadId);
+            return getThread(threadId) + getAllComments(page, size, threadId);
         } else if (post) {
             return postThread(title, description);
         } else if (edit) {
@@ -51,7 +52,7 @@ public class ThreadCommands {
             return removeUpvoteThread(threadId);
         } else {
             return "Invalid command. Use: \n" +
-                    "\t--list [--search query] [--isTrending true/false] [--userThreads true/false]\n" +
+                    "\t--list [--search query] [--trending true/false] [--user true/false]\n" +
                     "\t--get --threadId {id}\n" +
                     "\t--post --title \"text\" --description \"text\"\n" +
                     "\t--edit --threadId {id} --title \"text\" --description \"text\" [--closeThread true/false]\n" +
@@ -62,9 +63,35 @@ public class ThreadCommands {
         }
     }
 
-    private String getAllThreads(String search, Boolean isTrending, Boolean userThreads, int page, int size) {
+    private String getAllComments(int page, int size, String threadId) {
         try {
-            JsonNode jsonResponse = ThreadsService.getThreads(search, page - 1, size, isTrending, userThreads);
+            JsonNode jsonResponse = CommentsServices.getComments(Math.max(0, page - 1),
+                    size, threadId);
+            JsonNode contentArray = jsonResponse.path("content");
+
+            if (!contentArray.isArray() || contentArray.isEmpty()) {
+                return "No comments found.";
+            } else {
+                TableModelBuilder<String> modelBuilder = buildReplyTable(contentArray);
+
+                int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                int totalPages = jsonResponse.path("totalPages").asInt(1);
+                int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                boolean isLastPage = jsonResponse.path("last").asBoolean();
+
+                return "Comments for thread " + threadId + " :\n" + TextUtils.renderTable(modelBuilder.build()) +
+                        String.format("\nPage %d of %d | Total Comments: %d %s", currentPage,
+                                totalPages, totalThreads,
+                                isLastPage ? "(Last Page)" : "");
+            }
+        } catch (Exception e) {
+            return "Error retrieving comments: " + e.getMessage();
+        }
+    }
+
+    private String getAllThreads(String search, Boolean trending, Boolean user, int page, int size) {
+        try {
+            JsonNode jsonResponse = ThreadsService.getThreads(search, page - 1, size, trending, user);
             JsonNode contentArray = jsonResponse.path("content");
 
             if (!contentArray.isArray() || contentArray.isEmpty()) {
@@ -90,7 +117,8 @@ public class ThreadCommands {
         } else {
             try {
                 JsonNode thread = ThreadsService.getThreadsById(id);
-                return buildThreadTable(thread, true);
+                String threadTable = buildThreadTable(thread, true);
+                return threadTable;
             } catch (Exception e) {
                 return "Error retrieving thread: " + e.getMessage();
             }
@@ -194,5 +222,38 @@ public class ThreadCommands {
                     .addValue(thread.path("threadUpvotesCount").asText("0"))
                     .addValue(userNode.path("username").asText("Anonymous"));
         }
+    }
+
+    private TableModelBuilder<String> buildReplyTable(JsonNode commentNode) {
+        TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
+        modelBuilder.addRow().addValue("ID").addValue("Content")
+                .addValue("GID").addValue("User").addValue("Email")
+                .addValue("Created At").addValue("Upvotes").addValue("ThreadId");
+        if (commentNode.isArray()) {
+            for (JsonNode comment : commentNode) {
+                JsonNode userNode = comment.path("user");
+                modelBuilder.addRow()
+                        .addValue(comment.path("id").asText("N/A"))
+                        .addValue(comment.path("content").asText("N/A"))
+                        .addValue(userNode.path("id").asText("N/A"))
+                        .addValue(userNode.path("username").asText("N/A"))
+                        .addValue(userNode.path("email").asText("N/A"))
+                        .addValue(comment.path("createdAt").asText("N/A"))
+                        .addValue(comment.path("commentUpvotesCount").asText("N/A"))
+                        .addValue(comment.path("threadId").asText("N/A"));
+            }
+        } else {
+            JsonNode userNode = commentNode.path("user");
+            modelBuilder.addRow()
+                    .addValue(commentNode.path("id").asText("N/A"))
+                    .addValue(commentNode.path("content").asText("N/A"))
+                    .addValue(userNode.path("id").asText("N/A"))
+                    .addValue(userNode.path("username").asText("N/A"))
+                    .addValue(userNode.path("email").asText("N/A"))
+                    .addValue(commentNode.path("createdAt").asText("N/A"))
+                    .addValue(commentNode.path("commentUpvotesCount").asText("N/A"))
+                    .addValue(commentNode.path("threadId").asText("N/A"));
+        }
+        return modelBuilder;
     }
 }

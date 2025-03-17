@@ -9,37 +9,42 @@ import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
 
 public class CommentsServices {
-    public static JsonNode getComments(int page, int size) throws Exception {
-        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "?page=" + page +"&size=" + size);
+    public static JsonNode getComments(int page, int size, String threadId) throws Exception {
+
+        String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                + ApiEndpointsConstants.API_COMMENTS + "?page=" + page + "&size=" + size;
+        if (threadId != null && !threadId.isEmpty()) {
+            url += "&threadId=" + threadId;
+        }
+        return HttpUtils.syncGet(url);
     }
 
     public static JsonNode getCommentById(String commentId) throws Exception {
-        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + commentId);
+        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                + ApiEndpointsConstants.API_COMMENT_ID + commentId);
     }
 
     public static JsonNode postComment(String content, String threadId) throws Exception {
         return HttpUtils
-                    .syncPost(
+                .syncPost(
                         EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS,
                         Map.of(
-                            "content", content,
-                            "threadId", threadId
-                        )
-                    );
+                                "content", content,
+                                "threadId", threadId));
     }
 
     public static JsonNode patchComment(String content, String commentId) throws Exception {
         return HttpUtils
-                    .syncPatch(
-                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "/" + commentId,
+                .syncPatch(
+                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "/"
+                                + commentId,
                         Map.of(
-                            "content", content
-                        )
-                    );
+                                "content", content));
     }
 
     public static JsonNode deleteComment(String commentId) throws Exception {
         return HttpUtils
-                    .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + commentId);
+                .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID
+                        + commentId);
     }
 }
