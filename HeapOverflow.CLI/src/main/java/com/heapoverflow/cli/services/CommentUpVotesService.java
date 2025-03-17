@@ -12,20 +12,18 @@ public class CommentUpVotesService {
 
         public static JsonNode deleteCommentUpVote(String userId, int id) throws Exception {
                 return HttpUtils
-                                .asyncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                                + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + id)
-                                .join();
+                                .syncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                                + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + id);
         }
 
         public static JsonNode postCommentUpVote(String userId, String commentId) throws Exception {
                 return HttpUtils
-                                .asyncPost(
+                                .syncPost(
                                                 EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
                                                                 + ApiEndpointsConstants.API_REPLIES,
                                                 Map.of(
                                                                 "userId", userId,
-                                                                "commentId", commentId))
-                                .join();
+                                                                "commentId", commentId));
         }
 
 }

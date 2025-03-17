@@ -22,24 +22,23 @@ public class ThreadsService {
                 (search != null && !search.isEmpty() ? "&searchText=" + search : "") +
                 (userThreads != null ? "&userThreads=true" : "") +
                 (isTrending != null ? "&isTrending=true" : "");
-        return HttpUtils.asyncGet(url).join();
+        return HttpUtils.syncGet(url);
     }
 
     public static JsonNode postThread(String title, String description) throws Exception {
 
-        return HttpUtils.asyncPost(
+        return HttpUtils.syncPost(
                 EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS,
                 Map.of(
                         "title", title,
-                        "description", description))
-                .join();
+                        "description", description));
 
     }
 
     public static JsonNode getThreadsById(int id) throws Exception {
 
-        return HttpUtils.asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                + ApiEndpointsConstants.API_THREADS_ID + id).join();
+        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                + ApiEndpointsConstants.API_THREADS_ID + id);
 
     }
 
@@ -54,17 +53,15 @@ public class ThreadsService {
             fields.put("closedAt", LocalDateTime.now());
         }
 
-        return HttpUtils.asyncPatch(
+        return HttpUtils.syncPatch(
                 EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS_ID + id,
-                fields)
-                .join();
+                fields);
     }
 
     public static JsonNode deleteThread(String id) throws Exception {
         return HttpUtils
-                .asyncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                        + ApiEndpointsConstants.API_THREADS_ID + id)
-                .join();
+                .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_THREADS_ID + id);
     }
 
 }
