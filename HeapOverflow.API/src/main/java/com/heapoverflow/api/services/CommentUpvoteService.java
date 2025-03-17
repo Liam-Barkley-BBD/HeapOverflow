@@ -1,7 +1,6 @@
 package com.heapoverflow.api.services;
 
 import com.heapoverflow.api.entities.CommentUpvote;
-import com.heapoverflow.api.entities.ThreadUpvote;
 import com.heapoverflow.api.entities.Comment;
 import com.heapoverflow.api.entities.User;
 import com.heapoverflow.api.repositories.CommentUpvoteRepository;
