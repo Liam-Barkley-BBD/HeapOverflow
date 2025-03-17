@@ -13,8 +13,8 @@ public class CommentsServices {
         return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "?page=" + page +"&size=" + size);
     }
 
-    public static JsonNode getCommentById(String id) throws Exception {
-        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + id);
+    public static JsonNode getCommentById(String commentId) throws Exception {
+        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + commentId);
     }
 
     public static JsonNode postComment(String content, String threadId) throws Exception {
@@ -28,18 +28,18 @@ public class CommentsServices {
                     );
     }
 
-    public static JsonNode patchComment(String content, String id) throws Exception {
+    public static JsonNode patchComment(String content, String commentId) throws Exception {
         return HttpUtils
                     .syncPatch(
-                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "/" + id,
+                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "/" + commentId,
                         Map.of(
                             "content", content
                         )
                     );
     }
 
-    public static JsonNode deleteComment(String id) throws Exception {
+    public static JsonNode deleteComment(String commentId) throws Exception {
         return HttpUtils
-                    .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + id);
+                    .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + commentId);
     }
 }

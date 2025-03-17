@@ -15,10 +15,10 @@ public class ReplyServices {
                         + "?page=" + page + "&size=" + size);
     }
 
-    public static JsonNode getReplyById(String id) throws Exception {
+    public static JsonNode getReplyById(String replyId) throws Exception {
         return HttpUtils
                 .syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES_ID
-                        + id);
+                        + replyId);
     }
 
     public static JsonNode postReply(String content, String commentId) throws Exception {
@@ -30,18 +30,18 @@ public class ReplyServices {
                                 "commentId", commentId));
     }
 
-    public static JsonNode patchReply(String content, String id) throws Exception {
+    public static JsonNode patchReply(String content, String replyId) throws Exception {
         return HttpUtils
                 .syncPatch(
                         EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES + "/"
-                                + id,
+                                + replyId,
                         Map.of(
                                 "content", content));
     }
 
-    public static JsonNode deleteReply(String id) throws Exception {
+    public static JsonNode deleteReply(String replyId) throws Exception {
         return HttpUtils
                 .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                        + ApiEndpointsConstants.API_REPLIES_ID + id);
+                        + ApiEndpointsConstants.API_REPLIES_ID + replyId);
     }
 }
