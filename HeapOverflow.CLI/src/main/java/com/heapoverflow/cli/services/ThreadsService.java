@@ -22,7 +22,7 @@ public class ThreadsService {
                                 (search != null && !search.isEmpty() ? "&searchText=" + search : "") +
                                 (userThreads != null ? "&userThreads=true" : "") +
                                 (isTrending != null ? "&isTrending=true" : "");
-                System.out.println(url);
+        
                 return HttpUtils.syncGet(url);
         }
 
