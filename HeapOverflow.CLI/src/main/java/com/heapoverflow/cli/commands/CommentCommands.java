@@ -7,6 +7,7 @@ import org.springframework.shell.table.TableModelBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.heapoverflow.cli.constants.EnvConstants;
+import com.heapoverflow.cli.services.CommentUpVotesService;
 import com.heapoverflow.cli.services.CommentsServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.TextUtils;
@@ -16,12 +17,14 @@ public class CommentCommands {
     
     @ShellMethod(key = "comment", value = "Manage comments in the system")
     public String comment(
-        @ShellOption(value = "list", help = "List replies", defaultValue = "false") boolean list,
-        @ShellOption(value = "get", help = "Get a specific reply", defaultValue = "false") boolean get,
-        @ShellOption(value = "post", help = "Post a new reply", defaultValue = "false") boolean post,
-        @ShellOption(value = "edit", help = "Edit a reply", defaultValue = "false") boolean edit,
-        @ShellOption(value = "delete", help = "Delete a reply", defaultValue = "false") boolean delete,
-        @ShellOption(value = "id", help = "Comment ID", defaultValue = "") String id,
+        @ShellOption(value = "list", help = "List comments", defaultValue = "false") boolean list,
+        @ShellOption(value = "get", help = "Get a specific comment", defaultValue = "false") boolean get,
+        @ShellOption(value = "post", help = "Post a new comment", defaultValue = "false") boolean post,
+        @ShellOption(value = "edit", help = "Edit a comment", defaultValue = "false") boolean edit,
+        @ShellOption(value = "delete", help = "Delete a comment", defaultValue = "false") boolean delete,
+        @ShellOption(value = "upvote", help = "Upvote a comment", defaultValue = "false") boolean upvote,
+        @ShellOption(value = "un-upvote", help = "Remove your upvote to a comment", defaultValue = "false") boolean unupvote,
+        @ShellOption(value = "commentId", help = "Comment ID", defaultValue = "") String commentId,
         @ShellOption(value = "content", help = "Comment content", defaultValue = "") String content,
         @ShellOption(value = "threadId", help = "Thread ID", defaultValue = "") String threadId,
         @ShellOption(value = "page", help = "Page number", defaultValue = "1") int page,
@@ -32,15 +35,27 @@ public class CommentCommands {
         } else if (list) {
             return getAllComments(page, size);
         } else if (get) {
-            return getComment(id);
+            return getComment(commentId);
         } else if (post) {
             return postComment(content, threadId);
         } else if (edit) {
-            return editComment(id, content);
+            return editComment(commentId, content);
         } else if (delete) {
-            return deleteComment(id);
+            return deleteComment(commentId);
+        } else if (upvote) {
+            return upvoteComment(commentId);
+        } else if (unupvote) {
+            return unupvoteComment(commentId);
         } else {
-            return "Invalid command. Use --list, --get --id {id}, --post --content \"text\" --threadId {id}, --edit --id {id} --content \"text\", or --delete --id {id}.";
+            return "Invalid command. Use: \n" +
+                                        "\t\t\t--list\n" +
+                                        "\t\t\t--get --commentId {id}\n" + 
+                                        "\t\t\t--post --content \"text\" --threadId {id}\n" +
+                                        "\t\t\t--edit --commentId {id} --content \"text\"\n" +
+                                        "\t\t\t--delete --commentId {id}\n" +
+                                        "\t\t\t--upvote --commentId {id}\n" +
+                                        "\t\t\t--unupvote --commentId {id}\n" +
+                                        "\t\t\t--help";
         }
     }
 
@@ -69,7 +84,7 @@ public class CommentCommands {
 
     private String getComment(String id) {
         if (id.isEmpty()) {
-            return "The id must be specified like: 'comment get --id {id_value}'";
+            return "The id must be specified like: 'comment get --commentId {id_value}'";
         } else{
             try {
                 JsonNode reply = CommentsServices.getCommentById(id);
@@ -93,12 +108,12 @@ public class CommentCommands {
         }
     }
 
-    private String editComment(String id, String content) {
-        if (id.isEmpty()) {
-            return "The id must be specified like: 'comment edit --id {id_value} --content \"{content_value}\"'";
+    private String editComment(String commentId, String content) {
+        if (commentId.isEmpty()) {
+            return "The id must be specified like: 'comment edit --commentId {id_value} --content \"{content_value}\"'";
         } else{
             try {
-                JsonNode reply = CommentsServices.patchComment(content, id);
+                JsonNode reply = CommentsServices.patchComment(content, commentId);
                 return TextUtils.renderTable(buildReplyTable(reply).build());
             } catch (Exception e) {
                 return "Error editing comment: " + e.getMessage();
@@ -106,15 +121,41 @@ public class CommentCommands {
         }
     }
 
-    private String deleteComment(String id) {
-        if (id.isEmpty()) {
-            return "The id must be specified like: 'comment delete --id {id_value}'";
+    private String deleteComment(String commentId) {
+        if (commentId.isEmpty()) {
+            return "The id must be specified like: 'comment delete --commentId {id_value}'";
         } else{
             try {
-                CommentsServices.deleteComment(id);
-                return String.format("Your comment with id %s has been deleted", id);
+                CommentsServices.deleteComment(commentId);
+                return String.format("Your comment with commentId %s has been deleted", commentId);
             } catch (Exception e) {
                 return "Error deleting comment: " + e.getMessage();
+            }
+        }
+    }
+
+    private String upvoteComment(String commentId) {
+        if (commentId.isEmpty()) {
+            return "The id must be specified like: 'comment upvote --commentId {id_value}'";
+        } else{
+            try {
+                CommentUpVotesService.postCommentUpVote(commentId);
+                return String.format("You upvoted a comment with commentId %s", commentId);
+            } catch (Exception e) {
+                return "Error upvoting comment: " + e.getMessage();
+            }
+        }
+    }
+
+    private String unupvoteComment(String commentId) {
+        if (commentId.isEmpty()) {
+            return "The id must be specified like: 'comment unupvote --commentId {id_value}'";
+        } else{
+            try {
+                CommentUpVotesService.deleteCommentUpVote(commentId);
+                return String.format("You unupvoted a comment with commentId %s", commentId);
+            } catch (Exception e) {
+                return "Error unupvoting comment: " + e.getMessage();
             }
         }
     }
