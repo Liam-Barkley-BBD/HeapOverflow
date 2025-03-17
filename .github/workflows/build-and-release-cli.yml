@@ -61,7 +61,7 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "License,HeapOverflow.CLI/target/*.jar"
+          artifacts: "LICENSE,HeapOverflow.CLI/target/*.jar"
           generateReleaseNotes: true
           name: "v1.0.0-SNAPSHOT"
           tag: "v1.0.0"
