@@ -10,20 +10,20 @@ import com.heapoverflow.cli.utils.HttpUtils;
 
 public class CommentUpVotesService {
 
-        public static JsonNode deleteCommentUpVote(String userId, int id) throws Exception {
+        public static JsonNode deleteCommentUpVote(int commentId) throws Exception {
                 return HttpUtils
                                 .asyncDelete((EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                                + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + id)
+                                                + ApiEndpointsConstants.API_COMMENTS_UPVOTES) + "/" + commentId)
                                 .join();
         }
 
-        public static JsonNode postCommentUpVote(String userId, String commentId) throws Exception {
+        public static JsonNode postCommentUpVote(int commentId) throws Exception {
                 return HttpUtils
                                 .asyncPost(
                                                 EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                                                + ApiEndpointsConstants.API_REPLIES,
+                                                                + ApiEndpointsConstants.API_COMMENTS_UPVOTES,
                                                 Map.of(
-                                                                "userId", userId,
+
                                                                 "commentId", commentId))
                                 .join();
         }
