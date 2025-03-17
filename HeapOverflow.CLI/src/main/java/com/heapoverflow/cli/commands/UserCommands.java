@@ -16,8 +16,6 @@ public class UserCommands {
     @ShellMethod(key = "users", value = "Manage users in the system")
     public String users(
         @ShellOption(value = "list", help = "List all users", defaultValue = "false") boolean list,
-        @ShellOption(value = "jwt", help = "See your jwt token", defaultValue = "false") boolean jwt,
-        @ShellOption(value = "sub", help = "See your google id", defaultValue = "false") boolean sub,
         @ShellOption(value = "get", help = "Get a specific user", defaultValue = "false") boolean get,
         @ShellOption(value = "gid", help = "Google user ID", defaultValue = "") String gid,
         @ShellOption(value = "username", help = "Filter by username", defaultValue = "") String username,
@@ -27,23 +25,16 @@ public class UserCommands {
     ) {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
+        } else if (get) {
+            if (gid.isEmpty()) {
+                return "You must specify a Google ID with --gid";
+            } else{
+                return getUserByGid(gid);
+            }
+        } else if (list) {
+            return listUsers(username, email, page, size);
         } else{
-            if (get) {
-                if (gid.isEmpty()) {
-                    return "You must specify a Google ID with --gid";
-                } else{
-                    return getUserByGid(gid);
-                }
-            } else if (list) {
-                return listUsers(username, email, page, size);
-            } else if(jwt){
-                return EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
-            } else if(sub){
-                return EnvUtils.retrieveValue(EnvConstants.GOOGLE_SUB);
-            }
-            else{
-                return "Specify --list to retrieve users or --get --gid {gid} to get a specific user.";
-            }
+            return "Specify --list to retrieve users or --get --gid {gid} to get a specific user.";
         }
     }
 
