@@ -62,7 +62,7 @@ public class Reply {
     public User getUser() {
         return this.user;
     }
-
+//update-thread --threadId 28 --title "works"
     public void setUser(User user) {
         this.user = user;
     }

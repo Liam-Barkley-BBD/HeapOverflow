@@ -22,4 +22,8 @@ public class ApiEndpointsConstants {
     // threads-controller
     public static final String API_THREADS = "api/threads";
     public static final String API_THREADS_ID = "api/threads/";
+
+    // Upvote
+    public static final String API_COMMENTS_UPVOTES = "/api/commentupvotes/";
+    public static final String API_THREADS_UPVOTES = "/api/threadupvotes/";
 }

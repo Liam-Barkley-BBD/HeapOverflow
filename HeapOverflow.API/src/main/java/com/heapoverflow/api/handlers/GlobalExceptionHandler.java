@@ -33,9 +33,29 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ReplyNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleReplyNotFoundException(ReplyNotFoundException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ThreadUpvoteNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleThreadUpvoteNotFoundException(ThreadUpvoteNotFoundException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(CommentUpvoteNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCommentUpvoteNotFoundException(CommentUpvoteNotFoundException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthorizedAction(UnauthorizedActionException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     private ResponseEntity<Map<String, String>> buildErrorResponse(String message, HttpStatus status) {

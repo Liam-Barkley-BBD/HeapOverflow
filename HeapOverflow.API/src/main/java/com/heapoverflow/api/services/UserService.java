@@ -7,6 +7,7 @@ import com.heapoverflow.api.exceptions.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -47,6 +48,7 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
+    @Transactional
     public User createUser(User user) {
         if (userRepository.existsById(user.getId())) {
             throw new UserAlreadyExistsException("User already exists");

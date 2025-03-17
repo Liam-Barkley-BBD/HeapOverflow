@@ -9,4 +9,5 @@ public class EnvConstants {
     public static final String SERVER_URI = "SERVER_URI";
     public static final String JWT_TOKEN = "JWT_TOKEN";
     public static final String GOOGLE_SUB = "GOOGLE_SUB";
+    public static final String GOOGLE_NAME = "GOOGLE_NAME";
 }

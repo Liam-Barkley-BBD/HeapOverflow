@@ -1,7 +1,6 @@
 package com.heapoverflow.api.controllers;
 
 import com.heapoverflow.api.entities.ThreadUpvote;
-import com.heapoverflow.api.models.ThreadUpvoteRequest;
 import com.heapoverflow.api.services.ThreadUpvoteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,8 +20,11 @@ public class ThreadUpvoteController {
     /** GET endpoints */
 
     @GetMapping("/threadupvotes")
-    public ResponseEntity<Page<ThreadUpvote>> getThreadUpvotes(Pageable pageable) {
-        Page<ThreadUpvote> threadUpvotes = threadUpvoteService.getAllThreadUpvotes(pageable);
+    public ResponseEntity<Page<ThreadUpvote>> getThreadUpvotes(
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Integer threadId,
+            Pageable pageable) {
+        Page<ThreadUpvote> threadUpvotes = threadUpvoteService.getThreadUpvotesByFilter(userId, threadId, pageable);
 
         return threadUpvotes.hasContent() ? ResponseEntity.ok(threadUpvotes) : ResponseEntity.notFound().build();
     }
@@ -34,27 +36,20 @@ public class ThreadUpvoteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/threadupvotes/user/{userId}")
-    public ResponseEntity<Page<ThreadUpvote>> getThreadUpvotesByUserId(@PathVariable String userId, Pageable pageable) {
-        Page<ThreadUpvote> threadUpvotes =  threadUpvoteService.getThreadUpvotesByUserId(userId, pageable);
-        
-        return threadUpvotes.hasContent() ? ResponseEntity.ok(threadUpvotes) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/threadupvotes/thread/{threadId}")
-    public ResponseEntity<Page<ThreadUpvote>> getThreadUpvotesByThreadId(@PathVariable Integer threadId, Pageable pageable) {
-        Page<ThreadUpvote> threadUpvotes =  threadUpvoteService.getThreadUpvotesByThreadId(threadId, pageable);
-        
-        return threadUpvotes.hasContent() ? ResponseEntity.ok(threadUpvotes) : ResponseEntity.notFound().build();
-    }
-
-
     /** POST endpoint */
 
     @PostMapping("/threadupvotes")
-    public ResponseEntity<ThreadUpvote> createThreadUpvote(@RequestBody ThreadUpvoteRequest threadUpvoteRequest) {
-        ThreadUpvote newThreadUpvote = threadUpvoteService.createThreadUpvote(threadUpvoteRequest);
+    public ResponseEntity<ThreadUpvote> createThreadUpvote(@RequestBody Integer threadId) {
+        ThreadUpvote newThreadUpvote = threadUpvoteService.createThreadUpvote(threadId);
         return ResponseEntity.ok(newThreadUpvote);
+    }
+
+    /** DELETE endpoint */
+
+    @DeleteMapping("/threadupvotes")
+    public ResponseEntity<Void> deleteThreadUpvote(@RequestParam(required = true) Integer threadId) {
+        threadUpvoteService.deleteThreadUpvote(threadId);
+        return ResponseEntity.noContent().build();
     }
 
 }

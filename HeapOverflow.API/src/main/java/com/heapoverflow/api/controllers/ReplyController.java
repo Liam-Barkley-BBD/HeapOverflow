@@ -5,6 +5,9 @@ import com.heapoverflow.api.models.ReplyRequest;
 import com.heapoverflow.api.services.ReplyService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +24,13 @@ public class ReplyController {
     /** GET endpoints */
 
     @GetMapping("/replies")
-    public ResponseEntity<Page<Reply>> getReplies(Pageable pageable) {
+    public ResponseEntity<Page<Reply>> getReplies(
+            @RequestParam(required = false) Integer commentId,
+            @PageableDefault(size = 5) @SortDefault.SortDefaults({
+                    @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+            }) Pageable pageable) {
 
-        Page<Reply> replies = replyService.getAllReplies(pageable);
+        Page<Reply> replies = replyService.getRepliesByFilter(commentId, pageable);
 
         return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
     }
@@ -35,27 +42,28 @@ public class ReplyController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/replies/user/{userId}")
-    public ResponseEntity<Page<Reply>> getRepliesByUserId(@PathVariable String userId, Pageable pageable) {
-        Page<Reply> replies =  replyService.getRepliesByUserId(userId, pageable);
-        
-        return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/replies/comment/{commentId}")
-    public ResponseEntity<Page<Reply>> getRepliesByCommentId(@PathVariable Integer commentId, Pageable pageable) {
-        Page<Reply> replies =  replyService.getRepliesByCommentId(commentId, pageable);
-        
-        return replies.hasContent() ? ResponseEntity.ok(replies) : ResponseEntity.notFound().build();
-    }
-
-
     /** POST endpoint */
 
     @PostMapping("/replies")
     public ResponseEntity<Reply> createReply(@RequestBody ReplyRequest replyRequest) {
         Reply newReply = replyService.createReply(replyRequest);
         return ResponseEntity.ok(newReply);
+    }
+
+    /** PATCH endpoint */
+
+    @PatchMapping("/replies/{id}")
+    public ResponseEntity<Reply> updateReply(@PathVariable Integer id, @RequestBody String content) {
+        Reply updateReply = replyService.updateReply(id, content);
+        return ResponseEntity.ok(updateReply);
+    }
+    
+    /** DELETE endpoint */
+
+    @DeleteMapping("/replies/{id}")
+    public ResponseEntity<Void> deleteReply(@PathVariable Integer id) {
+        replyService.deleteReply(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

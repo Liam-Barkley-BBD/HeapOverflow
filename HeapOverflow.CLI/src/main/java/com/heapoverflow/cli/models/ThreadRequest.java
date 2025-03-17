@@ -1,17 +1,22 @@
 package com.heapoverflow.cli.models;
 
+import java.time.LocalDateTime;
+
 public class ThreadRequest {
 
     private String title;
     private String description;
     private String userId;
+    private LocalDateTime closedAt;
 
-    public ThreadRequest() {}
+    public ThreadRequest() {
+    }
 
-    public ThreadRequest(String title, String description, String userId) {
+    public ThreadRequest(String title, String description, String userId, LocalDateTime closedAt) {
         this.title = title;
         this.description = description;
         this.userId = userId;
+        this.closedAt = closedAt;
     }
 
     public String getTitle() {
@@ -38,12 +43,12 @@ public class ThreadRequest {
         this.userId = userId;
     }
 
-    @Override
-    public String toString() {
-        return "ThreadRequest{" +
-                "title=" + this.title +
-                ", description=" + this.description +
-                ", userId='" + this.userId +
-                '}';
+    public LocalDateTime getclosedAt() {
+        return closedAt;
     }
+
+    public void setClosedAt(LocalDateTime closedAt) {
+        this.closedAt = closedAt;
+    }
+
 }
