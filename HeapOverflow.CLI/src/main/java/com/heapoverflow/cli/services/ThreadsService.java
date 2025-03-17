@@ -13,55 +13,59 @@ import com.heapoverflow.cli.utils.HttpUtils;
 
 public class ThreadsService {
 
-    public static JsonNode getThreads(String search, int page, int size, Boolean isTrending, Boolean userThreads)
-            throws Exception {
+        public static JsonNode getThreads(String search, int page, int size, Boolean isTrending, Boolean userThreads)
+                        throws Exception {
 
-        String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS +
-                "?page=" + page +
-                "&size=" + size +
-                (search != null && !search.isEmpty() ? "&searchText=" + search : "") +
-                (userThreads != null ? "&userThreads=true" : "") +
-                (isTrending != null ? "&isTrending=true" : "");
-        return HttpUtils.syncGet(url);
-    }
-
-    public static JsonNode postThread(String title, String description) throws Exception {
-
-        return HttpUtils.syncPost(
-                EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS,
-                Map.of(
-                        "title", title,
-                        "description", description));
-
-    }
-
-    public static JsonNode getThreadsById(int id) throws Exception {
-
-        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                + ApiEndpointsConstants.API_THREADS_ID + id);
-
-    }
-
-    public static JsonNode patchThread(int id, String title, String description, Boolean closeThread) throws Exception {
-
-        Map<String, Object> fields = Stream.of(
-                Map.entry("title", title),
-                Map.entry("description", description))
-                .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank()) // Exclude null and empty
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        if (closeThread) {
-            fields.put("closedAt", LocalDateTime.now());
+                String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS +
+                                "?page=" + page +
+                                "&size=" + size +
+                                (search != null && !search.isEmpty() ? "&searchText=" + search : "") +
+                                (userThreads != null ? "&userThreads=true" : "") +
+                                (isTrending != null ? "&isTrending=true" : "");
+                System.out.println(url);
+                return HttpUtils.syncGet(url);
         }
 
-        return HttpUtils.syncPatch(
-                EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS_ID + id,
-                fields);
-    }
+        public static JsonNode postThread(String title, String description) throws Exception {
 
-    public static JsonNode deleteThread(String id) throws Exception {
-        return HttpUtils
-                .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                        + ApiEndpointsConstants.API_THREADS_ID + id);
-    }
+                return HttpUtils.syncPost(
+                                EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                                + ApiEndpointsConstants.API_THREADS,
+                                Map.of(
+                                                "title", title,
+                                                "description", description));
+
+        }
+
+        public static JsonNode getThreadsById(String id) throws Exception {
+
+                return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                + ApiEndpointsConstants.API_THREADS_ID + id);
+
+        }
+
+        public static JsonNode patchThread(String id, String title, String description, Boolean closeThread)
+                        throws Exception {
+
+                Map<String, Object> fields = Stream.of(
+                                Map.entry("title", title),
+                                Map.entry("description", description))
+                                .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank())
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                if (closeThread) {
+                        fields.put("closedAt", LocalDateTime.now().toString());
+                }
+
+                return HttpUtils.syncPatch(
+                                EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                                + ApiEndpointsConstants.API_THREADS_ID + id,
+                                fields);
+        }
+
+        public static JsonNode deleteThread(String id) throws Exception {
+                return HttpUtils
+                                .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                                + ApiEndpointsConstants.API_THREADS_ID + id);
+        }
 
 }
