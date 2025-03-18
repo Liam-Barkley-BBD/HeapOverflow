@@ -63,6 +63,6 @@ jobs:
           allowUpdates: true
           artifacts: "LICENSE,HeapOverflow.CLI/target/*.jar"
           generateReleaseNotes: true
-          name: "v1.0.0-SNAPSHOT"
-          tag: "v1.0.0"
+          name: "v2.0.0-SNAPSHOT"
+          tag: "v2.0.0"
           draft: true
