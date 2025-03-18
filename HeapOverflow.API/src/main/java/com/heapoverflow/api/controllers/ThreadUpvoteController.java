@@ -18,25 +18,6 @@ public class ThreadUpvoteController {
         this.threadUpvoteService = threadUpvoteService;
     }
 
-    /** GET endpoints */
-
-    @GetMapping("/threadupvotes")
-    public ResponseEntity<Page<ThreadUpvote>> getThreadUpvotes(
-            @RequestParam(required = false) String userId,
-            @RequestParam(required = false) Integer threadId,
-            Pageable pageable) {
-        Page<ThreadUpvote> threadUpvotes = threadUpvoteService.getThreadUpvotesByFilter(userId, threadId, pageable);
-
-        return threadUpvotes.hasContent() ? ResponseEntity.ok(threadUpvotes) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/threadupvotes/{id}")
-    public ResponseEntity<ThreadUpvote> getThreadUpvoteById(@PathVariable Integer id) {
-        return threadUpvoteService.getThreadUpvoteById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     /** POST endpoint */
 
     @PostMapping("/threadupvotes")

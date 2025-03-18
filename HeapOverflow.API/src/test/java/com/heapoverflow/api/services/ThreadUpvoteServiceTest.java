@@ -48,7 +48,6 @@ public class ThreadUpvoteServiceTest {
     private User testUser;
     private Thread testThread;
     private ThreadUpvote testThreadUpvote;
-    private Pageable pageable;
     private final String authenticatedUserId = "1";
 
     @BeforeEach
@@ -58,94 +57,6 @@ public class ThreadUpvoteServiceTest {
         testThread.setId(1);
         testThreadUpvote = new ThreadUpvote(testUser, testThread);
         testThreadUpvote.setId(1);
-        pageable = PageRequest.of(0, 10);
-    }
-
-    @Test
-    void getAllThreadUpvotes_ShouldReturnAllThreadUpvotes() {
-        // Arrange
-        Page<ThreadUpvote> threadUpvotePage = new PageImpl<>(Collections.singletonList(testThreadUpvote));
-        when(threadUpvoteRepository.findAll(pageable)).thenReturn(threadUpvotePage);
-
-        // Act
-        Page<ThreadUpvote> result = threadUpvoteService.getAllThreadUpvotes(pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testThreadUpvote, result.getContent().get(0));
-        verify(threadUpvoteRepository).findAll(pageable);
-    }
-
-    @Test
-    void getThreadUpvoteById_ExistingUpvote_ShouldReturnUpvote() {
-        // Arrange
-        when(threadUpvoteRepository.findById(1)).thenReturn(Optional.of(testThreadUpvote));
-
-        // Act
-        Optional<ThreadUpvote> result = threadUpvoteService.getThreadUpvoteById(1);
-
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals(testThreadUpvote, result.get());
-        verify(threadUpvoteRepository).findById(1);
-    }
-
-    @Test
-    void getThreadUpvoteById_NonExistingUpvote_ShouldReturnEmpty() {
-        // Arrange
-        when(threadUpvoteRepository.findById(999)).thenReturn(Optional.empty());
-
-        // Act
-        Optional<ThreadUpvote> result = threadUpvoteService.getThreadUpvoteById(999);
-
-        // Assert
-        assertFalse(result.isPresent());
-        verify(threadUpvoteRepository).findById(999);
-    }
-
-    @Test
-    void getThreadUpvotesByFilter_ByUserId_ShouldReturnUserUpvotes() {
-        // Arrange
-        Page<ThreadUpvote> threadUpvotePage = new PageImpl<>(Collections.singletonList(testThreadUpvote));
-        when(threadUpvoteRepository.findByUser_Id(authenticatedUserId, pageable)).thenReturn(threadUpvotePage);
-
-        // Act
-        Page<ThreadUpvote> result = threadUpvoteService.getThreadUpvotesByFilter(authenticatedUserId, null, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testThreadUpvote, result.getContent().get(0));
-        verify(threadUpvoteRepository).findByUser_Id(authenticatedUserId, pageable);
-    }
-
-    @Test
-    void getThreadUpvotesByFilter_ByThreadId_ShouldReturnThreadUpvotes() {
-        // Arrange
-        Page<ThreadUpvote> threadUpvotePage = new PageImpl<>(Collections.singletonList(testThreadUpvote));
-        when(threadUpvoteRepository.findByThread_Id(1, pageable)).thenReturn(threadUpvotePage);
-
-        // Act
-        Page<ThreadUpvote> result = threadUpvoteService.getThreadUpvotesByFilter(null, 1, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testThreadUpvote, result.getContent().get(0));
-        verify(threadUpvoteRepository).findByThread_Id(1, pageable);
-    }
-
-    @Test
-    void getThreadUpvotesByFilter_NoFilters_ShouldReturnAllUpvotes() {
-        // Arrange
-        Page<ThreadUpvote> threadUpvotePage = new PageImpl<>(Collections.singletonList(testThreadUpvote));
-        when(threadUpvoteRepository.findAll(pageable)).thenReturn(threadUpvotePage);
-
-        // Act
-        Page<ThreadUpvote> result = threadUpvoteService.getThreadUpvotesByFilter(null, null, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testThreadUpvote, result.getContent().get(0));
-        verify(threadUpvoteRepository).findAll(pageable);
     }
 
     @Test

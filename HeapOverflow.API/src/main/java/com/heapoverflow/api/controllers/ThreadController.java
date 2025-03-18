@@ -6,8 +6,6 @@ import com.heapoverflow.api.models.ThreadUpdate;
 import com.heapoverflow.api.services.ThreadService;
 import com.heapoverflow.api.utils.ApiConstants;
 
-import jakarta.websocket.server.PathParam;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

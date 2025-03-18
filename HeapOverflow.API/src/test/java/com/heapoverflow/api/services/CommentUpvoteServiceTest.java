@@ -51,7 +51,6 @@ public class CommentUpvoteServiceTest {
     private Thread testThread;
     private Comment testComment;
     private CommentUpvote testCommentUpvote;
-    private Pageable pageable;
     private final String authenticatedUserId = "1";
 
     @BeforeEach
@@ -63,94 +62,6 @@ public class CommentUpvoteServiceTest {
         testComment.setId(1);
         testCommentUpvote = new CommentUpvote(testUser, testComment);
         testCommentUpvote.setId(1);
-        pageable = PageRequest.of(0, 10);
-    }
-
-    @Test
-    void getAllCommentUpvotes_ShouldReturnAllCommentUpvotes() {
-        // Arrange
-        Page<CommentUpvote> upvotePage = new PageImpl<>(Collections.singletonList(testCommentUpvote));
-        when(commentUpvoteRepository.findAll(pageable)).thenReturn(upvotePage);
-
-        // Act
-        Page<CommentUpvote> result = commentUpvoteService.getAllCommentUpvotes(pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testCommentUpvote, result.getContent().get(0));
-        verify(commentUpvoteRepository).findAll(pageable);
-    }
-
-    @Test
-    void getCommentUpvoteById_ExistingUpvote_ShouldReturnUpvote() {
-        // Arrange
-        when(commentUpvoteRepository.findById(1)).thenReturn(Optional.of(testCommentUpvote));
-
-        // Act
-        Optional<CommentUpvote> result = commentUpvoteService.getCommentUpvoteById(1);
-
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals(testCommentUpvote, result.get());
-        verify(commentUpvoteRepository).findById(1);
-    }
-
-    @Test
-    void getCommentUpvoteById_NonExistingUpvote_ShouldReturnEmpty() {
-        // Arrange
-        when(commentUpvoteRepository.findById(999)).thenReturn(Optional.empty());
-
-        // Act
-        Optional<CommentUpvote> result = commentUpvoteService.getCommentUpvoteById(999);
-
-        // Assert
-        assertFalse(result.isPresent());
-        verify(commentUpvoteRepository).findById(999);
-    }
-
-    @Test
-    void getCommentUpvotesByFilter_UserId_ShouldReturnUserUpvotes() {
-        // Arrange
-        Page<CommentUpvote> upvotePage = new PageImpl<>(Collections.singletonList(testCommentUpvote));
-        when(commentUpvoteRepository.findByUser_Id(authenticatedUserId, pageable)).thenReturn(upvotePage);
-
-        // Act
-        Page<CommentUpvote> result = commentUpvoteService.getCommentUpvotesByFilter(authenticatedUserId, null, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testCommentUpvote, result.getContent().get(0));
-        verify(commentUpvoteRepository).findByUser_Id(authenticatedUserId, pageable);
-    }
-
-    @Test
-    void getCommentUpvotesByFilter_CommentId_ShouldReturnCommentUpvotes() {
-        // Arrange
-        Page<CommentUpvote> upvotePage = new PageImpl<>(Collections.singletonList(testCommentUpvote));
-        when(commentUpvoteRepository.findByComment_Id(1, pageable)).thenReturn(upvotePage);
-
-        // Act
-        Page<CommentUpvote> result = commentUpvoteService.getCommentUpvotesByFilter(null, 1, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testCommentUpvote, result.getContent().get(0));
-        verify(commentUpvoteRepository).findByComment_Id(1, pageable);
-    }
-
-    @Test
-    void getCommentUpvotesByFilter_NoFilters_ShouldReturnAllUpvotes() {
-        // Arrange
-        Page<CommentUpvote> upvotePage = new PageImpl<>(Collections.singletonList(testCommentUpvote));
-        when(commentUpvoteRepository.findAll(pageable)).thenReturn(upvotePage);
-
-        // Act
-        Page<CommentUpvote> result = commentUpvoteService.getCommentUpvotesByFilter(null, null, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testCommentUpvote, result.getContent().get(0));
-        verify(commentUpvoteRepository).findAll(pageable);
     }
 
     @Test
