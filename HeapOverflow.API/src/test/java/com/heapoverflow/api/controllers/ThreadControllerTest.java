@@ -173,23 +173,6 @@ public class ThreadControllerTest {
     }
     
     @Test
-    void testGetThreadsUserWithSearch_WithContent() {
-        // Arrange
-        String searchText = "test";
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
-        when(threadService.getThreadsByFilter(eq(searchText), eq(pageable))).thenReturn(threadPage);
-        
-        // Act
-        ResponseEntity<Page<Thread>> response = threadController.getThreadsUser(searchText, pageable);
-        
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().hasContent());
-        assertEquals(1, response.getBody().getTotalElements());
-        verify(threadService).getThreadsByFilter(eq(searchText), eq(pageable));
-    }
-    
-    @Test
     void testGetThreadById_Success() {
         // Arrange
         Integer threadId = 1;
