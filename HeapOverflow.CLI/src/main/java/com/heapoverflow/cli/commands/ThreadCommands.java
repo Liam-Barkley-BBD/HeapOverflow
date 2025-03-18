@@ -12,6 +12,8 @@ import com.heapoverflow.cli.services.CommentsServices;
 import com.heapoverflow.cli.services.ThreadUpvoteServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.TextUtils;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @ShellComponent
 public class ThreadCommands {
@@ -91,7 +93,8 @@ public class ThreadCommands {
 
     private String getAllThreads(String search, Boolean trending, Boolean user, int page, int size) {
         try {
-            JsonNode jsonResponse = ThreadsService.getThreads(search, page - 1, size, trending, user);
+            String encodedSearchText = URLEncoder.encode(search, StandardCharsets.UTF_8.toString());
+            JsonNode jsonResponse = ThreadsService.getThreads(encodedSearchText, page - 1, size, trending, user);
             JsonNode contentArray = jsonResponse.path("content");
 
             if (!contentArray.isArray() || contentArray.isEmpty()) {
