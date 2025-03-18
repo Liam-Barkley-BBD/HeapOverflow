@@ -30,7 +30,7 @@ public class ReplyCommands {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return listReplies(page, size);
+            return listReplies(page, size, commentId);
         } else if (get) {
             return getReplyById(replyId);
         } else if (post) {
@@ -41,7 +41,7 @@ public class ReplyCommands {
             return deleteReply(replyId);
         } else {
             return "Invalid command. Use: \n" +
-                                        "\t\t\t--list\n" +
+                                        "\t\t\t--list --commentId[optional] {id} --page[optional] {num} --size[optional] {num}\n" +
                                         "\t\t\t--get --replyId {id}\n" + 
                                         "\t\t\t--post --content \"text\" --commentId {id}\n" +
                                         "\t\t\t--edit --replyId {id} --content \"text\"\n" +
@@ -50,21 +50,19 @@ public class ReplyCommands {
         }
     }
 
-    private String listReplies(int page, int size) {
+    public static String listReplies(int page, int size, String commentId) {
         try {
-            JsonNode jsonResponse = ReplyServices.getReplies(Math.max(0, page - 1), size);
-            JsonNode contentArray = jsonResponse.path("content");
-            if (!contentArray.isArray() || contentArray.isEmpty()) {
+            JsonNode jsonResponse = ReplyServices.getReplies(Math.max(0, page - 1), size, commentId);
+            JsonNode replyNode = jsonResponse.path("content");
+            if (!replyNode.isArray() || replyNode.isEmpty()) {
                 return "No replies found.";
             } else{
-                TableModelBuilder<String> modelBuilder = buildReplyTable(contentArray);
-
                 int totalThreads = jsonResponse.path("totalElements").asInt(0);
                 int totalPages = jsonResponse.path("totalPages").asInt(1);
                 int currentPage = jsonResponse.path("number").asInt(0) + 1;
                 boolean isLastPage = jsonResponse.path("last").asBoolean();
                 
-                return TextUtils.renderTable(modelBuilder.build()) +
+                return TextUtils.renderTable(buildReplyTable(replyNode).build()) +
                     String.format("\nPage %d of %d | Total Replies: %d %s", currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
             }
         } catch (Exception e) {
@@ -120,7 +118,7 @@ public class ReplyCommands {
         }
     }
 
-    private TableModelBuilder<String> buildReplyTable(JsonNode replyNode) {
+    private static TableModelBuilder<String> buildReplyTable(JsonNode replyNode) {
         TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
         modelBuilder.addRow().addValue("ID").addValue("Content")
                 .addValue("GID").addValue("User").addValue("Email")

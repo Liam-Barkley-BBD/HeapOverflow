@@ -34,7 +34,7 @@ public class CommentCommands {
         } else if (list) {
             return getAllComments(page, size, threadId);
         } else if (get) {
-            return getComment(commentId);
+            return getComment(commentId) + ReplyCommands.listReplies(page, size, commentId);
         } else if (post) {
             return postComment(content, threadId);
         } else if (edit) {
@@ -47,33 +47,31 @@ public class CommentCommands {
             return unupvoteComment(commentId);
         } else {
             return "Invalid command. Use: \n" +
-                    "\t\t\t--list\n" +
-                    "\t\t\t--get --commentId {id}\n" +
+                    "\t\t\t--list --threadId[optional] {id} --page[optional] {num} --size[optional] {num}\n" +
+                    "\t\t\t--get --commentId {id} --page[optional] {num} --size[optional] {num}\n" +
                     "\t\t\t--post --content \"text\" --threadId {id}\n" +
                     "\t\t\t--edit --commentId {id} --content \"text\"\n" +
                     "\t\t\t--delete --commentId {id}\n" +
                     "\t\t\t--upvote --commentId {id}\n" +
-                    "\t\t\t--unupvote --commentId {id}\n" +
+                    "\t\t\t--un-upvote --commentId {id}\n" +
                     "\t\t\t--help";
         }
     }
 
-    private String getAllComments(int page, int size, String threadId) {
+    public static String getAllComments(int page, int size, String threadId) {
         try {
             JsonNode jsonResponse = CommentsServices.getComments(Math.max(0, page - 1), size, threadId);
-            JsonNode contentArray = jsonResponse.path("content");
+            JsonNode commentNode = jsonResponse.path("content");
 
-            if (!contentArray.isArray() || contentArray.isEmpty()) {
+            if (!commentNode.isArray() || commentNode.isEmpty()) {
                 return "No comments found.";
             } else {
-                TableModelBuilder<String> modelBuilder = buildReplyTable(contentArray);
-
                 int totalThreads = jsonResponse.path("totalElements").asInt(0);
                 int totalPages = jsonResponse.path("totalPages").asInt(1);
                 int currentPage = jsonResponse.path("number").asInt(0) + 1;
                 boolean isLastPage = jsonResponse.path("last").asBoolean();
 
-                return TextUtils.renderTable(modelBuilder.build()) +
+                return TextUtils.renderTable(buildCommentTable(commentNode).build()) +
                         String.format("\nPage %d of %d | Total Comments: %d %s", currentPage, totalPages, totalThreads,
                                 isLastPage ? "(Last Page)" : "");
             }
@@ -87,8 +85,8 @@ public class CommentCommands {
             return "The id must be specified like: 'comment get --commentId {id_value}'";
         } else {
             try {
-                JsonNode reply = CommentsServices.getCommentById(id);
-                return TextUtils.renderTable(buildReplyTable(reply).build());
+                JsonNode comment = CommentsServices.getCommentById(id);
+                return TextUtils.renderTable(buildCommentTable(comment).build());
             } catch (Exception e) {
                 return "Error retrieving comment: " + e.getMessage();
             }
@@ -100,8 +98,8 @@ public class CommentCommands {
             return "The threadId must be specified like: 'comment post --content \"{content_value}\" --threadId {threadId_value}'";
         } else {
             try {
-                JsonNode reply = CommentsServices.postComment(content, threadId);
-                return TextUtils.renderTable(buildReplyTable(reply).build());
+                JsonNode comment = CommentsServices.postComment(content, threadId);
+                return TextUtils.renderTable(buildCommentTable(comment).build());
             } catch (Exception e) {
                 return "Error posting comment: " + e.getMessage();
             }
@@ -113,8 +111,8 @@ public class CommentCommands {
             return "The id must be specified like: 'comment edit --commentId {id_value} --content \"{content_value}\"'";
         } else {
             try {
-                JsonNode reply = CommentsServices.patchComment(content, commentId);
-                return TextUtils.renderTable(buildReplyTable(reply).build());
+                JsonNode comment = CommentsServices.patchComment(content, commentId);
+                return TextUtils.renderTable(buildCommentTable(comment).build());
             } catch (Exception e) {
                 return "Error editing comment: " + e.getMessage();
             }
@@ -160,7 +158,7 @@ public class CommentCommands {
         }
     }
 
-    private TableModelBuilder<String> buildReplyTable(JsonNode commentNode) {
+    private static TableModelBuilder<String> buildCommentTable(JsonNode commentNode) {
         TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
         modelBuilder.addRow().addValue("ID").addValue("Content")
                 .addValue("GID").addValue("User").addValue("Email")

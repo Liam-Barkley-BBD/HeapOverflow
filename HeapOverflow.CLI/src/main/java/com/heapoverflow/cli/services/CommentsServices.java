@@ -10,13 +10,13 @@ import com.heapoverflow.cli.utils.HttpUtils;
 
 public class CommentsServices {
     public static JsonNode getComments(int page, int size, String threadId) throws Exception {
-
-        String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                + ApiEndpointsConstants.API_COMMENTS + "?page=" + page + "&size=" + size;
         if (threadId != null && !threadId.isEmpty()) {
-            url += "&threadId=" + threadId;
+                return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_COMMENTS + "?page=" + page + "&size=" + size + "&threadId=" + threadId);
+        } else {
+                return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_COMMENTS + "?page=" + page + "&size=" + size);
         }
-        return HttpUtils.syncGet(url);
     }
 
     public static JsonNode getCommentById(String commentId) throws Exception {
