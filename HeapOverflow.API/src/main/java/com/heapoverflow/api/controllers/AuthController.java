@@ -16,11 +16,6 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @GetMapping("/")
-    public ResponseEntity<?> home() {
-        return ResponseEntity.ok("Testing no auth");
-    }
-
     @GetMapping("/auth/token")
     public ResponseEntity<String> auth(@RequestParam String code) throws Exception {
         
