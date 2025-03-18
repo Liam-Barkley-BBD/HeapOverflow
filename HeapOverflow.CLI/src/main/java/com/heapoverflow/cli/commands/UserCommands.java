@@ -25,21 +25,17 @@ public class UserCommands {
     ) {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
-        } else{
-            if (get) {
-                if (gid.isEmpty()) {
-                    return "You must specify a Google ID with --gid";
-                } else{
-                    return getUserByGid(gid);
-                }
-            }
-            else if (list) {
-                return listUsers(username, email, page, size);
+        } else if (get) {
+            if (gid.isEmpty()) {
+                return "You must specify a Google ID with --gid";
             } else{
-                return "Specify --list to retrieve users or --get --gid {gid} to get a specific user.";
+                return getUserByGid(gid);
             }
+        } else if (list) {
+            return listUsers(username, email, page, size);
+        } else{
+            return "Specify --list to retrieve users or --get --gid {gid} to get a specific user.";
         }
-
     }
 
     private String getUserByGid(String gid) {

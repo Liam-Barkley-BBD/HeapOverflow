@@ -10,13 +10,14 @@ import com.heapoverflow.cli.utils.EnvUtils;
 
 @ShellComponent
 public class AuthCommand {
-    
+
     @ShellMethod(key = "auth", value = "Authentication commands: login, logout, gid, name")
     public String auth(
-        @ShellOption(value = "--login", help = "Attempt to login", defaultValue = "false") boolean login,
-        @ShellOption(value = "--logout", help = "Attempt to logout", defaultValue = "false") boolean logout,
-        @ShellOption(value = "--gid", help = "See your Google ID", defaultValue = "false") boolean gid,
-        @ShellOption(value = "--name", help = "See your Google name", defaultValue = "false") boolean name
+        @ShellOption(value = "login", help = "Attempt to login", defaultValue = "false") boolean login,
+        @ShellOption(value = "logout", help = "Attempt to logout", defaultValue = "false") boolean logout,
+        @ShellOption(value = "gid", help = "See your Google ID", defaultValue = "false") boolean gid,
+        @ShellOption(value = "name", help = "See your Google name", defaultValue = "false") boolean name,
+        @ShellOption(value = "jwt", help = "See your jwt token", defaultValue = "false") boolean jwt
     ) {
         if (login) {
             return handleLogin();
@@ -26,8 +27,16 @@ public class AuthCommand {
             return handleGid();
         } else if (name) {
             return handleName();
+        } else if(jwt){
+            return handleJwt();
         } else {
-            return "Invalid or missing subcommand. Use --login, --logout, --gid, or --name.";
+            return "Invalid command. Use: \n" +
+                                        "\t\t\t--login\n" +
+                                        "\t\t\t--logout\n" + 
+                                        "\t\t\t--gid\n" +
+                                        "\t\t\t--name\n" +
+                                        "\t\t\t--jwt\n" +
+                                        "\t\t\t--help\n";
         }
     }
 
@@ -65,6 +74,14 @@ public class AuthCommand {
             return EnvUtils.retrieveValue(EnvConstants.GOOGLE_NAME);
         } else {
             return "You are not logged in or your name is not set, logout and attempt to login again";
+        }
+    }
+
+    private String handleJwt() {
+        if (EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+            return EnvUtils.retrieveValue(EnvConstants.JWT_TOKEN);
+        } else {
+            return "You are not logged in or your jwt is not set, logout and attempt to login again";
         }
     }
 }

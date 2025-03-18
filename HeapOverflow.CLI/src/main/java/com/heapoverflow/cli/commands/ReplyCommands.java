@@ -21,7 +21,7 @@ public class ReplyCommands {
         @ShellOption(value = "post", help = "Post a new reply", defaultValue = "false") boolean post,
         @ShellOption(value = "edit", help = "Edit a reply", defaultValue = "false") boolean edit,
         @ShellOption(value = "delete", help = "Delete a reply", defaultValue = "false") boolean delete,
-        @ShellOption(value = "id", help = "Reply ID", defaultValue = "") String id,
+        @ShellOption(value = "replyId", help = "Reply ID", defaultValue = "") String replyId,
         @ShellOption(value = "content", help = "Reply content", defaultValue = "") String content,
         @ShellOption(value = "commentId", help = "Comment ID", defaultValue = "") String commentId,
         @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
@@ -30,35 +30,39 @@ public class ReplyCommands {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return listReplies(page, size);
+            return listReplies(page, size, commentId);
         } else if (get) {
-            return getReplyById(id);
+            return getReplyById(replyId);
         } else if (post) {
             return postReply(content, commentId);
         } else if (edit) {
-            return editReply(id, content);
+            return editReply(replyId, content);
         } else if (delete) {
-            return deleteReply(id);
+            return deleteReply(replyId);
         } else {
-            return "Invalid command. Use --list, --get --id {id}, --post --content \"text\" --commentId {id}, --edit --id {id} --content \"text\", or --delete --id {id}.";
+            return "Invalid command. Use: \n" +
+                                        "\t\t\t--list --commentId[optional] {id} --page[optional] {num} --size[optional] {num}\n" +
+                                        "\t\t\t--get --replyId {id}\n" + 
+                                        "\t\t\t--post --content \"text\" --commentId {id}\n" +
+                                        "\t\t\t--edit --replyId {id} --content \"text\"\n" +
+                                        "\t\t\t--delete --replyId {id}\n" +
+                                        "\t\t\t--help";
         }
     }
 
-    private String listReplies(int page, int size) {
+    public static String listReplies(int page, int size, String commentId) {
         try {
-            JsonNode jsonResponse = ReplyServices.getReplies(Math.max(0, page - 1), size);
-            JsonNode contentArray = jsonResponse.path("content");
-            if (!contentArray.isArray() || contentArray.isEmpty()) {
+            JsonNode jsonResponse = ReplyServices.getReplies(Math.max(0, page - 1), size, commentId);
+            JsonNode replyNode = jsonResponse.path("content");
+            if (!replyNode.isArray() || replyNode.isEmpty()) {
                 return "No replies found.";
             } else{
-                TableModelBuilder<String> modelBuilder = buildReplyTable(contentArray);
-
                 int totalThreads = jsonResponse.path("totalElements").asInt(0);
                 int totalPages = jsonResponse.path("totalPages").asInt(1);
                 int currentPage = jsonResponse.path("number").asInt(0) + 1;
                 boolean isLastPage = jsonResponse.path("last").asBoolean();
                 
-                return TextUtils.renderTable(modelBuilder.build()) +
+                return TextUtils.renderTable(buildReplyTable(replyNode).build()) +
                     String.format("\nPage %d of %d | Total Replies: %d %s", currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
             }
         } catch (Exception e) {
@@ -66,12 +70,12 @@ public class ReplyCommands {
         }
     }
 
-    private String getReplyById(String id) {
-        if (id.isEmpty()) {
-            return "The ID must be specified like: replies --get --id {id}";
+    private String getReplyById(String replyId) {
+        if (replyId.isEmpty()) {
+            return "The ID must be specified like: replies --get --replyId {id}";
         }
         try {
-            JsonNode reply = ReplyServices.getReplyById(id);
+            JsonNode reply = ReplyServices.getReplyById(replyId);
             return TextUtils.renderTable(buildReplyTable(reply).build());
         } catch (Exception e) {
             return "Error retrieving reply: " + e.getMessage();
@@ -90,31 +94,31 @@ public class ReplyCommands {
         }
     }
 
-    private String editReply(String id, String content) {
-        if (id.isEmpty()) {
-            return "The ID must be specified: replies --edit --id {id} --content \"{content}\"";
+    private String editReply(String replyId, String content) {
+        if (replyId.isEmpty()) {
+            return "The ID must be specified: replies --edit --replyId {id} --content \"{content}\"";
         }
         try {
-            JsonNode reply = ReplyServices.patchReply(content, id);
+            JsonNode reply = ReplyServices.patchReply(content, replyId);
             return TextUtils.renderTable(buildReplyTable(reply).build());
         } catch (Exception e) {
             return "Error editing reply: " + e.getMessage();
         }
     }
 
-    private String deleteReply(String id) {
-        if (id.isEmpty()) {
-            return "The ID must be specified: replies --delete --id {id}";
+    private String deleteReply(String replyId) {
+        if (replyId.isEmpty()) {
+            return "The ID must be specified: replies --delete --replyId {id}";
         }
         try {
-            ReplyServices.deleteReply(id);
-            return "Reply with ID " + id + " has been deleted.";
+            ReplyServices.deleteReply(replyId);
+            return "Reply with ID " + replyId + " has been deleted.";
         } catch (Exception e) {
             return "Error deleting reply: " + e.getMessage();
         }
     }
 
-    private TableModelBuilder<String> buildReplyTable(JsonNode replyNode) {
+    private static TableModelBuilder<String> buildReplyTable(JsonNode replyNode) {
         TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
         modelBuilder.addRow().addValue("ID").addValue("Content")
                 .addValue("GID").addValue("User").addValue("Email")

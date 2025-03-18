@@ -6,8 +6,6 @@ import com.heapoverflow.api.models.ThreadUpdate;
 import com.heapoverflow.api.services.ThreadService;
 import com.heapoverflow.api.utils.ApiConstants;
 
-import jakarta.websocket.server.PathParam;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,16 +28,36 @@ public class ThreadController {
 
     @GetMapping("/threads")
     public ResponseEntity<Page<Thread>> getThreads(
-            @RequestParam(required = false) Boolean isTrending,
-            @RequestParam(required = false) Boolean userThreads,
-            @RequestParam(required = false) String searchText,
-            @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
-            @SortDefault.SortDefaults({
-                @SortDefault(sort = "threadUpvotesCount", direction = Sort.Direction.DESC),
-                @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-            }) Pageable pageable) {
+        @RequestParam(required = false) String searchText,
+        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
+        @SortDefault.SortDefaults({
+            @SortDefault(sort = "threadUpvotesCount", direction = Sort.Direction.DESC),
+            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+        }) Pageable pageable) {
 
-        Page<Thread> threads = threadService.getThreadsByFilter(isTrending, userThreads, searchText, pageable);
+        Page<Thread> threads = threadService.getThreadsByFilter(searchText, pageable);
+
+        return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/threads/trending")
+    public ResponseEntity<Page<Thread>> getThreadsTrending(
+        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) Pageable pageable) {
+
+        Page<Thread> threads = threadService.getThreadsByTrending(pageable);
+
+        return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/threads/users")
+    public ResponseEntity<Page<Thread>> getThreadsUser(
+        @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
+        @SortDefault.SortDefaults({
+            @SortDefault(sort = "threadUpvotesCount", direction = Sort.Direction.DESC),
+            @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+        }) Pageable pageable){
+
+        Page<Thread> threads = threadService.getThreadsForCurrentUser(pageable);
 
         return threads.hasContent() ? ResponseEntity.ok(threads) : ResponseEntity.notFound().build();
     }

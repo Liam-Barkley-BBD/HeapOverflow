@@ -9,42 +9,42 @@ import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
 
 public class CommentsServices {
-    public static JsonNode getComments(int page, int size) throws Exception {
-        return HttpUtils
-                    .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "?page=" + page +"&size=" + size)
-                    .join();
+    public static JsonNode getComments(int page, int size, String threadId) throws Exception {
+        if (threadId != null && !threadId.isEmpty()) {
+                return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_COMMENTS + "?page=" + page + "&size=" + size + "&threadId=" + threadId);
+        } else {
+                return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_COMMENTS + "?page=" + page + "&size=" + size);
+        }
     }
 
-    public static JsonNode getCommentById(String id) throws Exception {
-        return HttpUtils
-                    .asyncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + id)
-                    .join();
+    public static JsonNode getCommentById(String commentId) throws Exception {
+        return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                + ApiEndpointsConstants.API_COMMENT_ID + commentId);
     }
 
     public static JsonNode postComment(String content, String threadId) throws Exception {
         return HttpUtils
-                    .asyncPost(
+                .syncPost(
                         EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS,
                         Map.of(
-                            "content", content,
-                            "threadId", threadId
-                        )
-                    ).join();
+                                "content", content,
+                                "threadId", threadId));
     }
 
-    public static JsonNode patchComment(String content, String id) throws Exception {
+    public static JsonNode patchComment(String content, String commentId) throws Exception {
         return HttpUtils
-                    .asyncPatch(
-                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "/" + id,
+                .syncPatch(
+                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENTS + "/"
+                                + commentId,
                         Map.of(
-                            "content", content
-                        )
-                    ).join();
+                                "content", content));
     }
 
-    public static JsonNode deleteComment(String id) throws Exception {
+    public static JsonNode deleteComment(String commentId) throws Exception {
         return HttpUtils
-                    .asyncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID + id)
-                    .join();
+                .syncDelete(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_COMMENT_ID
+                        + commentId);
     }
 }

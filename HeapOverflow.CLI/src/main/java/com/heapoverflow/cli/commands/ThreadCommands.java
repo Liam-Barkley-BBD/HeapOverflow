@@ -3,117 +3,132 @@ package com.heapoverflow.cli.commands;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
-import org.springframework.shell.table.*;
+import org.springframework.shell.table.TableModelBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.heapoverflow.cli.constants.EnvConstants;
-
 import com.heapoverflow.cli.services.ThreadsService;
+import com.heapoverflow.cli.services.ThreadUpvoteServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.TextUtils;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @ShellComponent
 public class ThreadCommands {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    @ShellMethod(key = "threads", value = "Get threads")
-
-    public String getThreads(@ShellOption(help = "Search", defaultValue = "") String search,
-            @ShellOption(help = "isTrending", defaultValue = "") Boolean isTrending,
-            @ShellOption(help = "Get all my Threads", defaultValue = "") Boolean userThreads,
-            @ShellOption(help = "Page number", defaultValue = "0") int page,
-            @ShellOption(help = "Page size", defaultValue = "10") int size) {
-
-        page = page - 1;
-
+    @ShellMethod(key = "thread", value = "Manage threads in the system")
+    public String thread(
+            @ShellOption(value = "list", help = "List threads", defaultValue = "false") boolean list,
+            @ShellOption(value = "trending", help = "List threads by trending", defaultValue = "false") boolean trending,
+            @ShellOption(value = "userThreads", help = "List threads by user", defaultValue = "false") boolean userThreads,
+            @ShellOption(value = "get", help = "Get a specific thread", defaultValue = "false") boolean get,
+            @ShellOption(value = "post", help = "Post a new thread", defaultValue = "false") boolean post,
+            @ShellOption(value = "edit", help = "Edit a thread", defaultValue = "false") boolean edit,
+            @ShellOption(value = "delete", help = "Delete a thread", defaultValue = "false") boolean delete,
+            @ShellOption(value = "upvote", help = "Upvote a thread", defaultValue = "false") boolean upvote,
+            @ShellOption(value = "removeUpvote", help = "Remove upvote from a thread", defaultValue = "false") boolean removeUpvote,
+            @ShellOption(value = "search", help = "Search query", defaultValue = "") String search,
+            @ShellOption(value = "closeThread", help = "Close Thread (true/false)", defaultValue = "false") boolean closeThread,
+            @ShellOption(value = "threadId", help = "Thread ID", defaultValue = "") String threadId,
+            @ShellOption(value = "title", help = "Thread title", defaultValue = "") String title,
+            @ShellOption(value = "description", help = "Thread description", defaultValue = "") String description,
+            @ShellOption(value = "page", help = "Page number", defaultValue = "1") int page,
+            @ShellOption(value = "size", help = "Page size", defaultValue = "10") int size) {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
-            return "You are not logged in, please login!";
+            return "You are not logged in. Please log in!";
+        } else if (list) {
+            return getAllThreads(search, page, size);
+        } else if (trending) {
+            return getTrendingThreads();
+        } else if (userThreads) {
+            return getUserThreads();
+        } else if (get) {
+            return getThread(threadId) + CommentCommands.getAllComments(page, size, threadId);
+        } else if (post) {
+            return postThread(title, description);
+        } else if (edit) {
+            return editThread(threadId, title, description, closeThread);
+        } else if (delete) {
+            return deleteThread(threadId);
+        } else if (upvote) {
+            return upvoteThread(threadId);
+        } else if (removeUpvote) {
+            return removeUpvoteThread(threadId);
+        } else {
+            return "Invalid command. Use: \n" +
+                    "\t--list [--search[optional] \"query\" --page[optional] {num} --size[optional] {num}]\n" +
+                    "\t--userThreads \n" +
+                    "\t--trending \n" +
+                    "\t--get --threadId {id} --page[optional] {num} --size[optional] {num}]\n" +
+                    "\t--post --title \"text\" --description \"text\"\n" +
+                    "\t--edit --threadId {id} --title \"text\" --description \"text\" [--closeThread true/false]\n" +
+                    "\t--delete --threadId {id}\n" +
+                    "\t--upvote --threadId {id}\n" +
+                    "\t--removeUpvote --threadId {id}\n" +
+                    "\t--help";
+        }
+    }
+
+    private String getAllThreads(String search, int page, int size) {
+        try {
+            String encodedSearchText = URLEncoder.encode(search, StandardCharsets.UTF_8.toString());
+            JsonNode jsonResponse = ThreadsService.getThreads(encodedSearchText, Math.max(0, page - 1), size);
+            JsonNode contentArray = jsonResponse.path("content");
+
+            if (!contentArray.isArray() || contentArray.isEmpty()) {
+                return "No threads found.";
+            } else {
+                int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                int totalPages = jsonResponse.path("totalPages").asInt(1);
+                int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                boolean isLastPage = jsonResponse.path("last").asBoolean();
+
+                return buildThreadTable(contentArray, false) +
+                        String.format("\nPage %d of %d | Total Threads: %d %s",
+                                currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+            }
+        } catch (Exception e) {
+            return "Error retrieving threads: " + e.getMessage();
+        }
+    }
+
+    private String getThread(String id) {
+        if (id.isEmpty()) {
+            return "Thread ID must be specified.";
         } else {
             try {
-
-                String jsonResponse = ThreadsService.getThreads(search, page, size, isTrending, userThreads).toString();
-                JsonNode rootNode = objectMapper.readTree(jsonResponse);
-                JsonNode contentArray = rootNode.path("content");
-
-                if (!contentArray.isArray() || contentArray.isEmpty()) {
-                    return "No threads found.";
-                } else {
-
-                    int totalThreads = rootNode.path("totalElements").asInt(0);
-                    int totalPages = rootNode.path("totalPages").asInt(1);
-                    int currentPage = rootNode.path("number").asInt(0) + 1;
-                    boolean isLastPage = rootNode.path("last").asBoolean();
-
-                    TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-                    modelBuilder.addRow().addValue("ID").addValue("Title").addValue("Created At")
-                            .addValue("Closed At").addValue("Upvotes").addValue("User");
-
-                    for (JsonNode thread : contentArray) {
-                        JsonNode userNode = thread.path("user");
-                        String username = (userNode.isMissingNode() || userNode.isNull()
-                                || userNode.path("username").isNull())
-                                        ? "Anonymous"
-                                        : userNode.path("username").asText();
-
-                        modelBuilder.addRow()
-                                .addValue(thread.path("id").asText("N/A"))
-                                .addValue(thread.path("title").asText("N/A"))
-                                .addValue(thread.path("createdAt").asText("N/A"))
-                                .addValue(thread.path("closedAt").isNull() ? "Open" : thread.path("closedAt").asText())
-                                .addValue(thread.path("threadUpvotesCount").asText("0"))
-                                .addValue(username);
-                    }
-
-                    String tableOutput = TextUtils.renderTable(modelBuilder.build());
-
-                    return tableOutput + String.format("\nPage %d of %d | Total Threads: %d %s",
-                            currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
-
-                }
+                JsonNode thread = ThreadsService.getThreadsById(id);
+                String threadTable = buildThreadTable(thread, true);
+                return threadTable;
             } catch (Exception e) {
-                return "Error retrieving threads: " + e.getMessage();
+                return "Error retrieving thread: " + e.getMessage();
             }
         }
     }
 
-    @ShellMethod(key = "thread", value = "Get a thread by ID")
-    public String getThreadById(@ShellOption(value = "id", help = "Thread ID") int id) {
-        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
-            return "You are not logged in, please login!";
-        } else {
+    private String getUserThreads() {
 
+        {
             try {
-                String jsonResponse = ThreadsService.getThreadsById(id).toString();
-                JsonNode rootNode = objectMapper.readTree(jsonResponse);
+                JsonNode jsonResponse = ThreadsService.getThreadsByUser();
+                JsonNode contentArray = jsonResponse.path("content");
 
-                if (rootNode == null || !rootNode.isObject()) {
-                    return "Thread not found.";
+                if (!contentArray.isArray() || contentArray.isEmpty()) {
+                    return "No comments found.";
                 } else {
+                    if (!contentArray.isArray() || contentArray.isEmpty()) {
+                        return "No threads found.";
+                    } else {
+                        int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                        int totalPages = jsonResponse.path("totalPages").asInt(1);
+                        int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                        boolean isLastPage = jsonResponse.path("last").asBoolean();
 
-                    String username = rootNode.path("user").path("username").asText("Unknown");
-
-                    TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-                    modelBuilder.addRow().addValue("ID")
-                            .addValue("Title")
-                            .addValue("Description")
-                            .addValue("Created At")
-                            .addValue("Closed At")
-                            .addValue("User")
-                            .addValue("Upvotes");
-
-                    modelBuilder.addRow()
-                            .addValue(rootNode.path("id").asText("N/A"))
-                            .addValue(rootNode.path("title").asText("N/A"))
-                            .addValue(rootNode.path("description").asText("N/A"))
-                            .addValue(rootNode.path("createdAt").asText("N/A"))
-                            .addValue(rootNode.path("closedAt").isNull() ? "Open" : rootNode.path("closedAt").asText())
-                            .addValue(username)
-                            .addValue(rootNode.path("threadUpvotesCount").asText("0"));
-
-                    return TextUtils.renderTable(modelBuilder.build());
+                        return buildThreadTable(contentArray, false) +
+                                String.format("\nPage %d of %d | Total Threads: %d %s",
+                                        currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                    }
                 }
             } catch (Exception e) {
                 return "Error retrieving thread: " + e.getMessage();
@@ -121,97 +136,135 @@ public class ThreadCommands {
         }
     }
 
-    @ShellMethod(key = "post-thread", value = "Create a new thread")
-    public String postThread(
-            @ShellOption(value = "title", help = "Thread Title") String title,
-            @ShellOption(value = "description", help = "Thread Description") String description) {
+    private String getTrendingThreads() {
 
-        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
-            return "You are not logged in, please login!";
-        }
+        {
+            try {
+                JsonNode jsonResponse = ThreadsService.getThreadsTrending();
+                JsonNode contentArray = jsonResponse.path("content");
 
-        try {
+                if (!contentArray.isArray() || contentArray.isEmpty()) {
+                    return "No comments found.";
+                } else {
+                    if (!contentArray.isArray() || contentArray.isEmpty()) {
+                        return "No threads found.";
+                    } else {
+                        int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                        int totalPages = jsonResponse.path("totalPages").asInt(1);
+                        int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                        boolean isLastPage = jsonResponse.path("last").asBoolean();
 
-            String jsonResponse = ThreadsService.postThread(title, description).toString();
-
-            JsonNode rootNode = objectMapper.readTree(jsonResponse);
-
-            if (rootNode == null || !rootNode.isObject()) {
-                return "Failed to create thread.";
+                        return buildThreadTable(contentArray, false) +
+                                String.format("\nPage %d of %d | Total Threads: %d %s",
+                                        currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                    }
+                }
+            } catch (Exception e) {
+                return "Error retrieving thread: " + e.getMessage();
             }
+        }
+    }
 
-            TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-            modelBuilder.addRow().addValue("ID").addValue("Title").addValue("Description").addValue("Created At");
-
-            modelBuilder.addRow()
-                    .addValue(rootNode.path("id").asText("N/A"))
-                    .addValue(rootNode.path("title").asText("N/A"))
-                    .addValue(rootNode.path("description").asText("N/A"))
-                    .addValue(rootNode.path("createdAt").asText("N/A"));
-
-            return TextUtils.renderTable(modelBuilder.build());
-
+    private String postThread(String title, String description) {
+        try {
+            JsonNode thread = ThreadsService.postThread(title, description);
+            return "Thread created successfully: " + thread.path("id").asText() + "\n" +
+                    buildThreadTable(thread, true);
         } catch (Exception e) {
             return "Error creating thread: " + e.getMessage();
         }
     }
 
-    @ShellMethod(key = "update-thread", value = "Update an existing thread")
-    public String updateThread(
-            @ShellOption(help = "Thread ID") int threadId,
-            @ShellOption(help = "New Title", defaultValue = "") String title,
-            @ShellOption(help = "New Description", defaultValue = "") String description,
-            @ShellOption(help = "Close Thread (true/false)", defaultValue = "false") boolean closeThread) {
-
-        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
-            return "You are not logged in, please login!";
-        }
-
-        try {
-            JsonNode responseNode = ThreadsService.patchThread(threadId, title, description, closeThread);
-
-            if (responseNode == null || !responseNode.isObject()) {
-                return "Failed to update thread or invalid response.";
-
-            } else {
-
-                TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
-
-                modelBuilder.addRow()
-                        .addValue("ID")
-                        .addValue("Title")
-                        .addValue("Description")
-                        .addValue("Closed At");
-
-                modelBuilder.addRow()
-                        .addValue(responseNode.path("id").asText("N/A"))
-                        .addValue(responseNode.path("title").asText("N/A"))
-                        .addValue(responseNode.path("description").asText("N/A"))
-                        .addValue(responseNode.has("closedAt") ? responseNode.path("closedAt").asText() : "Still Open");
-
-                return TextUtils.renderTable(modelBuilder.build());
+    private String editThread(String threadId, String title, String description, Boolean closeThread) {
+        if (threadId.isEmpty()) {
+            return "ThreadId should be initialized eg thread --edit --threadId {id}";
+        } else {
+            try {
+                JsonNode thread = ThreadsService.patchThread(threadId, title, description, closeThread);
+                return buildThreadTable(thread, true);
+            } catch (Exception e) {
+                return "Error updating thread: " + e.getMessage();
             }
-
-        } catch (Exception e) {
-            return "Error updating thread: " + e.getMessage();
         }
     }
 
-    @ShellMethod(key = "delete-thread", value = "Delete your thread")
-    public String deleteReply(
-            @ShellOption(value = "id", help = "The id of the thread you wish to delete", defaultValue = "") String id) {
-        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
-            return "You are not logged, please login!";
-        } else if (id.equals("")) {
-            return "the theadId must be specified like: \"delete-thread --id {id_value}\"";
+    private String deleteThread(String threadId) {
+        try {
+            ThreadsService.deleteThread(threadId);
+            return "Thread deleted successfully.";
+        } catch (Exception e) {
+            return "Error deleting thread: " + e.getMessage();
+        }
+    }
+
+    private String upvoteThread(String threadId) {
+        if (threadId.isEmpty()) {
+            return "Thread ID must be specified to upvote: 'thread upvote --threadId {id_value}";
         } else {
             try {
-
-                ThreadsService.deleteThread(id);
-                return String.format("Your thread %s has been deleted", id);
-            } catch (Exception error) {
-                return error.getMessage();
+                ThreadUpvoteServices.postThreadUpVote(Integer.parseInt(threadId));
+                return "Successfully upvoted thread ID: " + threadId;
+            } catch (Exception e) {
+                return "Error upvoting thread: " + e.getMessage();
             }
+        }
+    }
+
+    private String removeUpvoteThread(String threadId) {
+        if (threadId.isEmpty()) {
+            return "Thread Id must be specified like: 'thread unupvote --threadId {id_value}'";
+        } else {
+            try {
+                ThreadUpvoteServices.deleteThreadUpVote(threadId);
+                return "Successfully removed upvote from thread ID: " + threadId;
+            } catch (Exception e) {
+                return "Error removing upvote: " + e.getMessage();
+            }
+        }
+    }
+
+    private String buildThreadTable(JsonNode threads, boolean includeDescription) {
+        TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
+
+        if (includeDescription) {
+            modelBuilder.addRow().addValue("ID").addValue("Title").addValue("Description").addValue("Created At")
+                    .addValue("Closed At").addValue("Upvotes").addValue("User");
+        } else {
+            modelBuilder.addRow().addValue("ID").addValue("Title").addValue("Created At")
+                    .addValue("Closed At").addValue("Upvotes").addValue("User");
+        }
+
+        if (threads.isArray()) {
+            for (JsonNode thread : threads) {
+                addThreadRow(modelBuilder, thread, includeDescription);
+            }
+        } else {
+            addThreadRow(modelBuilder, threads, includeDescription);
+        }
+
+        return TextUtils.renderTable(modelBuilder.build());
+    }
+
+    private void addThreadRow(TableModelBuilder<String> modelBuilder, JsonNode thread, boolean includeDescription) {
+        JsonNode userNode = thread.path("user");
+
+        if (includeDescription) {
+            modelBuilder.addRow()
+                    .addValue(thread.path("id").asText("N/A"))
+                    .addValue(thread.path("title").asText("N/A"))
+                    .addValue(thread.path("description").asText("N/A"))
+                    .addValue(thread.path("createdAt").asText("N/A"))
+                    .addValue(thread.path("closedAt").isNull() ? "Open" : thread.path("closedAt").asText())
+                    .addValue(thread.path("threadUpvotesCount").asText("0"))
+                    .addValue(userNode.path("username").asText("Anonymous"));
+        } else {
+            modelBuilder.addRow()
+                    .addValue(thread.path("id").asText("N/A"))
+                    .addValue(thread.path("title").asText("N/A"))
+                    .addValue(thread.path("createdAt").asText("N/A"))
+                    .addValue(thread.path("closedAt").isNull() ? "Open" : thread.path("closedAt").asText())
+                    .addValue(thread.path("threadUpvotesCount").asText("0"))
+                    .addValue(userNode.path("username").asText("Anonymous"));
         }
     }
 }
