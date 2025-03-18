@@ -17,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,6 +29,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,21 +47,32 @@ public class ThreadServiceTest {
 
     private User testUser;
     private Thread testThread;
+    private ThreadRequest testThreadRequest;
+    private ThreadUpdate testThreadUpdate;
     private Pageable pageable;
-    private final String authenticatedUserId = "1";
+    private final String authenticatedUserId = "user123";
 
     @BeforeEach
     void setUp() {
-        testUser = new User(authenticatedUserId, "John Doe", "john@example.com");
+        testUser = new User(authenticatedUserId, "Test User", "test@example.com");
         testThread = new Thread("Test Thread", "Test Description", testUser);
         testThread.setId(1);
+
+        testThreadRequest = new ThreadRequest();
+        testThreadRequest.setTitle("New Thread");
+        testThreadRequest.setDescription("New Description");
+
+        testThreadUpdate = new ThreadUpdate();
+        testThreadUpdate.setTitle("Updated Title");
+        testThreadUpdate.setDescription("Updated Description");
+
         pageable = PageRequest.of(0, 10);
     }
 
     @Test
     void getAllThreads_ShouldReturnAllThreads() {
         // Arrange
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread));
+        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
         when(threadRepository.findAll(pageable)).thenReturn(threadPage);
 
         // Act
@@ -73,7 +85,7 @@ public class ThreadServiceTest {
     }
 
     @Test
-    void getThreadById_ExistingThread_ShouldReturnThread() {
+    void getThreadById_WithExistingId_ShouldReturnThread() {
         // Arrange
         when(threadRepository.findById(1)).thenReturn(Optional.of(testThread));
 
@@ -87,7 +99,7 @@ public class ThreadServiceTest {
     }
 
     @Test
-    void getThreadById_NonExistingThread_ShouldReturnEmpty() {
+    void getThreadById_WithNonExistingId_ShouldReturnEmptyOptional() {
         // Arrange
         when(threadRepository.findById(999)).thenReturn(Optional.empty());
 
@@ -102,7 +114,7 @@ public class ThreadServiceTest {
     @Test
     void getThreadsByUserId_ShouldReturnUserThreads() {
         // Arrange
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread));
+        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
         when(threadRepository.findByUser_Id(authenticatedUserId, pageable)).thenReturn(threadPage);
 
         // Act
@@ -115,98 +127,109 @@ public class ThreadServiceTest {
     }
 
     @Test
-    void getThreadsByFilter_Trending_ShouldReturnTrendingThreads() {
+    void getThreadsByFilter_WithSearchText_ShouldReturnMatchingThreads() {
         // Arrange
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread));
-        when(threadRepository.findTrendingThreads(any(Pageable.class))).thenReturn(threadPage);
+        String searchText = "Test";
+        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
+        when(threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable))
+                .thenReturn(threadPage);
 
         // Act
-        Page<Thread> result = threadService.getThreadsByFilter(true, null, null, pageable);
+        Page<Thread> result = threadService.getThreadsByFilter(searchText, pageable);
 
         // Assert
         assertEquals(1, result.getTotalElements());
+        assertEquals(testThread, result.getContent().get(0));
+        verify(threadRepository).findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
+    }
+
+    @Test
+    void getThreadsByFilter_WithNullSearchText_ShouldReturnAllThreads() {
+        // Arrange
+        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
+        when(threadRepository.findAll(pageable)).thenReturn(threadPage);
+
+        // Act
+        Page<Thread> result = threadService.getThreadsByFilter(null, pageable);
+
+        // Assert
+        assertEquals(1, result.getTotalElements());
+        assertEquals(testThread, result.getContent().get(0));
+        verify(threadRepository).findAll(pageable);
+    }
+
+    @Test
+    void getThreadsByTrending_ShouldReturnTrendingThreads() {
+        // Arrange
+        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
+        when(threadRepository.findTrendingThreads(any(Pageable.class))).thenReturn(threadPage);
+
+        // Act
+        Page<Thread> result = threadService.getThreadsByTrending(pageable);
+
+        // Assert
+        assertEquals(1, result.getTotalElements());
+        assertEquals(testThread, result.getContent().get(0));
         verify(threadRepository).findTrendingThreads(any(Pageable.class));
     }
 
     @Test
-    void getThreadsByFilter_UserThreads_ShouldReturnUserThreads() {
+    void getThreadsForCurrentUser_ShouldReturnCurrentUserThreads() {
         // Arrange
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread));
+        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
         
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
             when(userRepository.findById(authenticatedUserId)).thenReturn(Optional.of(testUser));
             when(threadRepository.findByUser_Id(authenticatedUserId, pageable)).thenReturn(threadPage);
 
             // Act
-            Page<Thread> result = threadService.getThreadsByFilter(null, true, null, pageable);
+            Page<Thread> result = threadService.getThreadsForCurrentUser(pageable);
 
             // Assert
             assertEquals(1, result.getTotalElements());
+            assertEquals(testThread, result.getContent().get(0));
             verify(threadRepository).findByUser_Id(authenticatedUserId, pageable);
+            verify(userRepository).findById(authenticatedUserId);
         }
     }
 
     @Test
-    void getThreadsByFilter_UserThreads_UserNotFound_ShouldThrowException() {
+    void getThreadsForCurrentUser_UserNotFound_ShouldThrowException() {
         // Arrange
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
             when(userRepository.findById(authenticatedUserId)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThrows(UserNotFoundException.class, () -> threadService.getThreadsByFilter(null, true, null, pageable));
+            assertThrows(UserNotFoundException.class, () -> threadService.getThreadsForCurrentUser(pageable));
+            verify(userRepository).findById(authenticatedUserId);
+            verify(threadRepository, never()).findByUser_Id(anyString(), any(Pageable.class));
         }
     }
 
     @Test
-    void getThreadsByFilter_SearchText_ShouldReturnMatchingThreads() {
+    void createThread_Success() {
         // Arrange
-        String searchText = "test";
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread));
-        when(threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable))
-                .thenReturn(threadPage);
-
-        // Act
-        Page<Thread> result = threadService.getThreadsByFilter(null, null, searchText, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        verify(threadRepository).findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
-    }
-
-    @Test
-    void getThreadsByFilter_NoFilters_ShouldReturnAllThreads() {
-        // Arrange
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread));
-        when(threadRepository.findAll(pageable)).thenReturn(threadPage);
-
-        // Act
-        Page<Thread> result = threadService.getThreadsByFilter(null, null, null, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        verify(threadRepository).findAll(pageable);
-    }
-
-    @Test
-    void createThread_Success_ShouldCreateThread() {
-        // Arrange
-        ThreadRequest threadRequest = new ThreadRequest();
-        threadRequest.setTitle("New Thread");
-        threadRequest.setDescription("New Description");
-
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
             when(userRepository.findById(authenticatedUserId)).thenReturn(Optional.of(testUser));
-            when(threadRepository.save(any(Thread.class))).thenReturn(testThread);
+            when(threadRepository.save(any(Thread.class))).thenAnswer(invocation -> {
+                Thread savedThread = invocation.getArgument(0);
+                savedThread.setId(1);
+                return savedThread;
+            });
 
             // Act
-            Thread result = threadService.createThread(threadRequest);
+            Thread result = threadService.createThread(testThreadRequest);
 
             // Assert
             assertNotNull(result);
-            assertEquals(testThread, result);
+            assertEquals(1, result.getId());
+            assertEquals(testThreadRequest.getTitle(), result.getTitle());
+            assertEquals(testThreadRequest.getDescription(), result.getDescription());
+            assertEquals(testUser, result.getUser());
+            verify(userRepository).findById(authenticatedUserId);
             verify(threadRepository).save(any(Thread.class));
         }
     }
@@ -214,113 +237,102 @@ public class ThreadServiceTest {
     @Test
     void createThread_UserNotFound_ShouldThrowException() {
         // Arrange
-        ThreadRequest threadRequest = new ThreadRequest();
-        threadRequest.setTitle("New Thread");
-        threadRequest.setDescription("New Description");
-
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
             when(userRepository.findById(authenticatedUserId)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThrows(UserNotFoundException.class, () -> threadService.createThread(threadRequest));
+            assertThrows(UserNotFoundException.class, () -> threadService.createThread(testThreadRequest));
+            verify(userRepository).findById(authenticatedUserId);
+            verify(threadRepository, never()).save(any(Thread.class));
         }
     }
 
     @Test
-    void updateThread_Success_ShouldUpdateThread() {
+    void updateThread_Success() {
         // Arrange
-        ThreadUpdate threadUpdate = new ThreadUpdate();
-        threadUpdate.setTitle("Updated Title");
-        threadUpdate.setDescription("Updated Description");
-
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
             when(threadRepository.findById(1)).thenReturn(Optional.of(testThread));
             when(threadRepository.save(any(Thread.class))).thenReturn(testThread);
 
             // Act
-            Thread result = threadService.updateThread(1, threadUpdate);
+            Thread result = threadService.updateThread(1, testThreadUpdate);
 
             // Assert
             assertNotNull(result);
-            verify(threadRepository).save(any(Thread.class));
+            assertEquals(testThreadUpdate.getTitle(), result.getTitle());
+            assertEquals(testThreadUpdate.getDescription(), result.getDescription());
+            verify(threadRepository).findById(1);
+            verify(threadRepository).save(testThread);
         }
     }
 
     @Test
     void updateThread_ThreadNotFound_ShouldThrowException() {
         // Arrange
-        ThreadUpdate threadUpdate = new ThreadUpdate();
-        threadUpdate.setTitle("Updated Title");
-
         when(threadRepository.findById(999)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ThreadNotFoundException.class, () -> threadService.updateThread(999, threadUpdate));
+        assertThrows(ThreadNotFoundException.class, () -> threadService.updateThread(999, testThreadUpdate));
+        verify(threadRepository).findById(999);
+        verify(threadRepository, never()).save(any(Thread.class));
     }
 
     @Test
-    void updateThread_Unauthorized_ShouldThrowException() {
+    void updateThread_NotAuthorized_ShouldThrowException() {
         // Arrange
-        ThreadUpdate threadUpdate = new ThreadUpdate();
-        threadUpdate.setTitle("Updated Title");
-
-        User differentUser = new User("2", "Jane Doe", "jane@example.com");
-        Thread differentUserThread = new Thread("Different Thread", "Different Description", differentUser);
-        differentUserThread.setId(1);
-
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
-            authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn("2");
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
+            authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn("differentUser");
             when(threadRepository.findById(1)).thenReturn(Optional.of(testThread));
 
             // Act & Assert
-            assertThrows(UnauthorizedActionException.class, () -> threadService.updateThread(1, threadUpdate));
+            assertThrows(UnauthorizedActionException.class, () -> threadService.updateThread(1, testThreadUpdate));
+            verify(threadRepository).findById(1);
+            verify(threadRepository, never()).save(any(Thread.class));
         }
     }
 
     @Test
     void updateThread_ThreadClosed_ShouldThrowException() {
         // Arrange
-        ThreadUpdate threadUpdate = new ThreadUpdate();
-        threadUpdate.setTitle("Updated Title");
-
-        testThread.setClosedAt(LocalDateTime.now());
-
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
+            
+            testThread.setClosedAt(LocalDateTime.now());
             when(threadRepository.findById(1)).thenReturn(Optional.of(testThread));
 
             // Act & Assert
-            assertThrows(IllegalStateException.class, () -> threadService.updateThread(1, threadUpdate));
+            assertThrows(IllegalStateException.class, () -> threadService.updateThread(1, testThreadUpdate));
+            verify(threadRepository).findById(1);
+            verify(threadRepository, never()).save(any(Thread.class));
         }
     }
 
     @Test
-    void updateThread_WithClosedAt_ShouldUpdateClosedAt() {
+    void updateThread_WithClosedAtField_ShouldUpdateClosedAt() {
         // Arrange
-        ThreadUpdate threadUpdate = new ThreadUpdate();
-        LocalDateTime closedAt = LocalDateTime.now();
-        threadUpdate.setClosedAt(closedAt);
-
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
             when(threadRepository.findById(1)).thenReturn(Optional.of(testThread));
             when(threadRepository.save(any(Thread.class))).thenReturn(testThread);
 
+            LocalDateTime closedAt = LocalDateTime.now();
+            testThreadUpdate.setClosedAt(closedAt);
+
             // Act
-            Thread result = threadService.updateThread(1, threadUpdate);
+            Thread result = threadService.updateThread(1, testThreadUpdate);
 
             // Assert
-            assertNotNull(result);
-            verify(threadRepository).save(any(Thread.class));
+            assertEquals(closedAt, result.getClosedAt());
+            verify(threadRepository).save(testThread);
         }
     }
 
     @Test
-    void deleteThread_Success_ShouldDeleteThread() {
+    void deleteThread_Success() {
         // Arrange
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn(authenticatedUserId);
             when(threadRepository.findById(1)).thenReturn(Optional.of(testThread));
             doNothing().when(threadRepository).deleteById(1);
@@ -329,6 +341,7 @@ public class ThreadServiceTest {
             threadService.deleteThread(1);
 
             // Assert
+            verify(threadRepository).findById(1);
             verify(threadRepository).deleteById(1);
         }
     }
@@ -340,17 +353,21 @@ public class ThreadServiceTest {
 
         // Act & Assert
         assertThrows(ThreadNotFoundException.class, () -> threadService.deleteThread(999));
+        verify(threadRepository).findById(999);
+        verify(threadRepository, never()).deleteById(anyInt());
     }
 
     @Test
-    void deleteThread_Unauthorized_ShouldThrowException() {
+    void deleteThread_NotAuthorized_ShouldThrowException() {
         // Arrange
-        try (MockedStatic<AuthUtils> authUtils = Mockito.mockStatic(AuthUtils.class)) {
-            authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn("2");
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
+            authUtils.when(AuthUtils::getAuthenticatedUserId).thenReturn("differentUser");
             when(threadRepository.findById(1)).thenReturn(Optional.of(testThread));
 
             // Act & Assert
             assertThrows(UnauthorizedActionException.class, () -> threadService.deleteThread(1));
+            verify(threadRepository).findById(1);
+            verify(threadRepository, never()).deleteById(anyInt());
         }
     }
 }
