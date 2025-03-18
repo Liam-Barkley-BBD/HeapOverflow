@@ -9,10 +9,14 @@ import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.HttpUtils;
 
 public class ReplyServices {
-    public static JsonNode getReplies(int page, int size) throws Exception {
-        return HttpUtils
-                .syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_REPLIES
-                        + "?page=" + page + "&size=" + size);
+    public static JsonNode getReplies(int page, int size, String commentId) throws Exception {
+        if (commentId != null && !commentId.isEmpty()) {
+                return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_REPLIES + "?page=" + page + "&size=" + size + "&commentId=" + commentId);
+        } else {
+                return HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                        + ApiEndpointsConstants.API_REPLIES + "?page=" + page + "&size=" + size);
+        }
     }
 
     public static JsonNode getReplyById(String replyId) throws Exception {
