@@ -40,23 +40,25 @@ public class ThreadService {
         return threadRepository.findByUser_Id(userId, pageable);
     }
 
-    public Page<Thread> getThreadsByFilter(Boolean isTrending, Boolean userThreads, String searchText, Pageable pageable) {
-        if (isTrending != null && isTrending) {
-            Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-            return threadRepository.findTrendingThreads(pageableWithoutSort);
-        }
-        else if (userThreads != null && userThreads) {
-            String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
-            User user = userRepository.findById(authenticatedUserId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-            return threadRepository.findByUser_Id(user.getId(), pageable);
-        }
-        else if (searchText != null) {
+    public Page<Thread> getThreadsByFilter(String searchText, Pageable pageable) {
+        if (searchText != null) {
             return threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
         }
         else {
             return threadRepository.findAll(pageable);
         }
+    }
+
+    public Page<Thread> getThreadsByTrending(Pageable pageable) {
+        Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return threadRepository.findTrendingThreads(pageableWithoutSort);
+    }
+
+    public Page<Thread> getThreadsForCurrentUser(Pageable pageable) {
+        String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
+        User user = userRepository.findById(authenticatedUserId)
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        return threadRepository.findByUser_Id(user.getId(), pageable);
     }
 
     @Transactional
