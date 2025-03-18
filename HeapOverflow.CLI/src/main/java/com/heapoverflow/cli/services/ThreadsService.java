@@ -13,16 +13,28 @@ import com.heapoverflow.cli.utils.HttpUtils;
 
 public class ThreadsService {
 
-        public static JsonNode getThreads(String search, int page, int size, Boolean isTrending, Boolean userThreads)
+        public static JsonNode getThreads(String search, int page, int size)
                         throws Exception {
 
                 String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS +
                                 "?page=" + page +
                                 "&size=" + size +
-                                (search != null && !search.isEmpty() ? "&searchText=" + search : "") +
-                                (userThreads != null ? "&userThreads=true" : "") +
-                                (isTrending != null ? "&isTrending=true" : "");
-        
+                                (search != null && !search.isEmpty() ? "&searchText=" + search : "");
+             
+                return HttpUtils.syncGet(url);
+        }
+
+        public static JsonNode getThreadsTrending() throws Exception {
+                String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                + ApiEndpointsConstants.API_THREADS_TRENDING;
+               
+                return HttpUtils.syncGet(url);
+        }
+
+        public static JsonNode getThreadsByUser() throws Exception {
+                String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                + ApiEndpointsConstants.API_THREADS_USER;
+
                 return HttpUtils.syncGet(url);
         }
 
