@@ -41,9 +41,7 @@ public class AuthCommandTests {
                 "Invalid command. Use: \n" +
                         "\t\t\t--login\n" +
                         "\t\t\t--logout\n" + 
-                        "\t\t\t--gid\n" +
                         "\t\t\t--name\n" +
-                        "\t\t\t--jwt\n" +
                         "\t\t\t--help\n",
                 result);
     }

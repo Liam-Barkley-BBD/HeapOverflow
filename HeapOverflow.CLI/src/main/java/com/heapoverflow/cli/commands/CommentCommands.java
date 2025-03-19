@@ -1,5 +1,7 @@
 package com.heapoverflow.cli.commands;
 
+import java.util.List;
+
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -10,6 +12,7 @@ import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.CommentUpVotesService;
 import com.heapoverflow.cli.services.CommentsServices;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.FlagsCheckUtils;
 import com.heapoverflow.cli.utils.TextUtils;
 
 @ShellComponent
@@ -28,8 +31,12 @@ public class CommentCommands {
             @ShellOption(value = "content", help = "Comment content", defaultValue = "") String content,
             @ShellOption(value = "threadId", help = "Thread ID", defaultValue = "") String threadId,
             @ShellOption(value = "page", help = "Page number", defaultValue = "1") int page,
-            @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size) {
-        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+            @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size
+    ) {
+        List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(list, get, post, edit, delete, upvote, unupvote);
+        if(selectedFlags.size() > 1){
+            return "You cannot use multiple action based flags at once: " + selectedFlags.toString();
+        } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
             return getAllComments(page, size, threadId);

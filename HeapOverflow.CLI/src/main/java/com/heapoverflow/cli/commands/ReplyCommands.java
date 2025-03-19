@@ -1,5 +1,7 @@
 package com.heapoverflow.cli.commands;
 
+import java.util.List;
+
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -9,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.ReplyServices;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.FlagsCheckUtils;
 import com.heapoverflow.cli.utils.TextUtils;
 
 @ShellComponent
@@ -27,7 +30,10 @@ public class ReplyCommands {
         @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
         @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size
     ) {
-        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+        List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(list, get, post, edit, delete);
+        if(selectedFlags.size() > 1){
+            return "You cannot use multiple action based flags at once: " + selectedFlags.toString();
+        } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
             return listReplies(page, size, commentId);
