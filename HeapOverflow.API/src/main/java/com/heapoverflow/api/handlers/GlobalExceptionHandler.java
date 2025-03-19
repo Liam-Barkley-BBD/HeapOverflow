@@ -18,8 +18,8 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Map<String, String>> BadRequestException(UserNotFoundException ex) {
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, String>> BadRequestException(BadRequestException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
