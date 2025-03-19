@@ -1,5 +1,7 @@
 package com.heapoverflow.cli.services;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.heapoverflow.cli.constants.AuthEndpointsConstants;
 import com.heapoverflow.cli.constants.EnvConstants;
@@ -12,18 +14,22 @@ public class AuthServices {
         try {
             String authCode = BrowserAuthServices.getUsersGoogleAuthCode().join();
 
-            if(authCode.equals("")){
+            if (authCode.equals("")) {
                 return "Browser authentication took too long or failed, releasing resources";
-            } else{
-                JsonNode jsonNode = HttpUtils.syncGet(EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + AuthEndpointsConstants.AUTH_TOKEN + authCode);
+            } else {
+                JsonNode jsonNode = HttpUtils.syncPost(
+                        EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + AuthEndpointsConstants.AUTH_TOKEN,
+                        Map.of(
+                                "code", authCode));
 
                 if (jsonNode.has("jwt")) {
                     EnvUtils.storeValue(EnvConstants.JWT_TOKEN, jsonNode.get("jwt").asText());
-                    EnvUtils.storeValue(EnvConstants.GOOGLE_SUB, TokenUtils.decodeJWT("sub", jsonNode.get("jwt").asText()));
+                    EnvUtils.storeValue(EnvConstants.GOOGLE_SUB,
+                            TokenUtils.decodeJWT("sub", jsonNode.get("jwt").asText()));
                     String name = TokenUtils.decodeJWT("name", jsonNode.get("jwt").asText());
                     EnvUtils.storeValue(EnvConstants.GOOGLE_NAME, name);
-                    return "Authentication successful! Hi "+ name +" welcome to HeapOverflow.CLI!";
-                } else{
+                    return "Authentication successful! Hi " + name + " welcome to HeapOverflow.CLI!";
+                } else {
                     return "Authentication failed as jwt token was not found";
                 }
             }

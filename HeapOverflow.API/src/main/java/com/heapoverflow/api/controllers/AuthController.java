@@ -1,10 +1,11 @@
 package com.heapoverflow.api.controllers;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.heapoverflow.api.models.AuthRequest;
 import com.heapoverflow.api.services.AuthService;
 
 @RestController
@@ -16,9 +17,9 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @GetMapping("/auth/token")
-    public ResponseEntity<String> auth(@RequestParam String code) throws Exception {
-        
+    @PostMapping("/auth/token")
+    public ResponseEntity<String> auth(@RequestBody AuthRequest authRequest) throws Exception {
+        String code = authRequest.getCode();
         String jwt = authService.authenticateUser(code);
         return ResponseEntity.ok(jwt);
     }
