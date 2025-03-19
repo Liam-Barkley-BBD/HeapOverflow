@@ -114,7 +114,7 @@ public class HttpUtils {
             }
             throw new RuntimeException("Your session has expired, please type the login command to login again");
         } else if (statusCode == 404) {
-            throw new RuntimeException("Resource not found in server or db");
+            throw new RuntimeException("Resource not found");
         } else if (statusCode >= 400) {
             throw new RuntimeException(statusCode + " " + response.body());
         } else {
