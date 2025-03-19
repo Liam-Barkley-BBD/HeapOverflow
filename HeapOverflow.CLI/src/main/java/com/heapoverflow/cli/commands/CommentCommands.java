@@ -1,6 +1,7 @@
 package com.heapoverflow.cli.commands;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -27,11 +28,11 @@ public class CommentCommands {
             @ShellOption(value = "delete", help = "Delete a comment", defaultValue = "false") boolean delete,
             @ShellOption(value = "upvote", help = "Upvote a comment", defaultValue = "false") boolean upvote,
             @ShellOption(value = "un-upvote", help = "Remove your upvote to a comment", defaultValue = "false") boolean unupvote,
-            @ShellOption(value = "commentId", help = "Comment ID", defaultValue = "") String commentId,
-            @ShellOption(value = "content", help = "Comment content", defaultValue = "") String content,
-            @ShellOption(value = "threadId", help = "Thread ID", defaultValue = "") String threadId,
-            @ShellOption(value = "page", help = "Page number", defaultValue = "1") int page,
-            @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size
+            @ShellOption(value = "commentId", help = "Comment ID", defaultValue = ShellOption.NULL) Optional<String> commentId,
+            @ShellOption(value = "content", help = "Comment content", defaultValue = ShellOption.NULL) Optional<String> content,
+            @ShellOption(value = "threadId", help = "Thread ID", defaultValue = ShellOption.NULL) Optional<String> threadId,
+            @ShellOption(value = "page", help = "Page number", defaultValue = ShellOption.NULL) Optional<Integer> page,
+            @ShellOption(value = "size", help = "Page size", defaultValue = ShellOption.NULL) Optional<Integer> size
     ) {
         List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(list, get, post, edit, delete, upvote, unupvote);
         if(selectedFlags.size() > 1){
@@ -39,19 +40,19 @@ public class CommentCommands {
         } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return getAllComments(page, size, threadId);
+            return getAllComments(page.orElse(1), size.orElse(10), threadId.orElse(""));
         } else if (get) {
-            return getComment(commentId) + ReplyCommands.listReplies(page, size, commentId);
+            return getComment(commentId.orElse("")) + ReplyCommands.listReplies(page.orElse(0), size.orElse(0), commentId.orElse(""));
         } else if (post) {
-            return postComment(content, threadId);
+            return postComment(content.orElse(""), threadId.orElse(""));
         } else if (edit) {
-            return editComment(commentId, content);
+            return editComment(commentId.orElse(""), content.orElse(""));
         } else if (delete) {
-            return deleteComment(commentId);
+            return deleteComment(commentId.orElse(""));
         } else if (upvote) {
-            return upvoteComment(commentId);
+            return upvoteComment(commentId.orElse(""));
         } else if (unupvote) {
-            return unupvoteComment(commentId);
+            return unupvoteComment(commentId.orElse(""));
         } else {
             return "Invalid command. Use: \n" +
                     "\t\t\t--list --threadId[optional] {id} --page[optional] {num} --size[optional] {num}\n" +

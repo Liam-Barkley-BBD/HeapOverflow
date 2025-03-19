@@ -1,6 +1,7 @@
 package com.heapoverflow.cli.commands;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -24,11 +25,11 @@ public class ReplyCommands {
         @ShellOption(value = "post", help = "Post a new reply", defaultValue = "false") boolean post,
         @ShellOption(value = "edit", help = "Edit a reply", defaultValue = "false") boolean edit,
         @ShellOption(value = "delete", help = "Delete a reply", defaultValue = "false") boolean delete,
-        @ShellOption(value = "replyId", help = "Reply ID", defaultValue = "") String replyId,
-        @ShellOption(value = "content", help = "Reply content", defaultValue = "") String content,
-        @ShellOption(value = "commentId", help = "Comment ID", defaultValue = "") String commentId,
-        @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
-        @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size
+        @ShellOption(value = "replyId", help = "Reply ID", defaultValue = ShellOption.NULL) Optional<String> replyId,
+        @ShellOption(value = "content", help = "Reply content", defaultValue = ShellOption.NULL) Optional<String> content,
+        @ShellOption(value = "commentId", help = "Comment ID", defaultValue = ShellOption.NULL) Optional<String> commentId,
+        @ShellOption(value = "page", help = "Page number", defaultValue = ShellOption.NULL) Optional<Integer> page,
+        @ShellOption(value = "size", help = "Page size", defaultValue = ShellOption.NULL) Optional<Integer> size
     ) {
         List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(list, get, post, edit, delete);
         if(selectedFlags.size() > 1){
@@ -36,15 +37,15 @@ public class ReplyCommands {
         } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return listReplies(page, size, commentId);
+            return listReplies(page.orElse(1), size.orElse(10), commentId.orElse(""));
         } else if (get) {
-            return getReplyById(replyId);
+            return getReplyById(replyId.orElse(""));
         } else if (post) {
-            return postReply(content, commentId);
+            return postReply(content.orElse(""), commentId.orElse(""));
         } else if (edit) {
-            return editReply(replyId, content);
+            return editReply(replyId.orElse(""), content.orElse(""));
         } else if (delete) {
-            return deleteReply(replyId);
+            return deleteReply(replyId.orElse(""));
         } else {
             return "Invalid command. Use: \n" +
                                         "\t\t\t--list --commentId[optional] {id} --page[optional] {num} --size[optional] {num}\n" +

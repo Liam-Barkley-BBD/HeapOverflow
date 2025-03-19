@@ -1,6 +1,7 @@
 package com.heapoverflow.cli.commands;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -20,23 +21,23 @@ public class UserCommands {
     public String users(
         @ShellOption(value = "list", help = "List all users", defaultValue = "false") boolean list,
         @ShellOption(value = "get", help = "Get a specific user", defaultValue = "false") boolean get,
-        @ShellOption(value = "gid", help = "Google user ID", defaultValue = "") String gid,
-        @ShellOption(value = "username", help = "Filter by username", defaultValue = "") String username,
-        @ShellOption(value = "email", help = "Filter by email", defaultValue = "") String email,
-        @ShellOption(value = "page", help = "Page number", defaultValue = "0") int page,
-        @ShellOption(value = "size", help = "Page size", defaultValue = "5") int size
+        @ShellOption(value = "gid", help = "Google user ID", defaultValue = ShellOption.NULL) Optional<String> gid,
+        @ShellOption(value = "username", help = "Filter by username", defaultValue = ShellOption.NULL) Optional<String> username,
+        @ShellOption(value = "email", help = "Filter by email", defaultValue = ShellOption.NULL) Optional<String> email,
+        @ShellOption(value = "page", help = "Page number", defaultValue = ShellOption.NULL) Optional<Integer> page,
+        @ShellOption(value = "size", help = "Page size", defaultValue = ShellOption.NULL) Optional<Integer> size
     ) {
         List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForUser(list, get);
         if(selectedFlags.size() > 1){
             return "You cannot use multiple action based flags at once: " + selectedFlags.toString();
         } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in, please login!";
-        } else if (get && gid.isEmpty()) {
+        } else if (get && gid.isPresent() && gid.isEmpty()) {
             return "You must specify a Google ID with --gid";
-        } else if (get && !gid.isEmpty()) {
-            return getUserByGid(gid);
+        } else if (get && gid.isPresent() && !gid.isEmpty()) {
+            return getUserByGid(gid.orElse(""));
         } else if (list) {
-            return listUsers(username, email, page, size);
+            return listUsers(username.orElse(""), email.orElse(""), page.orElse(1), size.orElse(10));
         } else{
             return "Specify --list to retrieve users or --get --gid {gid} to get a specific user.";
         }
