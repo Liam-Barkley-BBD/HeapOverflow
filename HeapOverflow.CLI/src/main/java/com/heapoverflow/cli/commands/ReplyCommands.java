@@ -121,13 +121,12 @@ public class ReplyCommands {
     private static TableModelBuilder<String> buildReplyTable(JsonNode replyNode) {
         TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
         modelBuilder.addRow().addValue("ID").addValue("Content")
-                .addValue("GID").addValue("User").addValue("Email")
+                .addValue("User").addValue("Email")
                 .addValue("Created At").addValue("CommentId");
         if (replyNode.isArray()) {
             for (JsonNode reply : replyNode) {
                 modelBuilder.addRow().addValue(reply.path("id").asText("N/A"))
                         .addValue(reply.path("content").asText("N/A"))
-                        .addValue(reply.path("user").path("id").asText("N/A"))
                         .addValue(reply.path("user").path("username").asText("N/A"))
                         .addValue(reply.path("user").path("email").asText("N/A"))
                         .addValue(reply.path("createdAt").asText("N/A"))
@@ -136,7 +135,6 @@ public class ReplyCommands {
         } else {
             modelBuilder.addRow().addValue(replyNode.path("id").asText("N/A"))
                     .addValue(replyNode.path("content").asText("N/A"))
-                    .addValue(replyNode.path("user").path("id").asText("N/A"))
                     .addValue(replyNode.path("user").path("username").asText("N/A"))
                     .addValue(replyNode.path("user").path("email").asText("N/A"))
                     .addValue(replyNode.path("createdAt").asText("N/A"))

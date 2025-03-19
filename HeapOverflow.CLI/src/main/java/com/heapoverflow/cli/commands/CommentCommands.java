@@ -161,7 +161,7 @@ public class CommentCommands {
     private static TableModelBuilder<String> buildCommentTable(JsonNode commentNode) {
         TableModelBuilder<String> modelBuilder = new TableModelBuilder<>();
         modelBuilder.addRow().addValue("ID").addValue("Content")
-                .addValue("GID").addValue("User").addValue("Email")
+                .addValue("User").addValue("Email")
                 .addValue("Created At").addValue("Upvotes").addValue("ThreadId");
         if (commentNode.isArray()) {
             for (JsonNode comment : commentNode) {
@@ -169,7 +169,6 @@ public class CommentCommands {
                 modelBuilder.addRow()
                         .addValue(comment.path("id").asText("N/A"))
                         .addValue(comment.path("content").asText("N/A"))
-                        .addValue(userNode.path("id").asText("N/A"))
                         .addValue(userNode.path("username").asText("N/A"))
                         .addValue(userNode.path("email").asText("N/A"))
                         .addValue(comment.path("createdAt").asText("N/A"))
@@ -181,7 +180,6 @@ public class CommentCommands {
             modelBuilder.addRow()
                     .addValue(commentNode.path("id").asText("N/A"))
                     .addValue(commentNode.path("content").asText("N/A"))
-                    .addValue(userNode.path("id").asText("N/A"))
                     .addValue(userNode.path("username").asText("N/A"))
                     .addValue(userNode.path("email").asText("N/A"))
                     .addValue(commentNode.path("createdAt").asText("N/A"))
