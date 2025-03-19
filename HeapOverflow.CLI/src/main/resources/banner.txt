@@ -12,8 +12,7 @@
 
              | / _   \"Your Stack is Overflowing!\" 📚🔥
 ------------------------------------------------------------
-    HeapOverflow CLI - Because debugging alone is no fun! 🐛
-    Version: 3.0.0                                                                           
+    HeapOverflow CLI - Because debugging alone is no fun! 🐛                                                                     
 ------------------------------------------------------------
 
 Type 'help' to see available commands or 'exit' to quit.
