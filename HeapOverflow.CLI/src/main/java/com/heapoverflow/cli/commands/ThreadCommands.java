@@ -50,7 +50,8 @@ public class ThreadCommands {
         } else if (userThreads) {
             return getUserThreads(page, size);
         } else if (get) {
-            return getThread(threadId.orElse("")) + CommentCommands.getAllComments(page, size, threadId.orElse(""));
+            return getThread(threadId.orElse("")) + "Comments for thread: \n"
+                    + CommentCommands.getAllComments(page, size, threadId.orElse(""));
         } else if (post) {
             return postThread(title.orElse(""), description.orElse(""));
         } else if (edit) {
