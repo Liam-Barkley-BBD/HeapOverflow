@@ -3,6 +3,7 @@ package com.heapoverflow.cli.services;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,11 +71,19 @@ public class ThreadsService {
         public static JsonNode patchThread(String id, String title, String description, Boolean closeThread)
                         throws Exception {
 
-                Map<String, Object> fields = Stream.of(
-                                Map.entry("title", title),
-                                Map.entry("description", description))
-                                .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank())
+                Map<String, Object> fields = new HashMap<>();
+                if (title != null) {
+                        fields.put("title", title);
+                }
+                if (description != null) {
+                        fields.put("description", description);
+                }
+                fields = fields.entrySet().stream()
+                                .filter(entry -> entry.getValue() != null && (entry.getValue() instanceof String
+                                                ? !((String) entry.getValue()).isBlank()
+                                                : true))
                                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
                 if (closeThread) {
                         fields.put("closedAt", LocalDateTime.now().toString());
                 }
