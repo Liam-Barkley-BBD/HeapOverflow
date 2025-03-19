@@ -34,7 +34,7 @@ public class ThreadsService {
 
         public static JsonNode getThreadsByUser(int page, int size) throws Exception {
                 String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                + ApiEndpointsConstants.API_THREADS_USER + page +
+                                + ApiEndpointsConstants.API_THREADS_USER + "?page=" + page +
                                 "&size=" + size;
 
                 return HttpUtils.syncGet(url);
