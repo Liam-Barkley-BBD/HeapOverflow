@@ -78,34 +78,40 @@ public class ThreadCommands {
         }
     }
 
-    private String getAllThreads(String search, int page, int size) {
-   
-        try {
+    private String getAllThreads(String search, Integer page, Integer size) {
+        if (page == null) {
+            return "page has to be specified eg: thread --list --page 2";
+        } else if (size == null) {
+            return "size has to be specified eg: thread --list --size 2";
+        } else {
 
-            JsonNode jsonResponse = ThreadsService.getThreads(search, Math.max(0, page - 1), size);
-            JsonNode contentArray = jsonResponse.path("content");
+            try {
 
-            {
-                int totalThreads = jsonResponse.path("totalElements").asInt(0);
-                int totalPages = jsonResponse.path("totalPages").asInt(1);
-                int currentPage = jsonResponse.path("number").asInt(0) + 1;
-                boolean isLastPage = jsonResponse.path("last").asBoolean();
+                JsonNode jsonResponse = ThreadsService.getThreads(search, Math.max(0, page - 1), size);
+                JsonNode contentArray = jsonResponse.path("content");
 
-                return buildThreadTable(contentArray, false) +
-                        String.format("\nPage %d of %d | Total Threads: %d %s",
-                                currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                {
+                    int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                    int totalPages = jsonResponse.path("totalPages").asInt(1);
+                    int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                    boolean isLastPage = jsonResponse.path("last").asBoolean();
+
+                    return buildThreadTable(contentArray, false) +
+                            String.format("\nPage %d of %d | Total Threads: %d %s",
+                                    currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                }
+            } catch (Exception e) {
+                return "Error retrieving threads: " + e.getMessage();
             }
-        } catch (Exception e) {
-            return "Error retrieving threads: " + e.getMessage();
         }
     }
 
-    private String getThread(String id) {
-        if (id.isEmpty()) {
-            return "Thread ID must be specifiedlike: 'thread get --threadId {id_value}'";
+    private String getThread(String threaId) {
+        if (threaId == null) {
+            return "Thread ID must be specified like: 'thread get --threadId {id_value}'";
         } else {
             try {
-                JsonNode thread = ThreadsService.getThreadsById(id);
+                JsonNode thread = ThreadsService.getThreadsById(threaId);
                 String threadTable = buildThreadTable(thread, true);
                 return threadTable;
             } catch (Exception e) {
@@ -114,52 +120,64 @@ public class ThreadCommands {
         }
     }
 
-    private String getUserThreads(int page, int size) {
+    private String getUserThreads(Integer page, Integer size) {
+        if (page == null) {
+            return "page has to be specified eg: thread --userThreads --page 2";
+        } else if (size == null) {
+            return "size has to be specified eg: thread --userThreads --size 2";
+        } else {
 
-        try {
-            JsonNode jsonResponse = ThreadsService.getThreadsByUser(Math.max(0, page - 1), size);
-            JsonNode contentArray = jsonResponse.path("content");
+            try {
+                JsonNode jsonResponse = ThreadsService.getThreadsByUser(Math.max(0, page - 1), size);
+                JsonNode contentArray = jsonResponse.path("content");
 
-            {
-                int totalThreads = jsonResponse.path("totalElements").asInt(0);
-                int totalPages = jsonResponse.path("totalPages").asInt(1);
-                int currentPage = jsonResponse.path("number").asInt(0) + 1;
-                boolean isLastPage = jsonResponse.path("last").asBoolean();
+                {
+                    int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                    int totalPages = jsonResponse.path("totalPages").asInt(1);
+                    int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                    boolean isLastPage = jsonResponse.path("last").asBoolean();
 
-                return buildThreadTable(contentArray, false) +
-                        String.format("\nPage %d of %d | Total Threads: %d %s",
-                                currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                    return buildThreadTable(contentArray, false) +
+                            String.format("\nPage %d of %d | Total Threads: %d %s",
+                                    currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
 
+                }
+            } catch (Exception e) {
+                return "Error retrieving thread: " + e.getMessage();
             }
-        } catch (Exception e) {
-            return "Error retrieving thread: " + e.getMessage();
         }
     }
 
-    private String getTrendingThreads(int page, int size) {
-    
-        try {
-            JsonNode jsonResponse = ThreadsService.getThreadsTrending(Math.max(0, page - 1), size);
-            JsonNode contentArray = jsonResponse.path("content");
+    private String getTrendingThreads(Integer page, Integer size) {
+        if (page == null) {
+            return "page has to be specified eg: thread --trending --page 2";
+        } else if (size == null) {
+            return "size has to be specified eg: thread --trending --size 2";
+        } else {
 
-            {
-                int totalThreads = jsonResponse.path("totalElements").asInt(0);
-                int totalPages = jsonResponse.path("totalPages").asInt(1);
-                int currentPage = jsonResponse.path("number").asInt(0) + 1;
-                boolean isLastPage = jsonResponse.path("last").asBoolean();
+            try {
+                JsonNode jsonResponse = ThreadsService.getThreadsTrending(Math.max(0, page - 1), size);
+                JsonNode contentArray = jsonResponse.path("content");
 
-                return buildThreadTable(contentArray, false) +
-                        String.format("\nPage %d of %d | Total Threads: %d %s",
-                                currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                {
+                    int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                    int totalPages = jsonResponse.path("totalPages").asInt(1);
+                    int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                    boolean isLastPage = jsonResponse.path("last").asBoolean();
 
+                    return buildThreadTable(contentArray, false) +
+                            String.format("\nPage %d of %d | Total Threads: %d %s",
+                                    currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+
+                }
+            } catch (Exception e) {
+                return "Error retrieving thread: " + e.getMessage();
             }
-        } catch (Exception e) {
-            return "Error retrieving thread: " + e.getMessage();
         }
     }
 
     private String postThread(String title, String description) {
-        if (title.isEmpty() || description.isEmpty()) {
+        if (title == null || description == null) {
             return "title and description must be specified like:'thread --post --title\"{title _value}\" --description \"{description_value}\"' ";
         } else {
             try {
@@ -173,7 +191,7 @@ public class ThreadCommands {
     }
 
     private String editThread(String threadId, String title, String description, Boolean closeThread) {
-        if (threadId.isEmpty()) {
+        if (threadId == null) {
             return "ThreadId should be initialized eg thread --edit --threadId {id}";
         } else {
             try {
@@ -186,7 +204,7 @@ public class ThreadCommands {
     }
 
     private String deleteThread(String threadId) {
-        if (threadId.isEmpty()) {
+        if (threadId == null) {
             return "The threadId must be specified like: 'thread --delete --threadId {threadId_value}'";
         } else {
             try {
@@ -199,7 +217,7 @@ public class ThreadCommands {
     }
 
     private String upvoteThread(String threadId) {
-        if (threadId.isEmpty()) {
+        if (threadId == null) {
             return "Thread ID must be specified to upvote: 'thread upvote --threadId {id_value}";
         } else {
             try {
@@ -212,7 +230,7 @@ public class ThreadCommands {
     }
 
     private String removeUpvoteThread(String threadId) {
-        if (threadId.isEmpty()) {
+        if (threadId == null) {
             return "Thread Id must be specified like: 'thread unupvote --threadId {id_value}'";
         } else {
             try {

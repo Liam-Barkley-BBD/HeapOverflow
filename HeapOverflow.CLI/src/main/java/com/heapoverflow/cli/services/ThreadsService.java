@@ -30,7 +30,6 @@ public class ThreadsService {
                         apiUrl.append("");
                 }
 
-                System.out.println(apiUrl.toString());
                 return HttpUtils.syncGet(apiUrl.toString());
         }
 
