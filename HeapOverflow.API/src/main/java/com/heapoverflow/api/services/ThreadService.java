@@ -41,9 +41,15 @@ public class ThreadService {
     }
 
     public Page<Thread> getThreadsByFilter(String searchText, Pageable pageable) {
-        if (searchText != null && !searchText.trim().isEmpty()) {
-            Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-            return threadRepository.findByFuzzySearch(searchText, pageableWithoutSort);
+
+        if (searchText != null) {
+            if (!searchText.trim().isEmpty()) {
+                throw new BadRequestException("Thread search cannot be empty.");
+            } else {
+                Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+                return threadRepository.findByFuzzySearch(searchText, pageableWithoutSort);
+            }
+
         } else {
             return threadRepository.findAll(pageable);
         }
