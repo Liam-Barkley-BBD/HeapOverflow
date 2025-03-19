@@ -13,10 +13,10 @@ public class FlagsCheckUtils {
     ){
         List<String> selectedFlags = new ArrayList<>();
         if (list) selectedFlags.add("list");
-        else if (get) selectedFlags.add("get");
-        else if (post) selectedFlags.add("post");
-        else if (edit) selectedFlags.add("edit");
-        else if (delete) selectedFlags.add("delete");
+        if (get) selectedFlags.add("get");
+        if (post) selectedFlags.add("post");
+        if (edit) selectedFlags.add("edit");
+        if (delete) selectedFlags.add("delete");
 
         return selectedFlags;
     }
@@ -32,7 +32,7 @@ public class FlagsCheckUtils {
     ){
         List<String> selectedFlags = ensureOnlyOneFlagIsSetForReplies(list, get, post, edit, delete);
         if (upvote) selectedFlags.add("upvote");
-        else if (unupvote) selectedFlags.add("unupvote");
+        if (unupvote) selectedFlags.add("unupvote");
 
         return selectedFlags;
     }
@@ -46,10 +46,10 @@ public class FlagsCheckUtils {
     ){
         List<String> selectedFlags = new ArrayList<>();
         if (login) selectedFlags.add("login");
-        else if (logout) selectedFlags.add("logout");
-        else if (gid) selectedFlags.add("gid");
-        else if (name) selectedFlags.add("name");
-        else if (jwt) selectedFlags.add("jwt");
+        if (logout) selectedFlags.add("logout");
+        if (gid) selectedFlags.add("gid");
+        if (name) selectedFlags.add("name");
+        if (jwt) selectedFlags.add("jwt");
 
         return selectedFlags;
     }
