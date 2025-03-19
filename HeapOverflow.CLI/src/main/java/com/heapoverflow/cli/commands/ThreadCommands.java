@@ -20,6 +20,8 @@ public class ThreadCommands {
     @ShellMethod(key = "thread", value = "Manage threads in the system")
     public String thread(
             @ShellOption(value = "list", help = "List threads", defaultValue = "false") boolean list,
+            @ShellOption(value = "trending", help = "List threads by trending", defaultValue = "false") boolean trending,
+            @ShellOption(value = "userThreads", help = "List threads by user", defaultValue = "false") boolean userThreads,
             @ShellOption(value = "get", help = "Get a specific thread", defaultValue = "false") boolean get,
             @ShellOption(value = "post", help = "Post a new thread", defaultValue = "false") boolean post,
             @ShellOption(value = "edit", help = "Edit a thread", defaultValue = "false") boolean edit,
@@ -27,9 +29,7 @@ public class ThreadCommands {
             @ShellOption(value = "upvote", help = "Upvote a thread", defaultValue = "false") boolean upvote,
             @ShellOption(value = "removeUpvote", help = "Remove upvote from a thread", defaultValue = "false") boolean removeUpvote,
             @ShellOption(value = "search", help = "Search query", defaultValue = "") String search,
-            @ShellOption(value = "trending", help = "Filter trending threads", defaultValue = "") Boolean trending,
             @ShellOption(value = "closeThread", help = "Close Thread (true/false)", defaultValue = "false") boolean closeThread,
-            @ShellOption(value = "user", help = "Get my threads", defaultValue = "") Boolean user,
             @ShellOption(value = "threadId", help = "Thread ID", defaultValue = "") String threadId,
             @ShellOption(value = "title", help = "Thread title", defaultValue = "") String title,
             @ShellOption(value = "description", help = "Thread description", defaultValue = "") String description,
@@ -38,7 +38,11 @@ public class ThreadCommands {
         if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return getAllThreads(search, trending, user, page, size);
+            return getAllThreads(search, page, size);
+        } else if (trending) {
+            return getTrendingThreads();
+        } else if (userThreads) {
+            return getUserThreads();
         } else if (get) {
             return getThread(threadId) + CommentCommands.getAllComments(page, size, threadId);
         } else if (post) {
@@ -53,8 +57,10 @@ public class ThreadCommands {
             return removeUpvoteThread(threadId);
         } else {
             return "Invalid command. Use: \n" +
-                    "\t--list [--search query] [--trending true/false] [--user true/false] --page[optional] {num} --size[optional] {num}\n" +
-                    "\t--get --threadId {id} --page[optional] {num} --size[optional] {num}\n" +
+                    "\t--list [--search[optional] \"query\" --page[optional] {num} --size[optional] {num}]\n" +
+                    "\t--userThreads \n" +
+                    "\t--trending \n" +
+                    "\t--get --threadId {id} --page[optional] {num} --size[optional] {num}]\n" +
                     "\t--post --title \"text\" --description \"text\"\n" +
                     "\t--edit --threadId {id} --title \"text\" --description \"text\" [--closeThread true/false]\n" +
                     "\t--delete --threadId {id}\n" +
@@ -64,10 +70,10 @@ public class ThreadCommands {
         }
     }
 
-    private String getAllThreads(String search, Boolean trending, Boolean user, int page, int size) {
+    private String getAllThreads(String search, int page, int size) {
         try {
             String encodedSearchText = URLEncoder.encode(search, StandardCharsets.UTF_8.toString());
-            JsonNode jsonResponse = ThreadsService.getThreads(encodedSearchText, Math.max(0, page - 1), size, trending, user);
+            JsonNode jsonResponse = ThreadsService.getThreads(encodedSearchText, Math.max(0, page - 1), size);
             JsonNode contentArray = jsonResponse.path("content");
 
             if (!contentArray.isArray() || contentArray.isEmpty()) {
@@ -101,6 +107,64 @@ public class ThreadCommands {
         }
     }
 
+    private String getUserThreads() {
+
+        {
+            try {
+                JsonNode jsonResponse = ThreadsService.getThreadsByUser();
+                JsonNode contentArray = jsonResponse.path("content");
+
+                if (!contentArray.isArray() || contentArray.isEmpty()) {
+                    return "No comments found.";
+                } else {
+                    if (!contentArray.isArray() || contentArray.isEmpty()) {
+                        return "No threads found.";
+                    } else {
+                        int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                        int totalPages = jsonResponse.path("totalPages").asInt(1);
+                        int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                        boolean isLastPage = jsonResponse.path("last").asBoolean();
+
+                        return buildThreadTable(contentArray, false) +
+                                String.format("\nPage %d of %d | Total Threads: %d %s",
+                                        currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                    }
+                }
+            } catch (Exception e) {
+                return "Error retrieving thread: " + e.getMessage();
+            }
+        }
+    }
+
+    private String getTrendingThreads() {
+
+        {
+            try {
+                JsonNode jsonResponse = ThreadsService.getThreadsTrending();
+                JsonNode contentArray = jsonResponse.path("content");
+
+                if (!contentArray.isArray() || contentArray.isEmpty()) {
+                    return "No comments found.";
+                } else {
+                    if (!contentArray.isArray() || contentArray.isEmpty()) {
+                        return "No threads found.";
+                    } else {
+                        int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                        int totalPages = jsonResponse.path("totalPages").asInt(1);
+                        int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                        boolean isLastPage = jsonResponse.path("last").asBoolean();
+
+                        return buildThreadTable(contentArray, false) +
+                                String.format("\nPage %d of %d | Total Threads: %d %s",
+                                        currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+                    }
+                }
+            } catch (Exception e) {
+                return "Error retrieving thread: " + e.getMessage();
+            }
+        }
+    }
+
     private String postThread(String title, String description) {
         try {
             JsonNode thread = ThreadsService.postThread(title, description);
@@ -112,11 +176,15 @@ public class ThreadCommands {
     }
 
     private String editThread(String threadId, String title, String description, Boolean closeThread) {
-        try {
-            JsonNode thread = ThreadsService.patchThread(threadId, title, description, closeThread);
-            return buildThreadTable(thread, true);
-        } catch (Exception e) {
-            return "Error updating thread: " + e.getMessage();
+        if (threadId.isEmpty()) {
+            return "ThreadId should be initialized eg thread --edit --threadId {id}";
+        } else {
+            try {
+                JsonNode thread = ThreadsService.patchThread(threadId, title, description, closeThread);
+                return buildThreadTable(thread, true);
+            } catch (Exception e) {
+                return "Error updating thread: " + e.getMessage();
+            }
         }
     }
 
