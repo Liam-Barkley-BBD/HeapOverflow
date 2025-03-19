@@ -24,7 +24,8 @@ public class CommentService {
     private final UserRepository userRepository;
     private final ThreadRepository threadRepository;
 
-    public CommentService(CommentRepository commentRepository, UserRepository userRepository, ThreadRepository threadRepository) {
+    public CommentService(CommentRepository commentRepository, UserRepository userRepository,
+            ThreadRepository threadRepository) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.threadRepository = threadRepository;
@@ -61,6 +62,10 @@ public class CommentService {
             throw new IllegalStateException("Thread is already closed.");
         }
 
+        if (commentRequest.getContent() == null || commentRequest.getContent().trim().isEmpty()) {
+            throw new BadRequestException("Comment cannot be empty.");
+        }
+
         Comment newComment = new Comment(commentRequest.getContent(), user, thread);
         return commentRepository.save(newComment);
     }
@@ -69,27 +74,27 @@ public class CommentService {
     public Comment updateComment(Integer commentId, String content) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment with ID " + commentId + " not found."));
-        
+
         if (!comment.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to update this comment.");
         }
-    
+
         if (comment.getThread().getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
         }
-    
-        // update comment with new info
-        if (content != null) {
-            comment.setContent(content);
+
+        if (content == null || content.trim().isEmpty()) {
+            throw new BadRequestException("Comment cannot be empty.");
         }
 
+        comment.setContent(content);
         return commentRepository.save(comment);
     }
 
     @Transactional
     public void deleteComment(Integer id) {
         Comment comment = commentRepository.findById(id)
-        .orElseThrow(() -> new ReplyNotFoundException("Comment with ID " + id + " not found."));
+                .orElseThrow(() -> new ReplyNotFoundException("Comment with ID " + id + " not found."));
 
         if (!comment.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to delete this comment.");

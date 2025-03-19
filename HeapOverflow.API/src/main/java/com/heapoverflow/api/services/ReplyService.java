@@ -60,6 +60,10 @@ public class ReplyService {
             throw new IllegalStateException("Thread is already closed.");
         }
 
+        if (replyRequest.getContent() == null || replyRequest.getContent().trim().isEmpty()) {
+            throw new BadRequestException("REply cannot be empty.");
+        }
+
         Reply newReply = new Reply(replyRequest.getContent(), user, comment);
         return replyRepository.save(newReply);
     }
@@ -76,12 +80,12 @@ public class ReplyService {
         if (reply.getComment().getThread().getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
         }
-    
-        // update reply with new info
-        if (content != null) {
-            reply.setContent(content);
-        }
 
+        if (content == null || content.trim().isEmpty()) {
+            throw new BadRequestException("REply cannot be empty.");
+        }
+    
+        reply.setContent(content);
         return replyRepository.save(reply);
     }
 

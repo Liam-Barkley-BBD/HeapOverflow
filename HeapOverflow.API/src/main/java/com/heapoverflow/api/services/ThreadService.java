@@ -44,8 +44,7 @@ public class ThreadService {
         if (searchText != null && !searchText.trim().isEmpty()) {
             Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             return threadRepository.findByFuzzySearch(searchText, pageableWithoutSort);
-        }
-        else {
+        } else {
             return threadRepository.findAll(pageable);
         }
     }
@@ -58,7 +57,7 @@ public class ThreadService {
     public Page<Thread> getThreadsForCurrentUser(Pageable pageable) {
         String authenticatedUserId = AuthUtils.getAuthenticatedUserId();
         User user = userRepository.findById(authenticatedUserId)
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return threadRepository.findByUser_Id(user.getId(), pageable);
     }
 
@@ -69,24 +68,38 @@ public class ThreadService {
         User user = userRepository.findById(authenticatedUserId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
+        if (threadRequest.getTitle() == null || threadRequest.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("Thread title cannot be empty.");
+        }
+        if (threadRequest.getDescription() == null || threadRequest.getDescription().trim().isEmpty()) {
+            throw new BadRequestException("Thread description cannot be empty.");
+        }
+
         Thread newThread = new Thread(threadRequest.getTitle(), threadRequest.getDescription(), user);
         return threadRepository.save(newThread);
     }
-    
+
     @Transactional
     public Thread updateThread(Integer threadId, ThreadUpdate threadUpdate) {
 
         Thread thread = threadRepository.findById(threadId)
                 .orElseThrow(() -> new ThreadNotFoundException("Thread with ID " + threadId + " not found."));
-        
+
         if (!thread.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to update this thread.");
         }
-    
+
         if (thread.getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
         }
-    
+
+        if (threadUpdate.getTitle() == null || threadUpdate.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("Thread title cannot be empty.");
+        }
+        if (threadUpdate.getDescription() == null || threadUpdate.getDescription().trim().isEmpty()) {
+            throw new BadRequestException("Thread description cannot be empty.");
+        }
+
         // update thread with new info
         if (threadUpdate.getTitle() != null) {
             thread.setTitle(threadUpdate.getTitle());
@@ -97,15 +110,14 @@ public class ThreadService {
         if (threadUpdate.getClosedAt() != null) {
             thread.setClosedAt(threadUpdate.getClosedAt());
         }
-    
+
         return threadRepository.save(thread);
     }
-    
 
     @Transactional
     public void deleteThread(Integer id) {
         Thread thread = threadRepository.findById(id)
-        .orElseThrow(() -> new ThreadNotFoundException("Thread with ID " + id + " not found."));
+                .orElseThrow(() -> new ThreadNotFoundException("Thread with ID " + id + " not found."));
 
         if (!thread.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to delete this thread.");
