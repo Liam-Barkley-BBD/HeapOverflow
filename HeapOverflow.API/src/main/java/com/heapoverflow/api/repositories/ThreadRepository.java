@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ThreadRepository extends JpaRepository<Thread, Integer> {
 
@@ -17,6 +18,26 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
 
     Page<Thread> findByUser_Id(String userId, Pageable pageable);
 
+    @Query(value = """
+        SELECT t.thread_id, t.thread_title, t.thread_description, t.user_google_id, 
+               t.created_at, t.closed_at,
+               (SELECT COUNT(*) FROM thread_upvotes tu WHERE tu.thread_id = t.thread_id) AS threadUpvotesCount
+        FROM threads t
+        WHERE similarity(t.thread_title, :searchText) > 0.1
+        OR similarity(t.thread_description, :searchText) > 0.1
+        ORDER BY GREATEST(
+            similarity(t.thread_title, :searchText),
+            similarity(t.thread_description, :searchText)
+        ) DESC
+        """, 
+        countQuery = """
+        SELECT COUNT(*) FROM threads t
+        WHERE similarity(t.thread_title, :searchText) > 0.1
+        OR similarity(t.thread_description, :searchText) > 0.1
+        """, 
+        nativeQuery = true)
+    Page<Thread> findByFuzzySearch(@Param("searchText") String searchText, Pageable pageable);
+    
     @Query(value = """
             SELECT t.thread_id, t.thread_title, t.thread_description, t.user_google_id, t.created_at, t.closed_at,
                    (SELECT COUNT(thread_upvote_id) FROM thread_upvotes tu WHERE tu.thread_id = t.thread_id) AS threadUpvotesCount

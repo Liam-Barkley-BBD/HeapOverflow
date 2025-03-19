@@ -41,8 +41,9 @@ public class ThreadService {
     }
 
     public Page<Thread> getThreadsByFilter(String searchText, Pageable pageable) {
-        if (searchText != null) {
-            return threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            return threadRepository.findByFuzzySearch(searchText, pageableWithoutSort);
         }
         else {
             return threadRepository.findAll(pageable);
