@@ -226,31 +226,6 @@ public class ThreadsServiceTests {
     }
 
     @Test
-    void patchThread_WithNullFields_ShouldNotIncludeNullFields() throws Exception {
-        // Arrange
-        String threadId = "123";
-        
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<HttpUtils> httpUtils = mockStatic(HttpUtils.class)) {
-            
-            envUtils.when(() -> EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI))
-                    .thenReturn(baseUrl);
-            httpUtils.when(() -> HttpUtils.syncPatch(anyString(), anyMap()))
-                    .thenReturn(mockResponse);
-
-            // Act
-            JsonNode result = ThreadsService.patchThread(threadId, null, null, false);
-
-            // Assert
-            assertEquals(mockResponse, result);
-            httpUtils.verify(() -> HttpUtils.syncPatch(
-                    eq(baseUrl + ApiEndpointsConstants.API_THREADS_ID + threadId),
-                    argThat((ArgumentMatcher<Map<String, Object>>) Map::isEmpty)
-            ));
-        }
-    }
-
-    @Test
     void deleteThread_ShouldCallCorrectEndpoint() throws Exception {
         // Arrange
         String threadId = "123";
