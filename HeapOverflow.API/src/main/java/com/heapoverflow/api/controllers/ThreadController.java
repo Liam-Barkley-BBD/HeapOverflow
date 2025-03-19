@@ -31,7 +31,6 @@ public class ThreadController {
         @RequestParam(required = false) String searchText,
         @PageableDefault(size = ApiConstants.DEFAULT_PAGE_SIZE) 
         @SortDefault.SortDefaults({
-            @SortDefault(sort = "threadUpvotesCount", direction = Sort.Direction.DESC),
             @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
         }) Pageable pageable) {
 

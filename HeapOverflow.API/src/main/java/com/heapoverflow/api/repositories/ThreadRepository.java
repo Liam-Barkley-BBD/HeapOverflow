@@ -50,15 +50,15 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
             LEFT JOIN (
                 SELECT c.thread_id, COUNT(r.reply_id) AS reply_count
                 FROM comments c
-                INNER JOIN replies r ON c.comment_id = r.comment_id
+                LEFT JOIN replies r ON c.comment_id = r.comment_id
                 GROUP BY c.thread_id
             ) AS rc ON t.thread_id = rc.thread_id
             WHERE t.closed_at IS NULL
             ORDER BY (
-                (SELECT COUNT(thread_upvote_id) FROM thread_upvotes tu WHERE tu.thread_id = t.thread_id) * 1.0 +
+                ((SELECT COUNT(thread_upvote_id) FROM thread_upvotes tu WHERE tu.thread_id = t.thread_id) * 1.2 +
                 COALESCE(cc.comment_count, 0) * 0.8 +
-                COALESCE(rc.reply_count, 0) * 0.5 +
-                (1.0 / (EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - t.created_at)) / 86400.0 + 1.0)) * 10.0
+                COALESCE(rc.reply_count, 0) * 0.5) *
+                (1.0 / (EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - t.created_at)) / 86400.0 + 1.0) ^ 1.25) * 10
             ) DESC
             """, 
             countQuery = """
