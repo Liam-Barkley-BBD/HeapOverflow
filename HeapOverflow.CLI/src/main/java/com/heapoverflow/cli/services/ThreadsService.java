@@ -20,20 +20,22 @@ public class ThreadsService {
                                 "?page=" + page +
                                 "&size=" + size +
                                 (search != null && !search.isEmpty() ? "&searchText=" + search : "");
-             
+
                 return HttpUtils.syncGet(url);
         }
 
-        public static JsonNode getThreadsTrending() throws Exception {
+        public static JsonNode getThreadsTrending(int page, int size) throws Exception {
                 String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                + ApiEndpointsConstants.API_THREADS_TRENDING;
-               
+                                + ApiEndpointsConstants.API_THREADS_TRENDING + "?page=" + page +
+                                "&size=" + size;
+
                 return HttpUtils.syncGet(url);
         }
 
-        public static JsonNode getThreadsByUser() throws Exception {
+        public static JsonNode getThreadsByUser(int page, int size) throws Exception {
                 String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
-                                + ApiEndpointsConstants.API_THREADS_USER;
+                                + ApiEndpointsConstants.API_THREADS_USER + page +
+                                "&size=" + size;
 
                 return HttpUtils.syncGet(url);
         }

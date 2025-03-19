@@ -40,9 +40,9 @@ public class ThreadCommands {
         } else if (list) {
             return getAllThreads(search, page, size);
         } else if (trending) {
-            return getTrendingThreads();
+            return getTrendingThreads(page, size);
         } else if (userThreads) {
-            return getUserThreads();
+            return getUserThreads(page, size);
         } else if (get) {
             return getThread(threadId) + CommentCommands.getAllComments(page, size, threadId);
         } else if (post) {
@@ -58,8 +58,8 @@ public class ThreadCommands {
         } else {
             return "Invalid command. Use: \n" +
                     "\t--list [--search[optional] \"query\" --page[optional] {num} --size[optional] {num}]\n" +
-                    "\t--userThreads \n" +
-                    "\t--trending \n" +
+                    "\t--userThreads [ --page[optional] {num} --size[optional] {num}]\n" +
+                    "\t--trending [ --page[optional] {num} --size[optional] {num}]\n" +
                     "\t--get --threadId {id} --page[optional] {num} --size[optional] {num}]\n" +
                     "\t--post --title \"text\" --description \"text\"\n" +
                     "\t--edit --threadId {id} --title \"text\" --description \"text\" [--closeThread true/false]\n" +
@@ -76,9 +76,7 @@ public class ThreadCommands {
             JsonNode jsonResponse = ThreadsService.getThreads(encodedSearchText, Math.max(0, page - 1), size);
             JsonNode contentArray = jsonResponse.path("content");
 
-            if (!contentArray.isArray() || contentArray.isEmpty()) {
-                return "No threads found.";
-            } else {
+            {
                 int totalThreads = jsonResponse.path("totalElements").asInt(0);
                 int totalPages = jsonResponse.path("totalPages").asInt(1);
                 int currentPage = jsonResponse.path("number").asInt(0) + 1;
@@ -95,7 +93,7 @@ public class ThreadCommands {
 
     private String getThread(String id) {
         if (id.isEmpty()) {
-            return "Thread ID must be specified.";
+            return "Thread ID must be specifiedlike: 'thread get --threadId {id_value}'";
         } else {
             try {
                 JsonNode thread = ThreadsService.getThreadsById(id);
@@ -107,61 +105,46 @@ public class ThreadCommands {
         }
     }
 
-    private String getUserThreads() {
+    private String getUserThreads(int page, int size) {
 
-        {
-            try {
-                JsonNode jsonResponse = ThreadsService.getThreadsByUser();
-                JsonNode contentArray = jsonResponse.path("content");
+        try {
+            JsonNode jsonResponse = ThreadsService.getThreadsByUser(Math.max(0, page - 1), size);
+            JsonNode contentArray = jsonResponse.path("content");
 
-                if (!contentArray.isArray() || contentArray.isEmpty()) {
-                    return "No comments found.";
-                } else {
-                    if (!contentArray.isArray() || contentArray.isEmpty()) {
-                        return "No threads found.";
-                    } else {
-                        int totalThreads = jsonResponse.path("totalElements").asInt(0);
-                        int totalPages = jsonResponse.path("totalPages").asInt(1);
-                        int currentPage = jsonResponse.path("number").asInt(0) + 1;
-                        boolean isLastPage = jsonResponse.path("last").asBoolean();
+            {
+                int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                int totalPages = jsonResponse.path("totalPages").asInt(1);
+                int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                boolean isLastPage = jsonResponse.path("last").asBoolean();
 
-                        return buildThreadTable(contentArray, false) +
-                                String.format("\nPage %d of %d | Total Threads: %d %s",
-                                        currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
-                    }
-                }
-            } catch (Exception e) {
-                return "Error retrieving thread: " + e.getMessage();
+                return buildThreadTable(contentArray, false) +
+                        String.format("\nPage %d of %d | Total Threads: %d %s",
+                                currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
+
             }
+        } catch (Exception e) {
+            return "Error retrieving thread: " + e.getMessage();
         }
     }
 
-    private String getTrendingThreads() {
+    private String getTrendingThreads(int page, int size) {
+        try {
+            JsonNode jsonResponse = ThreadsService.getThreadsTrending(Math.max(0, page - 1), size);
+            JsonNode contentArray = jsonResponse.path("content");
 
-        {
-            try {
-                JsonNode jsonResponse = ThreadsService.getThreadsTrending();
-                JsonNode contentArray = jsonResponse.path("content");
+            {
+                int totalThreads = jsonResponse.path("totalElements").asInt(0);
+                int totalPages = jsonResponse.path("totalPages").asInt(1);
+                int currentPage = jsonResponse.path("number").asInt(0) + 1;
+                boolean isLastPage = jsonResponse.path("last").asBoolean();
 
-                if (!contentArray.isArray() || contentArray.isEmpty()) {
-                    return "No comments found.";
-                } else {
-                    if (!contentArray.isArray() || contentArray.isEmpty()) {
-                        return "No threads found.";
-                    } else {
-                        int totalThreads = jsonResponse.path("totalElements").asInt(0);
-                        int totalPages = jsonResponse.path("totalPages").asInt(1);
-                        int currentPage = jsonResponse.path("number").asInt(0) + 1;
-                        boolean isLastPage = jsonResponse.path("last").asBoolean();
+                return buildThreadTable(contentArray, false) +
+                        String.format("\nPage %d of %d | Total Threads: %d %s",
+                                currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
 
-                        return buildThreadTable(contentArray, false) +
-                                String.format("\nPage %d of %d | Total Threads: %d %s",
-                                        currentPage, totalPages, totalThreads, isLastPage ? "(Last Page)" : "");
-                    }
-                }
-            } catch (Exception e) {
-                return "Error retrieving thread: " + e.getMessage();
             }
+        } catch (Exception e) {
+            return "Error retrieving thread: " + e.getMessage();
         }
     }
 
