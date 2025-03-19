@@ -1,5 +1,7 @@
 package com.heapoverflow.cli.commands;
 
+import java.util.List;
+
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -7,6 +9,7 @@ import org.springframework.shell.standard.ShellOption;
 import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.AuthServices;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.FlagsCheckUtils;
 
 @ShellComponent
 public class AuthCommand {
@@ -15,11 +18,14 @@ public class AuthCommand {
     public String auth(
         @ShellOption(value = "login", help = "Attempt to login", defaultValue = "false") boolean login,
         @ShellOption(value = "logout", help = "Attempt to logout", defaultValue = "false") boolean logout,
-        @ShellOption(value = "gid", help = "See your Google ID", defaultValue = "false") boolean gid,
+        @ShellOption(value = "gid", defaultValue = "false") boolean gid,
         @ShellOption(value = "name", help = "See your Google name", defaultValue = "false") boolean name,
-        @ShellOption(value = "jwt", help = "See your jwt token", defaultValue = "false") boolean jwt
+        @ShellOption(value = "jwt", defaultValue = "false") boolean jwt
     ) {
-        if (login) {
+        List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForAuth(login, logout, gid, name, jwt);
+        if(selectedFlags.size() > 1){
+            return "You cannot use multiple action based flags at once: " + selectedFlags.toString();
+        } else if (login) {
             return handleLogin();
         } else if (logout) {
             return handleLogout();
@@ -32,10 +38,8 @@ public class AuthCommand {
         } else {
             return "Invalid command. Use: \n" +
                                         "\t\t\t--login\n" +
-                                        "\t\t\t--logout\n" + 
-                                        "\t\t\t--gid\n" +
+                                        "\t\t\t--logout\n" +
                                         "\t\t\t--name\n" +
-                                        "\t\t\t--jwt\n" +
                                         "\t\t\t--help\n";
         }
     }
