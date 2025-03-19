@@ -44,10 +44,10 @@ public class ThreadService {
 
         if (searchText != null) {
             if (!searchText.trim().isEmpty()) {
-                throw new BadRequestException("Thread search cannot be empty.");
-            } else {
                 Pageable pageableWithoutSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
                 return threadRepository.findByFuzzySearch(searchText, pageableWithoutSort);
+            } else {
+                throw new BadRequestException("Thread search cannot be empty.");
             }
 
         } else {
