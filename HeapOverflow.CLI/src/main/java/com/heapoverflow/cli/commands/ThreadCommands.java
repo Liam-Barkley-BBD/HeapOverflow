@@ -12,8 +12,6 @@ import com.heapoverflow.cli.services.ThreadUpvoteServices;
 import com.heapoverflow.cli.utils.EnvUtils;
 import com.heapoverflow.cli.utils.FlagsCheckUtils;
 import com.heapoverflow.cli.utils.TextUtils;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,11 +29,11 @@ public class ThreadCommands {
             @ShellOption(value = "delete", help = "Delete a thread", defaultValue = "false") boolean delete,
             @ShellOption(value = "upvote", help = "Upvote a thread", defaultValue = "false") boolean upvote,
             @ShellOption(value = "removeUpvote", help = "Remove upvote from a thread", defaultValue = "false") boolean removeUpvote,
-            @ShellOption(value = "search", help = "Search query", defaultValue = "") String search,
             @ShellOption(value = "closeThread", help = "Close Thread (true/false)", defaultValue = "false") boolean closeThread,
-            @ShellOption(value = "threadId", help = "Thread ID", defaultValue = ShellOption.NULL) String threadId,
-            @ShellOption(value = "title", help = "Thread title", defaultValue = ShellOption.NULL) String title,
-            @ShellOption(value = "description", help = "Thread description", defaultValue = ShellOption.NULL) String description,
+            @ShellOption(value = "search", help = "Search query", defaultValue = "") Optional<String> search,
+            @ShellOption(value = "threadId", help = "Thread ID", defaultValue = ShellOption.NULL) Optional<String> threadId,
+            @ShellOption(value = "title", help = "Thread title", defaultValue = ShellOption.NULL) Optional<String> title,
+            @ShellOption(value = "description", help = "Thread description", defaultValue = ShellOption.NULL) Optional<String> description,
             @ShellOption(value = "page", help = "Page number", defaultValue = "1") Integer page,
             @ShellOption(value = "size", help = "Page size", defaultValue = "10") Integer size) {
 
@@ -46,23 +44,23 @@ public class ThreadCommands {
         } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return getAllThreads(search, page, size);
+            return getAllThreads(search.orElse(""), page, size);
         } else if (trending) {
             return getTrendingThreads(page, size);
         } else if (userThreads) {
             return getUserThreads(page, size);
         } else if (get) {
-            return getThread(threadId) + CommentCommands.getAllComments(page, size, threadId);
+            return getThread(threadId.orElse("")) + CommentCommands.getAllComments(page, size, threadId.orElse(""));
         } else if (post) {
-            return postThread(title, description);
+            return postThread(title.orElse(""), description.orElse(""));
         } else if (edit) {
-            return editThread(threadId, title, description, closeThread);
+            return editThread(threadId.orElse(""), title.orElse(""), description.orElse(""), closeThread);
         } else if (delete) {
-            return deleteThread(threadId);
+            return deleteThread(threadId.orElse(""));
         } else if (upvote) {
-            return upvoteThread(threadId);
+            return upvoteThread(threadId.orElse(""));
         } else if (removeUpvote) {
-            return removeUpvoteThread(threadId);
+            return removeUpvoteThread(threadId.orElse(""));
         } else {
             return "Invalid command. Use: \n" +
                     "\t--list [--search[optional] \"query\" --page[optional] {num} --size[optional] {num}]\n" +
