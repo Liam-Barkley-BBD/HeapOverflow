@@ -61,9 +61,15 @@ public class CommentService {
         if (thread.getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
         }
+        else {
+            // Thread is not closed so can add comment
+        }
 
         if (commentRequest.getContent() == null || commentRequest.getContent().trim().isEmpty()) {
             throw new BadRequestException("Comment cannot be empty.");
+        }
+        else {
+            // Comment is not null or empty
         }
 
         Comment newComment = new Comment(commentRequest.getContent(), user, thread);
@@ -78,13 +84,22 @@ public class CommentService {
         if (!comment.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to update this comment.");
         }
+        else {
+            // It is the users comment so can be updated
+        }
 
         if (comment.getThread().getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
         }
+        else {
+            // Thread is not closed and comment can be updated
+        }
 
         if (content == null || content.trim().isEmpty()) {
             throw new BadRequestException("Comment cannot be empty.");
+        }
+        else {
+            // Comment is not null or empty
         }
 
         comment.setContent(content);
@@ -98,6 +113,9 @@ public class CommentService {
 
         if (!comment.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to delete this comment.");
+        }
+        else {
+            // It is the users comment so can be deleted
         }
 
         commentRepository.deleteById(comment.getId());

@@ -59,9 +59,15 @@ public class ReplyService {
         if (comment.getThread().getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
         }
+        else {
+            // Thread is not closed so can leave a reply
+        }
 
         if (replyRequest.getContent() == null || replyRequest.getContent().trim().isEmpty()) {
-            throw new BadRequestException("REply cannot be empty.");
+            throw new BadRequestException("Reply cannot be empty.");
+        }
+        else {
+            // Reply is not null or empty
         }
 
         Reply newReply = new Reply(replyRequest.getContent(), user, comment);
@@ -76,15 +82,24 @@ public class ReplyService {
         if (!reply.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to update this reply.");
         }
+        else {
+            // It is the users reply so can be updated
+        }
     
         if (reply.getComment().getThread().getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
         }
+        else {
+            // Thread is not closed and reply can be updated
+        }
 
         if (content == null || content.trim().isEmpty()) {
-            throw new BadRequestException("REply cannot be empty.");
+            throw new BadRequestException("Reply cannot be empty.");
         }
-    
+        else {
+            // Reply is not null or empty
+        }
+
         reply.setContent(content);
         return replyRepository.save(reply);
     }
@@ -97,6 +112,9 @@ public class ReplyService {
 
         if (!reply.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to delete this reply.");
+        }
+        else {
+            // It is the users reply so cannot delete
         }
 
         replyRepository.deleteById(reply.getId());

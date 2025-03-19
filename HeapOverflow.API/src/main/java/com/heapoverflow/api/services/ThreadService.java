@@ -77,8 +77,15 @@ public class ThreadService {
         if (threadRequest.getTitle() == null || threadRequest.getTitle().trim().isEmpty()) {
             throw new BadRequestException("Thread title cannot be empty.");
         }
+        else {
+            // Thread title is not empty or empty
+        }
+
         if (threadRequest.getDescription() == null || threadRequest.getDescription().trim().isEmpty()) {
             throw new BadRequestException("Thread description cannot be empty.");
+        }
+        else {
+            // Thread description is not null or empty
         }
 
         Thread newThread = new Thread(threadRequest.getTitle(), threadRequest.getDescription(), user);
@@ -94,27 +101,49 @@ public class ThreadService {
         if (!thread.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to update this thread.");
         }
+        else {
+            // It is the users thread so they can update it
+        }
 
         if (thread.getClosedAt() != null) {
             throw new IllegalStateException("Thread is already closed.");
+        }
+        else {
+            // Thread is closed so cannot be updated
         }
 
         if (threadUpdate.getTitle() == null || threadUpdate.getTitle().trim().isEmpty()) {
             throw new BadRequestException("Thread title cannot be empty.");
         }
+        else {
+            // Thread title is not null or empty
+        }
+
         if (threadUpdate.getDescription() == null || threadUpdate.getDescription().trim().isEmpty()) {
             throw new BadRequestException("Thread description cannot be empty.");
+        }
+        else {
+            // Thread description is not null or empty
         }
 
         // update thread with new info
         if (threadUpdate.getTitle() != null) {
             thread.setTitle(threadUpdate.getTitle());
         }
+        else {
+            // Don't update title
+        }
         if (threadUpdate.getDescription() != null) {
             thread.setDescription(threadUpdate.getDescription());
         }
+        else {
+            // Don't update description
+        }
         if (threadUpdate.getClosedAt() != null) {
             thread.setClosedAt(threadUpdate.getClosedAt());
+        }
+        else {
+            // Don't update closedAt
         }
 
         return threadRepository.save(thread);
@@ -127,6 +156,9 @@ public class ThreadService {
 
         if (!thread.getUser().getId().equals(AuthUtils.getAuthenticatedUserId())) {
             throw new UnauthorizedActionException("You do not have permission to delete this thread.");
+        }
+        else {
+            // Thread is users so cannot be deleted
         }
 
         threadRepository.deleteById(thread.getId());

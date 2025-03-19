@@ -38,6 +38,9 @@ public class CommentUpvoteService {
         if (commentUpvoteRepository.existsByUserAndComment(user, comment)) {
             throw new IllegalStateException("User has already upvoted the comment");
         }
+        else {
+            // User has not already upvoted the comment
+        }
 
         CommentUpvote newCommentUpvote = new CommentUpvote(user, comment);
         return commentUpvoteRepository.save(newCommentUpvote);

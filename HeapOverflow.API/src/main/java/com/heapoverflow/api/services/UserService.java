@@ -53,8 +53,14 @@ public class UserService {
         if (userRepository.existsById(user.getId())) {
             throw new UserAlreadyExistsException("User already exists");
         } 
+        else {
+            // User  id does not exist in the system
+        }
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new UserAlreadyExistsException("User email already exists");
+        }
+        else {
+            // User email does not exist in the system 
         }
         return userRepository.save(user);
     }

@@ -79,6 +79,9 @@ public class AuthService {
         if (parts.length != 3) {
             throw new IllegalArgumentException("Invalid JWT token");
         }
+        else {
+            // Valid jwt
+        }
 
         String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
         Map<String, Object> payloadMap = objectMapper.readValue(payloadJson, new TypeReference<Map<String, Object>>() {});

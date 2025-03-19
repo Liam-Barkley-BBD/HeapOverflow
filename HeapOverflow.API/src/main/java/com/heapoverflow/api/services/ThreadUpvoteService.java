@@ -38,6 +38,9 @@ public class ThreadUpvoteService {
         if (threadUpvoteRepository.existsByUserAndThread(user, thread)) {
             throw new IllegalStateException("User has already upvoted the thread");
         }
+        else {
+            // User has not already upvoted the thread
+        }
         
         ThreadUpvote newThreadUpvote = new ThreadUpvote(user, thread);
         return threadUpvoteRepository.save(newThreadUpvote);
