@@ -55,10 +55,10 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
             ) AS rc ON t.thread_id = rc.thread_id
             WHERE t.closed_at IS NULL
             ORDER BY (
-                ((SELECT COUNT(thread_upvote_id) FROM thread_upvotes tu WHERE tu.thread_id = t.thread_id) * 1.2 +
+                ((SELECT COUNT(thread_upvote_id) FROM thread_upvotes tu WHERE tu.thread_id = t.thread_id) * 1.5 +
                 COALESCE(cc.comment_count, 0) * 0.8 +
                 COALESCE(rc.reply_count, 0) * 0.5) *
-                (1.0 / (EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - t.created_at)) / 86400.0 + 1.0) ^ 1.25) * 10
+                (1.0 / (EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - t.created_at)) / 86400.0 + 1.0)^0.9)
             ) DESC
             """, 
             countQuery = """
