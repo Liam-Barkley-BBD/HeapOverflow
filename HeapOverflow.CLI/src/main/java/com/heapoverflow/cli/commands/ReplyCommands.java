@@ -28,8 +28,8 @@ public class ReplyCommands {
         @ShellOption(value = "replyId", help = "Reply ID", defaultValue = ShellOption.NULL) Optional<String> replyId,
         @ShellOption(value = "content", help = "Reply content", defaultValue = ShellOption.NULL) Optional<String> content,
         @ShellOption(value = "commentId", help = "Comment ID", defaultValue = ShellOption.NULL) Optional<String> commentId,
-        @ShellOption(value = "page", help = "Page number", defaultValue = ShellOption.NULL) Optional<Integer> page,
-        @ShellOption(value = "size", help = "Page size", defaultValue = ShellOption.NULL) Optional<Integer> size
+        @ShellOption(value = "page", help = "Page number", defaultValue = "1") Integer page,
+        @ShellOption(value = "size", help = "Page size", defaultValue = "10") Integer size
     ) {
         List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(list, get, post, edit, delete);
         if(selectedFlags.size() > 1){
@@ -37,7 +37,7 @@ public class ReplyCommands {
         } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return listReplies(page.orElse(1), size.orElse(10), commentId.orElse(""));
+            return listReplies(page, size, commentId.orElse(""));
         } else if (get) {
             return getReplyById(replyId.orElse(""));
         } else if (post) {

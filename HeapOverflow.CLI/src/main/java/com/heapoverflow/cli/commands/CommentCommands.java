@@ -31,8 +31,8 @@ public class CommentCommands {
             @ShellOption(value = "commentId", help = "Comment ID", defaultValue = ShellOption.NULL) Optional<String> commentId,
             @ShellOption(value = "content", help = "Comment content", defaultValue = ShellOption.NULL) Optional<String> content,
             @ShellOption(value = "threadId", help = "Thread ID", defaultValue = ShellOption.NULL) Optional<String> threadId,
-            @ShellOption(value = "page", help = "Page number", defaultValue = ShellOption.NULL) Optional<Integer> page,
-            @ShellOption(value = "size", help = "Page size", defaultValue = ShellOption.NULL) Optional<Integer> size
+            @ShellOption(value = "page", help = "Page number", defaultValue = "1") Integer page,
+            @ShellOption(value = "size", help = "Page size", defaultValue = "10") Integer size
     ) {
         List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(list, get, post, edit, delete, upvote, unupvote);
         if(selectedFlags.size() > 1){
@@ -40,9 +40,9 @@ public class CommentCommands {
         } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
-            return getAllComments(page.orElse(1), size.orElse(10), threadId.orElse(""));
+            return getAllComments(page, size, threadId.orElse(""));
         } else if (get) {
-            return getComment(commentId.orElse("")) + ReplyCommands.listReplies(page.orElse(0), size.orElse(0), commentId.orElse(""));
+            return getComment(commentId.orElse("")) + ReplyCommands.listReplies(page, size, commentId.orElse(""));
         } else if (post) {
             return postComment(content.orElse(""), threadId.orElse(""));
         } else if (edit) {

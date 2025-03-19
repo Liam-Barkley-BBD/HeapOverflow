@@ -24,8 +24,8 @@ public class UserCommands {
         @ShellOption(value = "gid", help = "Google user ID", defaultValue = ShellOption.NULL) Optional<String> gid,
         @ShellOption(value = "username", help = "Filter by username", defaultValue = ShellOption.NULL) Optional<String> username,
         @ShellOption(value = "email", help = "Filter by email", defaultValue = ShellOption.NULL) Optional<String> email,
-        @ShellOption(value = "page", help = "Page number", defaultValue = ShellOption.NULL) Optional<Integer> page,
-        @ShellOption(value = "size", help = "Page size", defaultValue = ShellOption.NULL) Optional<Integer> size
+        @ShellOption(value = "page", help = "Page number", defaultValue = "1") Integer page,
+        @ShellOption(value = "size", help = "Page size", defaultValue = "10") Integer size
     ) {
         List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForUser(list, get);
         if(selectedFlags.size() > 1){
@@ -37,7 +37,7 @@ public class UserCommands {
         } else if (get && gid.isPresent() && !gid.isEmpty()) {
             return getUserByGid(gid.orElse(""));
         } else if (list) {
-            return listUsers(username.orElse(""), email.orElse(""), page.orElse(1), size.orElse(10));
+            return listUsers(username.orElse(""), email.orElse(""), page, size);
         } else{
             return "Specify --list to retrieve users or --get --gid {gid} to get a specific user.";
         }
