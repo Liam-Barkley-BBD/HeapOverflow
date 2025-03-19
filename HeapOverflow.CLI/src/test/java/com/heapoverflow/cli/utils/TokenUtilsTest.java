@@ -12,7 +12,7 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
 
 @SpringBootTest
-class TokenUtilsTest {
+public class TokenUtilsTest {
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode("testSecretKeyForJwtSigning12345testSecretKeyForJwtSigning12345"));
     private static final MacAlgorithm ALGORITHM = Jwts.SIG.HS256;
 
