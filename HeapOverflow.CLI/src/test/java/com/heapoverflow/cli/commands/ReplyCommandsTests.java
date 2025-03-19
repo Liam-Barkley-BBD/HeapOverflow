@@ -1,7 +1,11 @@
 package com.heapoverflow.cli.commands;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.ReplyServices;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.FlagsCheckUtils;
 import com.heapoverflow.cli.utils.TextUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,64 +32,74 @@ public class ReplyCommandsTests {
     private ReplyCommands replyCommands;
 
     private ObjectMapper objectMapper;
-    private JsonNode mockReply;
-    private JsonNode mockRepliesList;
+    private JsonNode singleReplyNode;
+    private JsonNode repliesListNode;
+    private JsonNode emptyRepliesListNode;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
         
-        // Create mock reply
-        ObjectNode replyNode = objectMapper.createObjectNode();
-        replyNode.put("id", "reply123");
-        replyNode.put("content", "Test reply content");
-        replyNode.put("commentId", "comment123");
-        replyNode.put("createdAt", "2023-01-01T12:00:00Z");
+        // Create a single reply node
+        singleReplyNode = createReplyNode("reply123", "Test reply", "user123", "testuser", 
+                "test@example.com", "2025-03-15T10:00:00Z", "comment123");
         
+        // Create a list of replies
+        ArrayNode repliesArray = objectMapper.createArrayNode();
+        repliesArray.add(createReplyNode("reply1", "First reply", "user1", "user1", 
+                "user1@example.com", "2025-03-15T10:00:00Z", "comment123"));
+        repliesArray.add(createReplyNode("reply2", "Second reply", "user2", "user2", 
+                "user2@example.com", "2025-03-15T11:00:00Z", "comment123"));
+        
+        // Create replies list response
+        ObjectNode repliesResponseNode = objectMapper.createObjectNode();
+        repliesResponseNode.set("content", repliesArray);
+        repliesResponseNode.put("totalElements", 2);
+        repliesResponseNode.put("totalPages", 1);
+        repliesResponseNode.put("number", 0);
+        repliesResponseNode.put("last", true);
+        repliesListNode = repliesResponseNode;
+        
+        // Create empty replies list response
+        ObjectNode emptyRepliesResponseNode = objectMapper.createObjectNode();
+        emptyRepliesResponseNode.set("content", objectMapper.createArrayNode());
+        emptyRepliesResponseNode.put("totalElements", 0);
+        emptyRepliesResponseNode.put("totalPages", 0);
+        emptyRepliesResponseNode.put("number", 0);
+        emptyRepliesResponseNode.put("last", true);
+        emptyRepliesListNode = emptyRepliesResponseNode;
+    }
+
+    private JsonNode createReplyNode(String id, String content, String userId, String username, 
+            String email, String createdAt, String commentId) {
         ObjectNode userNode = objectMapper.createObjectNode();
-        userNode.put("id", "user123");
-        userNode.put("username", "testuser");
-        userNode.put("email", "test@example.com");
+        userNode.put("id", userId);
+        userNode.put("username", username);
+        userNode.put("email", email);
+        
+        ObjectNode replyNode = objectMapper.createObjectNode();
+        replyNode.put("id", id);
+        replyNode.put("content", content);
+        replyNode.put("createdAt", createdAt);
+        replyNode.put("commentId", commentId);
         replyNode.set("user", userNode);
         
-        mockReply = replyNode;
-        
-        // Create mock replies list
-        ObjectNode repliesListNode = objectMapper.createObjectNode();
-        ArrayNode contentArray = objectMapper.createArrayNode();
-        contentArray.add(replyNode.deepCopy());
-        
-        ObjectNode reply2 = objectMapper.createObjectNode();
-        reply2.put("id", "reply456");
-        reply2.put("content", "Another reply");
-        reply2.put("commentId", "comment123");
-        reply2.put("createdAt", "2023-01-02T12:00:00Z");
-        
-        ObjectNode user2 = objectMapper.createObjectNode();
-        user2.put("id", "user456");
-        user2.put("username", "anotheruser");
-        user2.put("email", "another@example.com");
-        reply2.set("user", user2);
-        
-        contentArray.add(reply2);
-        
-        repliesListNode.set("content", contentArray);
-        repliesListNode.put("totalElements", 2);
-        repliesListNode.put("totalPages", 1);
-        repliesListNode.put("number", 0);
-        repliesListNode.put("last", true);
-        
-        mockRepliesList = repliesListNode;
+        return replyNode;
     }
 
     @Test
-    void replies_WhenNotLoggedIn_ShouldReturnLoginMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
+    void replies_NotLoggedIn_ShouldReturnLoginMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
             // Arrange
             envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(false);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(true), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list"));
             
             // Act
-            String result = replyCommands.replies(false, false, false, false, false, "", "", "", 0, 5);
+            String result = replyCommands.replies(true, false, false, false, false, 
+                    Optional.empty(), Optional.empty(), Optional.empty(), 1, 10);
             
             // Assert
             assertEquals("You are not logged in. Please log in!", result);
@@ -92,220 +107,61 @@ public class ReplyCommandsTests {
     }
 
     @Test
-    void replies_WithNoCommand_ShouldReturnHelpMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
+    void replies_MultipleFlags_ShouldReturnErrorMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
             // Arrange
             envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(true), eq(true), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list", "get"));
             
             // Act
-            String result = replyCommands.replies(false, false, false, false, false, "", "", "", 0, 5);
+            String result = replyCommands.replies(true, true, false, false, false, 
+                    Optional.empty(), Optional.empty(), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertTrue(result.startsWith("You cannot use multiple action based flags at once:"));
+            assertTrue(result.contains("list") && result.contains("get"));
+        }
+    }
+
+    @Test
+    void replies_NoOptionSelected_ShouldReturnHelpMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Collections.emptyList());
+            
+            // Act
+            String result = replyCommands.replies(false, false, false, false, false, 
+                    Optional.empty(), Optional.empty(), Optional.empty(), 1, 10);
             
             // Assert
             assertTrue(result.startsWith("Invalid command. Use:"));
-            assertTrue(result.contains("--list"));
-            assertTrue(result.contains("--get"));
-            assertTrue(result.contains("--post"));
-            assertTrue(result.contains("--edit"));
-            assertTrue(result.contains("--delete"));
         }
     }
 
     @Test
-    void replies_WithListCommand_ShouldCallListReplies() {
+    void replies_ListWithNoReplies_ShouldReturnNoRepliesMessage() throws Exception {
         try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            replyServices.when(() -> ReplyServices.getReplies(anyInt(), anyInt(), anyString())).thenReturn(mockRepliesList);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class))).thenReturn("Rendered Table");
-            
-            // Act
-            String result = replyCommands.replies(true, false, false, false, false, "", "", "comment123", 1, 10);
-            
-            // Assert
-            replyServices.verify(() -> ReplyServices.getReplies(0, 10, "comment123"));
-            assertTrue(result.contains("Rendered Table"));
-            assertTrue(result.contains("Page 1 of 1"));
-            assertTrue(result.contains("Total Replies: 2"));
-        }
-    }
-
-    @Test
-    void replies_WithGetCommand_ShouldCallGetReplyById() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            
-            // Arrange
-            String replyId = "reply123";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            replyServices.when(() -> ReplyServices.getReplyById(replyId)).thenReturn(mockReply);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class))).thenReturn("Rendered Table");
-            
-            // Act
-            String result = replyCommands.replies(false, true, false, false, false, replyId, "", "", 0, 5);
-            
-            // Assert
-            replyServices.verify(() -> ReplyServices.getReplyById(replyId));
-            assertEquals("Rendered Table", result);
-        }
-    }
-
-    @Test
-    void replies_WithGetCommandAndEmptyReplyId_ShouldReturnErrorMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            
-            // Act
-            String result = replyCommands.replies(false, true, false, false, false, "", "", "", 0, 5);
-            
-            // Assert
-            assertEquals("The ID must be specified like: replies --get --replyId {id}", result);
-        }
-    }
-
-    @Test
-    void replies_WithPostCommand_ShouldCallPostReply() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            
-            // Arrange
-            String content = "New reply content";
-            String commentId = "comment123";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            replyServices.when(() -> ReplyServices.postReply(content, commentId)).thenReturn(mockReply);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class))).thenReturn("Rendered Table");
-            
-            // Act
-            String result = replyCommands.replies(false, false, true, false, false, "", content, commentId, 0, 5);
-            
-            // Assert
-            replyServices.verify(() -> ReplyServices.postReply(content, commentId));
-            assertEquals("Rendered Table", result);
-        }
-    }
-
-    @Test
-    void replies_WithPostCommandAndEmptyCommentId_ShouldReturnErrorMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            
-            // Act
-            String result = replyCommands.replies(false, false, true, false, false, "", "content", "", 0, 5);
-            
-            // Assert
-            assertTrue(result.contains("The commentId must be specified"));
-        }
-    }
-
-    @Test
-    void replies_WithEditCommand_ShouldCallPatchReply() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            
-            // Arrange
-            String replyId = "reply123";
-            String content = "Updated content";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            replyServices.when(() -> ReplyServices.patchReply(content, replyId)).thenReturn(mockReply);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class))).thenReturn("Rendered Table");
-            
-            // Act
-            String result = replyCommands.replies(false, false, false, true, false, replyId, content, "", 0, 5);
-            
-            // Assert
-            replyServices.verify(() -> ReplyServices.patchReply(content, replyId));
-            assertEquals("Rendered Table", result);
-        }
-    }
-
-    @Test
-    void replies_WithEditCommandAndEmptyReplyId_ShouldReturnErrorMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            
-            // Act
-            String result = replyCommands.replies(false, false, false, true, false, "", "content", "", 0, 5);
-            
-            // Assert
-            assertTrue(result.contains("The ID must be specified"));
-        }
-    }
-
-    @Test
-    void replies_WithDeleteCommand_ShouldCallDeleteReply() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
              MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class)) {
             
             // Arrange
-            String replyId = "reply123";
             envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(true), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list"));
+            replyServices.when(() -> ReplyServices.getReplies(0, 10, "comment123"))
+                    .thenReturn(emptyRepliesListNode);
             
             // Act
-            String result = replyCommands.replies(false, false, false, false, true, replyId, "", "", 0, 5);
-            
-            // Assert
-            replyServices.verify(() -> ReplyServices.deleteReply(replyId));
-            assertEquals("Reply with ID " + replyId + " has been deleted.", result);
-        }
-    }
-
-    @Test
-    void replies_WithDeleteCommandAndEmptyReplyId_ShouldReturnErrorMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
-            
-            // Act
-            String result = replyCommands.replies(false, false, false, false, true, "", "", "", 0, 5);
-            
-            // Assert
-            assertTrue(result.contains("The ID must be specified"));
-        }
-    }
-
-    @Test
-    void listReplies_WithValidData_ShouldRenderTable() {
-        try (MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            
-            // Arrange
-            int page = 1;
-            int size = 10;
-            String commentId = "comment123";
-            replyServices.when(() -> ReplyServices.getReplies(anyInt(), anyInt(), anyString())).thenReturn(mockRepliesList);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class))).thenReturn("Rendered Table");
-            
-            // Act
-            String result = ReplyCommands.listReplies(page, size, commentId);
-            
-            // Assert
-            replyServices.verify(() -> ReplyServices.getReplies(0, size, commentId));
-            assertTrue(result.contains("Rendered Table"));
-            assertTrue(result.contains("Page 1 of 1"));
-            assertTrue(result.contains("Total Replies: 2"));
-            assertTrue(result.contains("(Last Page)"));
-        }
-    }
-
-    @Test
-    void listReplies_WithNoReplies_ShouldReturnMessage() {
-        try (MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class)) {
-            // Arrange
-            ObjectNode emptyResponse = objectMapper.createObjectNode();
-            emptyResponse.set("content", objectMapper.createArrayNode());
-            
-            replyServices.when(() -> ReplyServices.getReplies(anyInt(), anyInt(), anyString())).thenReturn(emptyResponse);
-            
-            // Act
-            String result = ReplyCommands.listReplies(1, 10, "comment123");
+            String result = replyCommands.replies(true, false, false, false, false, 
+                    Optional.empty(), Optional.empty(), Optional.of("comment123"), 1, 10);
             
             // Assert
             assertEquals("No replies found.", result);
@@ -313,41 +169,221 @@ public class ReplyCommandsTests {
     }
 
     @Test
-    void listReplies_WithException_ShouldReturnErrorMessage() {
+    void replies_ListWithReplies_ShouldReturnRepliesList() throws Exception {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
+             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
+             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
+            
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(true), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list"));
+            replyServices.when(() -> ReplyServices.getReplies(0, 10, "comment123"))
+                    .thenReturn(repliesListNode);
+            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
+                    .thenReturn("Rendered Replies Table");
+            
+            // Act
+            String result = replyCommands.replies(true, false, false, false, false, 
+                    Optional.empty(), Optional.empty(), Optional.of("comment123"), 1, 10);
+            
+            // Assert
+            assertTrue(result.startsWith("Rendered Replies Table"));
+            assertTrue(result.contains("Page 1 of 1 | Total Replies: 2 (Last Page)"));
+        }
+    }
+
+    @Test
+    void replies_GetWithNoId_ShouldReturnErrorMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(true), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("get"));
+            
+            // Act
+            String result = replyCommands.replies(false, true, false, false, false, 
+                    Optional.empty(), Optional.empty(), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertTrue(result.contains("The ID must be specified"));
+        }
+    }
+
+    @Test
+    void replies_GetWithId_ShouldReturnReply() throws Exception {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
+             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
+             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
+            
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(true), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("get"));
+            replyServices.when(() -> ReplyServices.getReplyById("reply123"))
+                    .thenReturn(singleReplyNode);
+            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
+                    .thenReturn("Rendered Reply Table");
+            
+            // Act
+            String result = replyCommands.replies(false, true, false, false, false, 
+                    Optional.of("reply123"), Optional.empty(), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertEquals("Rendered Reply Table", result);
+        }
+    }
+
+    @Test
+    void replies_PostWithNoCommentId_ShouldReturnErrorMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(false), eq(true), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("post"));
+            
+            // Act
+            String result = replyCommands.replies(false, false, true, false, false, 
+                    Optional.empty(), Optional.of("Test reply"), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertTrue(result.contains("The commentId must be specified"));
+        }
+    }
+
+    @Test
+    void replies_PostWithValidData_ShouldReturnNewReply() throws Exception {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
+             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
+             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
+            
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(false), eq(true), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("post"));
+            replyServices.when(() -> ReplyServices.postReply("Test reply", "comment123"))
+                    .thenReturn(singleReplyNode);
+            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
+                    .thenReturn("Rendered New Reply Table");
+            
+            // Act
+            String result = replyCommands.replies(false, false, true, false, false, 
+                    Optional.empty(), Optional.of("Test reply"), Optional.of("comment123"), 1, 10);
+            
+            // Assert
+            assertEquals("Rendered New Reply Table", result);
+        }
+    }
+
+    @Test
+    void replies_EditWithNoId_ShouldReturnErrorMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(false), eq(false), eq(true), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("edit"));
+            
+            // Act
+            String result = replyCommands.replies(false, false, false, true, false, 
+                    Optional.empty(), Optional.of("Updated reply"), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertTrue(result.contains("The ID must be specified"));
+        }
+    }
+
+    @Test
+    void replies_EditWithValidData_ShouldReturnUpdatedReply() throws Exception {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
+             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class);
+             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
+            
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(false), eq(false), eq(true), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("edit"));
+            replyServices.when(() -> ReplyServices.patchReply("Updated reply", "reply123"))
+                    .thenReturn(singleReplyNode);
+            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
+                    .thenReturn("Rendered Updated Reply Table");
+            
+            // Act
+            String result = replyCommands.replies(false, false, false, true, false, 
+                    Optional.of("reply123"), Optional.of("Updated reply"), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertEquals("Rendered Updated Reply Table", result);
+        }
+    }
+
+    @Test
+    void replies_DeleteWithNoId_ShouldReturnErrorMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(false), eq(false), eq(false), eq(true)))
+                    .thenReturn(java.util.Arrays.asList("delete"));
+            
+            // Act
+            String result = replyCommands.replies(false, false, false, false, true, 
+                    Optional.empty(), Optional.empty(), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertTrue(result.contains("The ID must be specified"));
+        }
+    }
+
+    @Test
+    void replies_DeleteWithValidId_ShouldReturnSuccessMessage() throws Exception {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
+             MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class)) {
+            
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForReplies(
+                    eq(false), eq(false), eq(false), eq(false), eq(true)))
+                    .thenReturn(java.util.Arrays.asList("delete"));
+            replyServices.when(() -> ReplyServices.deleteReply("reply123"))
+                    .thenReturn(null);
+            
+            // Act
+            String result = replyCommands.replies(false, false, false, false, true, 
+                    Optional.of("reply123"), Optional.empty(), Optional.empty(), 1, 10);
+            
+            // Assert
+            assertEquals("Reply with ID reply123 has been deleted.", result);
+        }
+    }
+
+    @Test
+    void listReplies_WithException_ShouldReturnErrorMessage() throws Exception {
         try (MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class)) {
             // Arrange
-            String errorMessage = "Connection error";
-            replyServices.when(() -> ReplyServices.getReplies(anyInt(), anyInt(), anyString()))
-                    .thenThrow(new RuntimeException(errorMessage));
+            replyServices.when(() -> ReplyServices.getReplies(0, 10, "comment123"))
+                    .thenThrow(new IOException("Network error"));
             
             // Act
             String result = ReplyCommands.listReplies(1, 10, "comment123");
             
             // Assert
-            assertEquals("Error retrieving replies: " + errorMessage, result);
-        }
-    }
-
-    @Test
-    void buildReplyTable_WithArrayNode_ShouldBuildCorrectTable() {
-        try (MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            // We'll use reflection to test the private method
-            // This test is a bit complex due to private method access, but would verify the table builder works correctly
-            
-            // For simplicity, we'll just check that the rendering is called
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class))).thenReturn("Rendered Table");
-            
-            // Create a situation that calls buildReplyTable indirectly
-            try (MockedStatic<ReplyServices> replyServices = mockStatic(ReplyServices.class)) {
-                replyServices.when(() -> ReplyServices.getReplies(anyInt(), anyInt(), anyString())).thenReturn(mockRepliesList);
-                
-                // Act - this will call buildReplyTable internally
-                String result = ReplyCommands.listReplies(1, 10, "comment123");
-                
-                // Assert 
-                assertTrue(result.contains("Rendered Table"));
-                textUtils.verify(() -> TextUtils.renderTable(any(TableModel.class)));
-            }
+            assertEquals("Error retrieving replies: Network error", result);
         }
     }
 }

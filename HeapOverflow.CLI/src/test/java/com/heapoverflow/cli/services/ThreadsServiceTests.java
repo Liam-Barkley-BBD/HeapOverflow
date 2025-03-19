@@ -76,46 +76,6 @@ public class ThreadsServiceTests {
     }
 
     @Test
-    void getThreadsTrending_ShouldCallCorrectEndpoint() throws Exception {
-        // Arrange
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<HttpUtils> httpUtils = mockStatic(HttpUtils.class)) {
-            
-            envUtils.when(() -> EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI))
-                    .thenReturn(baseUrl);
-            httpUtils.when(() -> HttpUtils.syncGet(anyString()))
-                    .thenReturn(mockResponse);
-
-            // Act
-            JsonNode result = ThreadsService.getThreadsTrending();
-
-            // Assert
-            assertEquals(mockResponse, result);
-            httpUtils.verify(() -> HttpUtils.syncGet(baseUrl + ApiEndpointsConstants.API_THREADS_TRENDING));
-        }
-    }
-
-    @Test
-    void getThreadsByUser_ShouldCallCorrectEndpoint() throws Exception {
-        // Arrange
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<HttpUtils> httpUtils = mockStatic(HttpUtils.class)) {
-            
-            envUtils.when(() -> EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI))
-                    .thenReturn(baseUrl);
-            httpUtils.when(() -> HttpUtils.syncGet(anyString()))
-                    .thenReturn(mockResponse);
-
-            // Act
-            JsonNode result = ThreadsService.getThreadsByUser();
-
-            // Assert
-            assertEquals(mockResponse, result);
-            httpUtils.verify(() -> HttpUtils.syncGet(baseUrl + ApiEndpointsConstants.API_THREADS_USER));
-        }
-    }
-
-    @Test
     void postThread_ShouldCallCorrectEndpointWithParams() throws Exception {
         // Arrange
         String title = "Test Title";

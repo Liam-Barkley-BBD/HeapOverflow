@@ -5,23 +5,25 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.shell.table.TableModel;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.heapoverflow.cli.constants.EnvConstants;
-import com.heapoverflow.cli.services.ThreadUpvoteServices;
 import com.heapoverflow.cli.services.ThreadsService;
+import com.heapoverflow.cli.services.ThreadUpvoteServices;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.FlagsCheckUtils;
 import com.heapoverflow.cli.utils.TextUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,55 +32,82 @@ public class ThreadCommandsTests {
     @InjectMocks
     private ThreadCommands threadCommands;
 
-    @Mock
-    private CommentCommands commentCommands;
-
     private ObjectMapper objectMapper;
-    private ObjectNode mockThreadNode;
-    private ObjectNode mockPageResponse;
-    private ArrayNode mockThreadArray;
+    private JsonNode singleThreadNode;
+    private JsonNode threadsListNode;
+    private JsonNode emptyThreadsListNode;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
         
-        // Create a mock thread
-        mockThreadNode = objectMapper.createObjectNode();
-        mockThreadNode.put("id", "123");
-        mockThreadNode.put("title", "Test Thread");
-        mockThreadNode.put("description", "Test Description");
-        mockThreadNode.put("createdAt", "2023-01-01T12:00:00Z");
-        mockThreadNode.putNull("closedAt");
-        mockThreadNode.put("threadUpvotesCount", 5);
+        // Create a single thread node
+        singleThreadNode = createThreadNode("thread123", "Test Thread", "Thread description", "user123", 
+                "testuser", "test@example.com", "2025-03-15T10:00:00Z", null, 5);
         
+        // Create a list of threads
+        ArrayNode threadsArray = objectMapper.createArrayNode();
+        threadsArray.add(createThreadNode("thread1", "First Thread", "First description", "user1", 
+                "user1", "user1@example.com", "2025-03-15T10:00:00Z", null, 10));
+        threadsArray.add(createThreadNode("thread2", "Second Thread", "Second description", "user2", 
+                "user2", "user2@example.com", "2025-03-15T11:00:00Z", "2025-03-16T11:00:00Z", 5));
+        
+        // Create threads list response
+        ObjectNode threadsResponseNode = objectMapper.createObjectNode();
+        threadsResponseNode.set("content", threadsArray);
+        threadsResponseNode.put("totalElements", 2);
+        threadsResponseNode.put("totalPages", 1);
+        threadsResponseNode.put("number", 0);
+        threadsResponseNode.put("last", true);
+        threadsListNode = threadsResponseNode;
+        
+        // Create empty threads list response
+        ObjectNode emptyThreadsResponseNode = objectMapper.createObjectNode();
+        emptyThreadsResponseNode.set("content", objectMapper.createArrayNode());
+        emptyThreadsResponseNode.put("totalElements", 0);
+        emptyThreadsResponseNode.put("totalPages", 0);
+        emptyThreadsResponseNode.put("number", 0);
+        emptyThreadsResponseNode.put("last", true);
+        emptyThreadsListNode = emptyThreadsResponseNode;
+    }
+
+    private JsonNode createThreadNode(String id, String title, String description, String userId, 
+            String username, String email, String createdAt, String closedAt, int upvotesCount) {
         ObjectNode userNode = objectMapper.createObjectNode();
-        userNode.put("username", "testUser");
-        mockThreadNode.set("user", userNode);
+        userNode.put("id", userId);
+        userNode.put("username", username);
+        userNode.put("email", email);
         
-        // Create a mock array of threads
-        mockThreadArray = objectMapper.createArrayNode();
-        mockThreadArray.add(mockThreadNode);
+        ObjectNode threadNode = objectMapper.createObjectNode();
+        threadNode.put("id", id);
+        threadNode.put("title", title);
+        threadNode.put("description", description);
+        threadNode.put("createdAt", createdAt);
+        if (closedAt != null) {
+            threadNode.put("closedAt", closedAt);
+        } else {
+            threadNode.putNull("closedAt");
+        }
+        threadNode.put("threadUpvotesCount", upvotesCount);
+        threadNode.set("user", userNode);
         
-        // Create a mock page response
-        mockPageResponse = objectMapper.createObjectNode();
-        mockPageResponse.set("content", mockThreadArray);
-        mockPageResponse.put("totalElements", 1);
-        mockPageResponse.put("totalPages", 1);
-        mockPageResponse.put("number", 0);
-        mockPageResponse.put("last", true);
+        return threadNode;
     }
 
     @Test
-    void thread_WhenNotLoggedIn_ShouldReturnLoginMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
+    void thread_NotLoggedIn_ShouldReturnLoginMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
             // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(false);
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(false);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(
+                    eq(true), eq(false), eq(false), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list"));
             
             // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, false, false, false, false, "", 
-                    false, "", "", "", 1, 10);
+            String result = threadCommands.thread(true, false, false, false, false, false, false, 
+                    false, false, false, Optional.empty(), Optional.empty(), Optional.empty(), 
+                    Optional.empty(), 1, 10);
             
             // Assert
             assertEquals("You are not logged in. Please log in!", result);
@@ -86,344 +115,152 @@ public class ThreadCommandsTests {
     }
 
     @Test
-    void thread_WithInvalidCommand_ShouldReturnHelpMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
+    void thread_MultipleFlags_ShouldReturnErrorMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
             // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(
+                    eq(true), eq(true), eq(false), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list", "get"));
             
             // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, false, false, false, false, "", 
-                    false, "", "", "", 1, 10);
+            String result = threadCommands.thread(true, false, false, true, false, false, false, 
+                    false, false, false, Optional.empty(), Optional.empty(), Optional.empty(), 
+                    Optional.empty(), 1, 10);
+            
+            // Assert
+            assertTrue(result.startsWith("You cannot use multiple action based flags at once:"));
+            assertTrue(result.contains("list") && result.contains("get"));
+        }
+    }
+
+    @Test
+    void thread_NoOptionSelected_ShouldReturnHelpMessage() {
+        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class)) {
+            // Arrange
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(
+                    eq(false), eq(false), eq(false), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Collections.emptyList());
+            
+            // Act
+            String result = threadCommands.thread(false, false, false, false, false, false, false, 
+                    false, false, false, Optional.empty(), Optional.empty(), Optional.empty(), 
+                    Optional.empty(), 1, 10);
             
             // Assert
             assertTrue(result.startsWith("Invalid command. Use:"));
         }
     }
-    
+
     @Test
-    void thread_WithListOption_ShouldReturnThreadList() throws Exception {
+    void thread_ListWithNoThreads_ShouldReturnEmptyThreadsTable() throws Exception {
         try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
              MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class);
              MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
             
             // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.getThreads(anyString(), anyInt(), anyInt()))
-                    .thenReturn(mockPageResponse);
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(
+                    eq(true), eq(false), eq(false), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list"));
+            threadsService.when(() -> ThreadsService.getThreads("", 0, 10))
+                    .thenReturn(emptyThreadsListNode);
             textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
-                    .thenReturn("Rendered Table");
+                    .thenReturn("Empty Thread Table");
             
             // Act
-            String result = threadCommands.thread(true, false, false, false, 
-                    false, false, false, false, false, "", 
-                    false, "", "", "", 1, 10);
+            String result = threadCommands.thread(true, false, false, false, false, false, false, 
+                    false, false, false, Optional.empty(), Optional.empty(), Optional.empty(), 
+                    Optional.empty(), 1, 10);
             
             // Assert
-            assertTrue(result.contains("Rendered Table"));
-            assertTrue(result.contains("Page 1 of 1"));
-            threadsService.verify(() -> ThreadsService.getThreads(anyString(), eq(0), eq(10)));
+            assertTrue(result.startsWith("Empty Thread Table"));
+            assertTrue(result.contains("Page 1 of 0 | Total Threads: 0 (Last Page)"));
         }
     }
-    
+
     @Test
-    void thread_WithTrendingOption_ShouldReturnTrendingThreads() throws Exception {
+    void thread_ListWithThreads_ShouldReturnThreadsTable() throws Exception {
         try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
              MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class);
              MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
             
             // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.getThreadsTrending())
-                    .thenReturn(mockPageResponse);
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(
+                    eq(true), eq(false), eq(false), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("list"));
+            threadsService.when(() -> ThreadsService.getThreads("test", 0, 10))
+                    .thenReturn(threadsListNode);
             textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
-                    .thenReturn("Rendered Table");
+                    .thenReturn("Rendered Threads Table");
             
             // Act
-            String result = threadCommands.thread(false, true, false, false, 
-                    false, false, false, false, false, "", 
-                    false, "", "", "", 1, 10);
+            String result = threadCommands.thread(true, false, false, false, false, false, false, 
+                    false, false, false, Optional.of("test"), Optional.empty(), Optional.empty(), 
+                    Optional.empty(), 1, 10);
             
             // Assert
-            assertTrue(result.contains("Rendered Table"));
-            threadsService.verify(() -> ThreadsService.getThreadsTrending());
+            assertTrue(result.startsWith("Rendered Threads Table"));
+            assertTrue(result.contains("Page 1 of 1 | Total Threads: 2 (Last Page)"));
         }
     }
-    
+
     @Test
-    void thread_WithUserThreadsOption_ShouldReturnUserThreads() throws Exception {
+    void thread_PostWithValidData_ShouldReturnNewThread() throws Exception {
         try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
              MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class);
              MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
             
             // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.getThreadsByUser())
-                    .thenReturn(mockPageResponse);
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(
+                    eq(false), eq(false), eq(true), eq(false), eq(false), eq(false), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("post"));
+            threadsService.when(() -> ThreadsService.postThread("Test Title", "Test Description"))
+                    .thenReturn(singleThreadNode);
             textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
-                    .thenReturn("Rendered Table");
+                    .thenReturn("Rendered New Thread Table");
             
             // Act
-            String result = threadCommands.thread(false, false, true, false, 
-                    false, false, false, false, false, "", 
-                    false, "", "", "", 1, 10);
+            String result = threadCommands.thread(false, false, false, false, true, false, false, 
+                    false, false, false, Optional.empty(), Optional.empty(), 
+                    Optional.of("Test Title"), Optional.of("Test Description"), 1, 10);
             
             // Assert
-            assertTrue(result.contains("Rendered Table"));
-            threadsService.verify(() -> ThreadsService.getThreadsByUser());
+            assertTrue(result.startsWith("Thread created successfully:"));
+            assertTrue(result.contains("Rendered New Thread Table"));
         }
     }
-    
+
+
     @Test
-    void thread_WithGetOption_ShouldReturnSpecificThread() throws Exception {
+    void thread_UpvoteWithValidId_ShouldReturnSuccessMessage() throws Exception {
         try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class);
-             MockedStatic<CommentCommands> commentCommands = mockStatic(CommentCommands.class)) {
+             MockedStatic<FlagsCheckUtils> flagsCheckUtils = mockStatic(FlagsCheckUtils.class);
+             MockedStatic<ThreadUpvoteServices> upvoteServices = mockStatic(ThreadUpvoteServices.class)) {
             
             // Arrange
-            String threadId = "123";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.getThreadsById(threadId))
-                    .thenReturn(mockThreadNode);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
-                    .thenReturn("Rendered Thread Table");
-            commentCommands.when(() -> CommentCommands.getAllComments(anyInt(), anyInt(), eq(threadId)))
-                    .thenReturn("Rendered Comments");
+            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)).thenReturn(true);
+            flagsCheckUtils.when(() -> FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(
+                    eq(false), eq(false), eq(false), eq(false), eq(false), eq(true), eq(false)))
+                    .thenReturn(java.util.Arrays.asList("upvote"));
+            upvoteServices.when(() -> ThreadUpvoteServices.postThreadUpVote(123))
+                    .thenReturn(null);
             
             // Act
-            String result = threadCommands.thread(false, false, false, true, 
-                    false, false, false, false, false, "", 
-                    false, threadId, "", "", 1, 10);
+            String result = threadCommands.thread(false, false, false, false, false, false, false, 
+                    true, false, false, Optional.empty(), Optional.of("123"), Optional.empty(), 
+                    Optional.empty(), 1, 10);
             
             // Assert
-            assertTrue(result.contains("Rendered Thread Table"));
-            assertTrue(result.contains("Rendered Comments"));
-            threadsService.verify(() -> ThreadsService.getThreadsById(threadId));
-        }
-    }
-    
-    @Test
-    void thread_WithPostOption_ShouldCreateNewThread() throws Exception {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            
-            // Arrange
-            String title = "New Thread";
-            String description = "New Description";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.postThread(title, description))
-                    .thenReturn(mockThreadNode);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
-                    .thenReturn("Rendered Table");
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    true, false, false, false, false, "", 
-                    false, "", title, description, 1, 10);
-            
-            // Assert
-            assertTrue(result.contains("Thread created successfully"));
-            assertTrue(result.contains("Rendered Table"));
-            threadsService.verify(() -> ThreadsService.postThread(title, description));
-        }
-    }
-    
-    @Test
-    void thread_WithEditOptionAndEmptyThreadId_ShouldReturnErrorMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, true, false, false, false, "", 
-                    false, "", "Updated Title", "Updated Description", 1, 10);
-            
-            // Assert
-            assertEquals("ThreadId should be initialized eg thread --edit --threadId {id}", result);
-        }
-    }
-    
-    @Test
-    void thread_WithEditOption_ShouldUpdateThread() throws Exception {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class);
-             MockedStatic<TextUtils> textUtils = mockStatic(TextUtils.class)) {
-            
-            // Arrange
-            String threadId = "123";
-            String title = "Updated Title";
-            String description = "Updated Description";
-            boolean closeThread = true;
-            
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.patchThread(threadId, title, description, closeThread))
-                    .thenReturn(mockThreadNode);
-            textUtils.when(() -> TextUtils.renderTable(any(TableModel.class)))
-                    .thenReturn("Rendered Table");
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, true, false, false, false, "", 
-                    closeThread, threadId, title, description, 1, 10);
-            
-            // Assert
-            assertEquals("Rendered Table", result);
-            threadsService.verify(() -> ThreadsService.patchThread(threadId, title, description, closeThread));
-        }
-    }
-    
-    @Test
-    void thread_WithDeleteOption_ShouldDeleteThread() throws Exception {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class)) {
-            
-            // Arrange
-            String threadId = "123";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, false, true, false, false, "", 
-                    false, threadId, "", "", 1, 10);
-            
-            // Assert
-            assertEquals("Thread deleted successfully.", result);
-            threadsService.verify(() -> ThreadsService.deleteThread(threadId));
-        }
-    }
-    
-    @Test
-    void thread_WithUpvoteOptionAndEmptyThreadId_ShouldReturnErrorMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, false, false, true, false, "", 
-                    false, "", "", "", 1, 10);
-            
-            // Assert
-            assertTrue(result.contains("Thread ID must be specified"));
-        }
-    }
-    
-    @Test
-    void thread_WithUpvoteOption_ShouldUpvoteThread() throws Exception {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadUpvoteServices> threadUpvoteServices = mockStatic(ThreadUpvoteServices.class)) {
-            
-            // Arrange
-            String threadId = "123";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, false, false, true, false, "", 
-                    false, threadId, "", "", 1, 10);
-            
-            // Assert
-            assertTrue(result.contains("Successfully upvoted thread ID"));
-            threadUpvoteServices.verify(() -> ThreadUpvoteServices.postThreadUpVote(Integer.parseInt(threadId)));
-        }
-    }
-    
-    @Test
-    void thread_WithRemoveUpvoteOptionAndEmptyThreadId_ShouldReturnErrorMessage() {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class)) {
-            // Arrange
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, false, false, false, true, "", 
-                    false, "", "", "", 1, 10);
-            
-            // Assert
-            assertTrue(result.contains("Thread Id must be specified"));
-        }
-    }
-    
-    @Test
-    void thread_WithRemoveUpvoteOption_ShouldRemoveUpvote() throws Exception {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadUpvoteServices> threadUpvoteServices = mockStatic(ThreadUpvoteServices.class)) {
-            
-            // Arrange
-            String threadId = "123";
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            
-            // Act
-            String result = threadCommands.thread(false, false, false, false, 
-                    false, false, false, false, true, "", 
-                    false, threadId, "", "", 1, 10);
-            
-            // Assert
-            assertTrue(result.contains("Successfully removed upvote"));
-            threadUpvoteServices.verify(() -> ThreadUpvoteServices.deleteThreadUpVote(threadId));
-        }
-    }
-    
-    @Test
-    void thread_WithListOption_WhenExceptionThrown_ShouldReturnErrorMessage() throws Exception {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class)) {
-            
-            // Arrange
-            Exception expectedException = new IOException("Network error");
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.getThreads(anyString(), anyInt(), anyInt()))
-                    .thenThrow(expectedException);
-            
-            // Act
-            String result = threadCommands.thread(true, false, false, false, 
-                    false, false, false, false, false, "", 
-                    false, "", "", "", 1, 10);
-            
-            // Assert
-            assertEquals("Error retrieving threads: Network error", result);
-        }
-    }
-    
-    @Test
-    void thread_WithListOption_WhenNoThreadsFound_ShouldReturnAppropriateMessage() throws Exception {
-        try (MockedStatic<EnvUtils> envUtils = mockStatic(EnvUtils.class);
-             MockedStatic<ThreadsService> threadsService = mockStatic(ThreadsService.class)) {
-            
-            // Arrange
-            ObjectNode emptyResponse = objectMapper.createObjectNode();
-            ArrayNode emptyArray = objectMapper.createArrayNode();
-            emptyResponse.set("content", emptyArray);
-            
-            envUtils.when(() -> EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN))
-                    .thenReturn(true);
-            threadsService.when(() -> ThreadsService.getThreads(anyString(), anyInt(), anyInt()))
-                    .thenReturn(emptyResponse);
-            
-            // Act
-            String result = threadCommands.thread(true, false, false, false, 
-                    false, false, false, false, false, "", 
-                    false, "", "", "", 1, 10);
-            
-            // Assert
-            assertEquals("No threads found.", result);
+            assertEquals("Successfully upvoted thread ID: 123", result);
         }
     }
 }
