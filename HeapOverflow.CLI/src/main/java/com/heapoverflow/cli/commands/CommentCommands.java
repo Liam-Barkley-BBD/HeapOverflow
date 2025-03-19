@@ -42,7 +42,9 @@ public class CommentCommands {
         } else if (list) {
             return getAllComments(page, size, threadId.orElse(""));
         } else if (get) {
-            return getComment(commentId.orElse("")) + ReplyCommands.listReplies(page, size, commentId.orElse(""));
+            return getComment(commentId.orElse("")) + 
+                "\nReplies for comments: \n" +
+            ReplyCommands.listReplies(page, size, commentId.orElse(""));
         } else if (post) {
             return postComment(content.orElse(""), threadId.orElse(""));
         } else if (edit) {
