@@ -10,9 +10,12 @@ import com.heapoverflow.cli.constants.EnvConstants;
 import com.heapoverflow.cli.services.ThreadsService;
 import com.heapoverflow.cli.services.ThreadUpvoteServices;
 import com.heapoverflow.cli.utils.EnvUtils;
+import com.heapoverflow.cli.utils.FlagsCheckUtils;
 import com.heapoverflow.cli.utils.TextUtils;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
 
 @ShellComponent
 public class ThreadCommands {
@@ -30,12 +33,17 @@ public class ThreadCommands {
             @ShellOption(value = "removeUpvote", help = "Remove upvote from a thread", defaultValue = "false") boolean removeUpvote,
             @ShellOption(value = "search", help = "Search query", defaultValue = "") String search,
             @ShellOption(value = "closeThread", help = "Close Thread (true/false)", defaultValue = "false") boolean closeThread,
-            @ShellOption(value = "threadId", help = "Thread ID", defaultValue = "") String threadId,
-            @ShellOption(value = "title", help = "Thread title", defaultValue = "") String title,
-            @ShellOption(value = "description", help = "Thread description", defaultValue = "") String description,
-            @ShellOption(value = "page", help = "Page number", defaultValue = "1") int page,
-            @ShellOption(value = "size", help = "Page size", defaultValue = "10") int size) {
-        if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
+            @ShellOption(value = "threadId", help = "Thread ID", defaultValue = ShellOption.NULL) String threadId,
+            @ShellOption(value = "title", help = "Thread title", defaultValue = ShellOption.NULL) String title,
+            @ShellOption(value = "description", help = "Thread description", defaultValue = ShellOption.NULL) String description,
+            @ShellOption(value = "page", help = "Page number", defaultValue = "1") Integer page,
+            @ShellOption(value = "size", help = "Page size", defaultValue = "10") Integer size) {
+
+        List<String> selectedFlags = FlagsCheckUtils.ensureOnlyOneFlagIsSetForComments(list, get, post, edit, delete,
+                upvote, removeUpvote);
+        if (selectedFlags.size() > 1) {
+            return "You cannot use multiple action based flags at once: " + selectedFlags.toString();
+        } else if (!EnvUtils.doesKeyExist(EnvConstants.JWT_TOKEN)) {
             return "You are not logged in. Please log in!";
         } else if (list) {
             return getAllThreads(search, page, size);
@@ -71,9 +79,10 @@ public class ThreadCommands {
     }
 
     private String getAllThreads(String search, int page, int size) {
+   
         try {
-            String encodedSearchText = URLEncoder.encode(search, StandardCharsets.UTF_8.toString());
-            JsonNode jsonResponse = ThreadsService.getThreads(encodedSearchText, Math.max(0, page - 1), size);
+
+            JsonNode jsonResponse = ThreadsService.getThreads(search, Math.max(0, page - 1), size);
             JsonNode contentArray = jsonResponse.path("content");
 
             {
@@ -128,6 +137,7 @@ public class ThreadCommands {
     }
 
     private String getTrendingThreads(int page, int size) {
+    
         try {
             JsonNode jsonResponse = ThreadsService.getThreadsTrending(Math.max(0, page - 1), size);
             JsonNode contentArray = jsonResponse.path("content");
@@ -149,12 +159,16 @@ public class ThreadCommands {
     }
 
     private String postThread(String title, String description) {
-        try {
-            JsonNode thread = ThreadsService.postThread(title, description);
-            return "Thread created successfully: " + thread.path("id").asText() + "\n" +
-                    buildThreadTable(thread, true);
-        } catch (Exception e) {
-            return "Error creating thread: " + e.getMessage();
+        if (title.isEmpty() || description.isEmpty()) {
+            return "title and description must be specified like:'thread --post --title\"{title _value}\" --description \"{description_value}\"' ";
+        } else {
+            try {
+                JsonNode thread = ThreadsService.postThread(title, description);
+                return "Thread created successfully: " + thread.path("id").asText() + "\n" +
+                        buildThreadTable(thread, true);
+            } catch (Exception e) {
+                return "Error creating thread: " + e.getMessage();
+            }
         }
     }
 
@@ -172,11 +186,15 @@ public class ThreadCommands {
     }
 
     private String deleteThread(String threadId) {
-        try {
-            ThreadsService.deleteThread(threadId);
-            return "Thread deleted successfully.";
-        } catch (Exception e) {
-            return "Error deleting thread: " + e.getMessage();
+        if (threadId.isEmpty()) {
+            return "The threadId must be specified like: 'thread --delete --threadId {threadId_value}'";
+        } else {
+            try {
+                ThreadsService.deleteThread(threadId);
+                return "Thread deleted successfully.";
+            } catch (Exception e) {
+                return "Error deleting thread: " + e.getMessage();
+            }
         }
     }
 

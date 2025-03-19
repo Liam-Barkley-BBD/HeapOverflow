@@ -1,5 +1,7 @@
 package com.heapoverflow.cli.services;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,14 +16,22 @@ import com.heapoverflow.cli.utils.HttpUtils;
 public class ThreadsService {
 
         public static JsonNode getThreads(String search, int page, int size)
+
                         throws Exception {
 
-                String url = EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI) + ApiEndpointsConstants.API_THREADS +
-                                "?page=" + page +
-                                "&size=" + size +
-                                (search != null && !search.isEmpty() ? "&searchText=" + search : "");
+                StringBuilder apiUrl = new StringBuilder(
+                                EnvUtils.getStringEnvOrThrow(EnvConstants.SERVER_URI)
+                                                + ApiEndpointsConstants.API_THREADS + "?page=" + page + "&size="
+                                                + size);
+                if (search != null && !search.isEmpty()) {
 
-                return HttpUtils.syncGet(url);
+                        apiUrl.append("&searchText=" + URLEncoder.encode(search, StandardCharsets.UTF_8.toString()));
+                } else {
+                        apiUrl.append("");
+                }
+
+                System.out.println(apiUrl.toString());
+                return HttpUtils.syncGet(apiUrl.toString());
         }
 
         public static JsonNode getThreadsTrending(int page, int size) throws Exception {
