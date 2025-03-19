@@ -33,9 +33,8 @@ public class AuthService {
 
         if (!userService.userExistsById(user.getId())) {
             userService.createUser(user);
-            System.out.println("Created new user ID: " + user.getId());
         } else {
-            System.out.println("Authorized existing user ID: " + user.getId());
+            //  User id exists
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -56,7 +55,6 @@ public class AuthService {
             "&grant_type=authorization_code" +
             "&scope=openid%20email%20profile";
 
-        System.out.println("The body of the token request:\n" + body);
 
         HttpClient client = HttpClient.newHttpClient();
 
@@ -67,7 +65,6 @@ public class AuthService {
           .build();
 
         HttpResponse<String> resp = client.send(request, BodyHandlers.ofString());
-        System.out.println("RESPONSE: " + resp);
 
         HashMap<String, String> map = objectMapper.readValue(resp.body(), new TypeReference<HashMap<String, String>>() {});
 
