@@ -63,11 +63,11 @@ public class ReplyService {
             // Thread is not closed so can leave a reply
         }
 
-        if (replyRequest.getContent() == null || replyRequest.getContent().trim().isEmpty()) {
+        if (replyRequest.getContent() != null && replyRequest.getContent().trim().isEmpty()) {
             throw new BadRequestException("Reply cannot be empty.");
         }
         else {
-            // Reply is not null or empty
+            // Reply is null or not empty
         }
 
         Reply newReply = new Reply(replyRequest.getContent(), user, comment);

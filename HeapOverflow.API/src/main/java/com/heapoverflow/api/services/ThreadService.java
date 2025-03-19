@@ -112,18 +112,18 @@ public class ThreadService {
             // Thread is closed so cannot be updated
         }
 
-        if (threadUpdate.getTitle() == null || threadUpdate.getTitle().trim().isEmpty()) {
+        if (threadUpdate.getTitle() != null && threadUpdate.getTitle().trim().isEmpty()) {
             throw new BadRequestException("Thread title cannot be empty.");
         }
         else {
-            // Thread title is not null or empty
+            // Thread title is null or is not empty
         }
 
-        if (threadUpdate.getDescription() == null || threadUpdate.getDescription().trim().isEmpty()) {
+        if (threadUpdate.getDescription() != null && threadUpdate.getDescription().trim().isEmpty()) {
             throw new BadRequestException("Thread description cannot be empty.");
         }
         else {
-            // Thread description is not null or empty
+            // Thread description is null or not empty
         }
 
         // update thread with new info

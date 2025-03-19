@@ -65,11 +65,11 @@ public class CommentService {
             // Thread is not closed so can add comment
         }
 
-        if (commentRequest.getContent() == null || commentRequest.getContent().trim().isEmpty()) {
+        if (commentRequest.getContent() != null && commentRequest.getContent().trim().isEmpty()) {
             throw new BadRequestException("Comment cannot be empty.");
         }
         else {
-            // Comment is not null or empty
+            // Comment is null or not empty
         }
 
         Comment newComment = new Comment(commentRequest.getContent(), user, thread);
