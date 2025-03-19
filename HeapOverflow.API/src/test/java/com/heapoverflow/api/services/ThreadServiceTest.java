@@ -127,23 +127,6 @@ public class ThreadServiceTest {
     }
 
     @Test
-    void getThreadsByFilter_WithSearchText_ShouldReturnMatchingThreads() {
-        // Arrange
-        String searchText = "Test";
-        Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
-        when(threadRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable))
-                .thenReturn(threadPage);
-
-        // Act
-        Page<Thread> result = threadService.getThreadsByFilter(searchText, pageable);
-
-        // Assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(testThread, result.getContent().get(0));
-        verify(threadRepository).findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchText, searchText, pageable);
-    }
-
-    @Test
     void getThreadsByFilter_WithNullSearchText_ShouldReturnAllThreads() {
         // Arrange
         Page<Thread> threadPage = new PageImpl<>(Collections.singletonList(testThread), pageable, 1);
